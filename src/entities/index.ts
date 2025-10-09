@@ -20,5 +20,9 @@ export * from './driver/api';
 export * from './vehicle/model';
 export * from './vehicle/api';
 
+// Delivery Attempt Entity exports
+export * from './delivery-attempt/model';
+export * from './delivery-attempt/api';
+
 // Shared exports
 export * from '../shared/api';
