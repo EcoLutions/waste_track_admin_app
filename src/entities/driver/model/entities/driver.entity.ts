@@ -15,4 +15,6 @@ export interface DriverEntity {
   lastRouteCompletedAt: Date | null;
   status: DriverStatusEnum;
   assignedVehicleId: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }

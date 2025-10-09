@@ -13,4 +13,6 @@ export interface DriverResponse {
   lastRouteCompletedAt: string | null; // LocalDateTime → ISO string
   status: string | null;
   assignedVehicleId: string | null;
+  createdAt: string | null; // LocalDateTime → ISO string
+  updatedAt: string | null; // LocalDateTime → ISO string
 }

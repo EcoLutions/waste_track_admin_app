@@ -50,7 +50,8 @@ export class DistrictService extends BaseService {
 
     return this.http.put<DistrictResponse>(`${this.resourcePath()}/${id}`, request, this.httpOptions).pipe(
       map((response: DistrictResponse) => DistrictEntityFromResponseMapper.fromDtoToEntity(response)),
-      catchError(this.handleError)
+      catchError(this.handleError),
+      retry(2)
     );
   }
 

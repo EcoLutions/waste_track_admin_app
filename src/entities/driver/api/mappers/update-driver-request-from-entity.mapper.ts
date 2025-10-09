@@ -4,7 +4,7 @@ import { UpdateDriverRequest } from '../types/update-driver-request.type';
 export class UpdateDriverRequestFromEntityMapper {
   static fromEntityToDto(entity: DriverEntity): UpdateDriverRequest {
     return {
-      driverId: entity.id,
+      driverId: entity.id ?? null,
       districtId: entity.districtId ?? null,
       firstName: entity.firstName ?? null,
       lastName: entity.lastName ?? null,
