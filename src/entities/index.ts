@@ -28,5 +28,13 @@ export * from './delivery-attempt/api';
 export * from './citizen/model';
 export * from './citizen/api';
 
+// Report Entity exports
+export * from './report/model';
+export * from './report/api';
+
+// Evidence Entity exports
+export * from './evidence/model';
+export * from './evidence/api';
+
 // Shared exports
 export * from '../shared/api';
