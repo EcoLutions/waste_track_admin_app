@@ -36,5 +36,13 @@ export * from './report/api';
 export * from './evidence/model';
 export * from './evidence/api';
 
+// Container Entity exports
+export * from './container/model';
+export * from './container/api';
+
+// Sensor Reading Entity exports
+export * from './sensor-reading/model';
+export * from './sensor-reading/api';
+
 // Shared exports
 export * from '../shared/api';
