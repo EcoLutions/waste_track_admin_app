@@ -24,5 +24,9 @@ export * from './vehicle/api';
 export * from './delivery-attempt/model';
 export * from './delivery-attempt/api';
 
+// Citizen Entity exports
+export * from './citizen/model';
+export * from './citizen/api';
+
 // Shared exports
 export * from '../shared/api';
