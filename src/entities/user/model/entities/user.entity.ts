@@ -10,4 +10,5 @@ export interface UserEntity {
   lastLoginAt: Date | null;
   passwordChangedAt: Date | null;
   roles: RoleEntity[];
+  token: string | null;
 }

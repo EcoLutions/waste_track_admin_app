@@ -11,7 +11,8 @@ export class AuthenticatedUserFromResponseMapper {
       failedLoginAttempts: 0, // Not provided in auth response
       lastLoginAt: null, // Not provided in auth response
       passwordChangedAt: null, // Not provided in auth response
-      roles: [] // Would need separate call to get user roles
+      roles: [], // Would need separate call to get user roles
+      token: dto.token ?? '',
     };
   }
 }

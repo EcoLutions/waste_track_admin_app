@@ -15,7 +15,8 @@ export class UserEntityFromResponseMapper {
       roles: dto.roles ? dto.roles.map(role => ({
         id: '', // Role ID not provided in user response, would need separate call
         name: role as any // This would need proper mapping based on your role enum
-      })) : []
+      })) : [],
+      token: null
     };
   }
 
