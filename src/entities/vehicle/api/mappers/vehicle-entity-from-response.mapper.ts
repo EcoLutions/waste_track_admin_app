@@ -20,9 +20,12 @@ export class VehicleEntityFromResponseMapper {
   }
 
   private static mapStringToVehicleType(vehicleType: string): VehicleTypeEnum {
-    const typeKey = Object.keys(VehicleTypeEnum).find(
-      key => VehicleTypeEnum[key as keyof typeof VehicleTypeEnum] === vehicleType
-    );
+    const normalized = (vehicleType ?? '').toString().trim().toLowerCase();
+
+    const typeKey = Object.keys(VehicleTypeEnum).find(key => {
+      const val = VehicleTypeEnum[key as keyof typeof VehicleTypeEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (typeKey) {
       return VehicleTypeEnum[typeKey as keyof typeof VehicleTypeEnum];
