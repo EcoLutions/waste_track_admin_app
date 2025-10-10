@@ -20,7 +20,7 @@ export class ContainerMonitoringPage implements OnInit {
   options = computed<L.MapOptions>(() => ({
     layers: [
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
+        maxZoom: 25,
         attribution: '© OpenStreetMap contributors'
       })
     ],
@@ -99,39 +99,88 @@ export class ContainerMonitoringPage implements OnInit {
 
   // Crear DivIcon personalizado (alternativa más flexible)
   private createCustomDivIcon(container: ContainerEntity): L.DivIcon {
-    const statusColors = {
-      [ContainerStatusEnum.ACTIVE]: '#27ae60',
-      [ContainerStatusEnum.MAINTENANCE]: '#f39c12',
-      [ContainerStatusEnum.DECOMMISSIONED]: '#e74c3c'
+    // Colores por estado (sin cambios)
+    const statusConfig = {
+      [ContainerStatusEnum.ACTIVE]: {
+        color: '#16a34a',      // green-600
+        bgColor: '#f0fdf4',    // green-50
+        icon: 'pi-check-circle',
+        label: 'Activo'
+      },
+      [ContainerStatusEnum.MAINTENANCE]: {
+        color: '#ea580c',      // orange-600
+        bgColor: '#fff7ed',    // orange-50
+        icon: 'pi-wrench',
+        label: 'Mantenimiento'
+      },
+      [ContainerStatusEnum.DECOMMISSIONED]: {
+        color: '#dc2626',      // red-600
+        bgColor: '#fef2f2',    // red-50
+        icon: 'pi-times-circle',
+        label: 'Fuera de Servicio'
+      }
+    };
+    // Iconos por tipo (sin cambios)
+    const typeConfig = {
+      [ContainerTypeEnum.ORGANIC]: {
+        icon: 'pi-sun',
+        color: '#84cc16',  // lime-500
+        label: 'Orgánico'
+      },
+      [ContainerTypeEnum.RECYCLABLE]: {
+        icon: 'pi-sync',
+        color: '#06b6d4',  // cyan-500
+        label: 'Reciclable'
+      },
+      [ContainerTypeEnum.GENERAL]: {
+        icon: 'pi-trash',
+        color: '#6b7280',  // gray-500
+        label: 'General'
+      }
     };
 
-    const typeIcons = {
-      [ContainerTypeEnum.ORGANIC]: '🌱',
-      [ContainerTypeEnum.RECYCLABLE]: '♻️',
-      [ContainerTypeEnum.GENERAL]: '🗑️'
-    };
+    const status = statusConfig[container.status];
+    const type = typeConfig[container.containerType];
+    const fillLevel = container.currentFillLevel;
+    const isHigh = fillLevel > 80;
 
+    // HTML con todos los estilos aplicados inline
     const html = `
-      <div class="custom-marker ${container.status.toLowerCase()}">
-        <div class="marker-icon">
-          <span class="type-icon">${typeIcons[container.containerType]}</span>
+    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+      ${isHigh || container.status === ContainerStatusEnum.MAINTENANCE ? `
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; opacity: 0.6; animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; background-color: ${status.color};"></div>
+      ` : ''}
+
+      <div style="background-color: ${status.bgColor}; border: 3px solid ${status.color}; border-radius: 12px; padding: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transition: all 0.3s ease; position: relative; z-index: 1;">
+        <div style="position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+          <img src="assets/images/smart-trash.png" alt="Container" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));">
+
+          <div style="position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); border: 2px solid white; background-color: ${type.color};">
+            <i class="pi ${type.icon}" style="font-size: 10px; color: white;"></i>
+          </div>
+
+          <div style="position: absolute; bottom: -4px; right: -4px; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); border: 2px solid white; background-color: ${status.color};">
+            <i class="pi ${status.icon}" style="font-size: 10px; color: white;"></i>
+          </div>
         </div>
-        <div class="marker-badge" style="background: ${statusColors[container.status]}">
-          ${container.id.substring(0, 8)}
+
+        <div style="text-align: center; padding-top: 4px; border-top: 1px solid #e5e7eb;">
+          <div style="font-size: 11px; font-weight: 700; color: #1f2937; margin-bottom: 2px;">${container.id.substring(0, 8)}</div>
+          <div style="font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; color: ${isHigh ? '#dc2626' : '#6b7280'};">
+            <i class="pi pi-chart-bar" style="font-size: 10px;"></i>
+            <span>${fillLevel}%</span>
+          </div>
         </div>
-        ${container.status === ContainerStatusEnum.ACTIVE && container.currentFillLevel > 80 ?
-          '<div class="marker-pulse warning"></div>' : ''}
-        ${container.status === ContainerStatusEnum.MAINTENANCE ?
-          '<div class="marker-pulse maintenance"></div>' : ''}
       </div>
-    `;
+    </div>
+  `;
 
     return L.divIcon({
       html: html,
-      className: 'custom-container-marker',
-      iconSize: [60, 70],
-      iconAnchor: [30, 70],
-      popupAnchor: [0, -70]
+      className: 'custom-container-marker', // Esta clase sigue siendo útil para seleccionar los marcadores si es necesario
+      iconSize: [80, 100],
+      iconAnchor: [40, 100],
+      popupAnchor: [0, -100]
     });
   }
 
