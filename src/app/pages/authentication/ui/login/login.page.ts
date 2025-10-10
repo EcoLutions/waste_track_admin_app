@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {AuthStore} from '../../../../../shared';
 import {Router} from '@angular/router';
 import {SignInCredentials} from '../../../../../entities';
@@ -18,7 +18,7 @@ import {MessageModule} from 'primeng/message';
   templateUrl: './login.page.html',
   styleUrl: './login.page.css'
 })
-export class LoginPage {
+export class LoginPage implements OnInit{
   readonly authStore = inject(AuthStore);
   private router = inject(Router);
 
