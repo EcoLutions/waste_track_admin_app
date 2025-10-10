@@ -35,6 +35,13 @@ export class VehicleService extends BaseService {
     );
   }
 
+  getAllByDistrictId(districtId: string): Observable<VehicleEntity[]> {
+    return this.http.get<VehicleResponse[]>(`${this.resourcePath()}/district/${districtId}`, this.httpOptions).pipe(
+      map((responses: VehicleResponse[]) => responses.map(r => VehicleEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
+  }
+
   create(vehicle: VehicleEntity): Observable<VehicleEntity> {
     const request: CreateVehicleRequest = CreateVehicleRequestFromEntityMapper.fromEntityToDto(vehicle);
 
