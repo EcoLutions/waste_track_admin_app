@@ -4,6 +4,7 @@ import { ContainerEntity } from '../../../../../entities';
 import { ContainerStatusEnum, ContainerTypeEnum } from '../../../../../entities';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { firstValueFrom } from 'rxjs';
+import {HeaderStore} from '../../../../../features/layout/model/header.store';
 
 export interface ContainerMonitoringState {
   containers: ContainerEntity[];
@@ -93,8 +94,10 @@ export const ContainerMonitoringStore = signalStore(
 
   withMethods((store) => {
     const containerService = inject(ContainerService);
+    const headerStore = inject(HeaderStore);
 
     return {
+      profile: computed(() => headerStore.profile()),
       /**
        * Cargar todos los containers desde el servicio
        */
@@ -105,7 +108,7 @@ export const ContainerMonitoringStore = signalStore(
         });
 
         try {
-          const containers = await firstValueFrom(containerService.getAll());
+          const containers = await firstValueFrom(containerService.getAllByDistrictId(this.profile()!.districtId));
 
           patchState(store, {
             containers,
