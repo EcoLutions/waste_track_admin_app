@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CreateVehicleStore } from '../../model/store/create-vehicle.store';
-import {VehicleTypeEnum} from '../../../../../entities';
+import { VehicleTypeEnum } from '../../../../../entities';
 
 @Component({
   selector: 'app-create-vehicle',
@@ -15,17 +15,14 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   readonly store = inject(CreateVehicleStore);
 
-  // Form
   vehicleForm!: FormGroup;
 
-  // Signals for template
   readonly isLoading = computed(() => this.store.isLoading());
   readonly error = computed(() => this.store.error());
   readonly isSuccess = computed(() => this.store.isSuccess());
   readonly isFormValid = computed(() => this.store.isFormValid());
   readonly districtName = computed(() => this.store.districtName());
 
-  // Vehicle type options
   readonly vehicleTypes = Object.values(VehicleTypeEnum);
 
   ngOnInit(): void {
@@ -34,7 +31,6 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Reset form when leaving the page
     this.store.resetForm();
   }
 
@@ -53,7 +49,6 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
   }
 
   private syncFormWithStore(): void {
-    // Sync form changes with store
     this.vehicleForm.valueChanges.subscribe(formValue => {
       this.store.updateFormData(formValue);
     });
@@ -89,7 +84,6 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
     this.store.resetForm();
   }
 
-  // Helper methods for template
   isFieldInvalid(fieldName: string): boolean {
     const field = this.vehicleForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
@@ -98,12 +92,12 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
   getFieldError(fieldName: string): string {
     const field = this.vehicleForm.get(fieldName);
     if (field && field.errors && field.touched) {
-      if (field.errors['required']) return `${fieldName} es requerido`;
-      if (field.errors['minlength']) return `${fieldName} debe tener al menos ${field.errors['minlength'].requiredLength} caracteres`;
-      if (field.errors['maxlength']) return `${fieldName} no debe exceder ${field.errors['maxlength'].requiredLength} caracteres`;
-      if (field.errors['min']) return `${fieldName} debe ser mayor o igual a ${field.errors['min'].min}`;
-      if (field.errors['max']) return `${fieldName} debe ser menor o igual a ${field.errors['max'].max}`;
-      if (field.errors['pattern']) return `${fieldName} tiene un formato inválido`;
+      if (field.errors['required']) return 'Este campo es requerido';
+      if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
+      if (field.errors['maxlength']) return `Máximo ${field.errors['maxlength'].requiredLength} caracteres`;
+      if (field.errors['min']) return `Valor mínimo: ${field.errors['min'].min}`;
+      if (field.errors['max']) return `Valor máximo: ${field.errors['max'].max}`;
+      if (field.errors['pattern']) return 'Formato inválido';
     }
     return '';
   }
@@ -115,6 +109,14 @@ export class CreateVehiclePage implements OnInit, OnDestroy {
       [VehicleTypeEnum.MINI_TRUCK]: 'Mini Camión'
     };
     return labels[type] || type;
+  }
+
+  getTodayDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   formatDate(dateString: string): string {
