@@ -20,7 +20,7 @@ export class ContainerMonitoringPage implements OnInit {
   options = computed<L.MapOptions>(() => ({
     layers: [
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 25,
+        maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
       })
     ],
