@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CreateContainerStore } from '../../model/store/create-container.store';
@@ -6,10 +6,12 @@ import { ContainerTypeEnum, ContainerStatusEnum } from '../../../../../entities'
 import {LeafletDirective} from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import {GeoSearchControl, OpenStreetMapProvider} from 'leaflet-geosearch';
+import {StepsModule} from 'primeng/steps';
+import {MenuItem} from 'primeng/api';
 
 @Component({
   selector: 'app-create-container',
-  imports: [CommonModule, ReactiveFormsModule, LeafletDirective],
+  imports: [CommonModule, ReactiveFormsModule, LeafletDirective, StepsModule],
   templateUrl: './create-container.page.html',
   styleUrl: './create-container.page.css'
 })
@@ -35,6 +37,28 @@ export class CreateContainerPage implements OnInit, OnDestroy {
     zoom: 13,
     center: L.latLng(-12.0464, -77.0428) // Lima, Perú
   };
+
+  // Step
+  activeStep = 0;
+
+  steps: MenuItem[] = [
+    {
+      label: 'Ubicación',
+      icon: 'pi pi-map-marker'
+    },
+    {
+      label: 'Características',
+      icon: 'pi pi-box'
+    },
+    {
+      label: 'Configuración',
+      icon: 'pi pi-cog'
+    },
+    {
+      label: 'Confirmación',
+      icon: 'pi pi-check'
+    }
+  ];
 
   // Signals for template
   readonly isLoading = computed(() => this.store.isLoading());
@@ -268,5 +292,46 @@ export class CreateContainerPage implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  nextStep(): void {
+    if (this.activeStep < 3) {
+      this.activeStep++;
+    }
+  }
+
+  prevStep(): void {
+    if (this.activeStep > 0) {
+      this.activeStep--;
+    }
+  }
+
+  goToStep(step: number): void {
+    this.activeStep = step;
+  }
+
+  isStepValid(step: number): boolean {
+    switch(step) {
+      case 0: // Ubicación
+        return !!(
+          this.containerForm.get('latitude')?.valid &&
+          this.containerForm.get('longitude')?.valid &&
+          this.containerForm.get('address')?.valid &&
+          this.containerForm.get('districtCode')?.valid
+        );
+      case 1: // Características
+        return !!(
+          this.containerForm.get('volumeLiters')?.valid &&
+          this.containerForm.get('maxWeightKg')?.valid &&
+          this.containerForm.get('containerType')?.valid
+        );
+      case 2: // Configuración
+        return !!(
+          this.containerForm.get('districtId')?.valid &&
+          this.containerForm.get('collectionFrequencyDays')?.valid
+        );
+      default:
+        return true;
+    }
   }
 }

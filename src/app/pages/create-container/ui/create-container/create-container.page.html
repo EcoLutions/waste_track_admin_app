@@ -8,7 +8,7 @@
       </div>
       <h1 class="text-xl font-bold text-gray-900">Crear Nuevo Contenedor</h1>
     </div>
-    <p class="text-xs text-gray-600 ml-11">Complete la información para registrar un nuevo contenedor en el sistema</p>
+    <p class="text-xs text-gray-600 ml-11">Complete la información paso a paso para registrar un nuevo contenedor</p>
   </div>
 
   <!-- Success Message -->
@@ -47,266 +47,368 @@
     </div>
   }
 
-  <!-- Form + Map Layout CON FLEXBOX -->
+  <!-- Stepper Form -->
   @if (!isLoading() && !isSuccess()) {
-    <div class="flex-1 flex gap-6 min-h-0">
+    <div class="flex-1 flex flex-col gap-6 min-h-0">
 
-      <!-- Formulario con scroll (60%) -->
-      <div class="flex-1 overflow-y-auto pr-2 scrollbar-thin">
-        <form [formGroup]="containerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <!-- Steps Navigation -->
+      <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+        <p-steps
+          [model]="steps"
+          [activeIndex]="activeStep"
+          [readonly]="false"
+          (activeIndexChange)="goToStep($event)"
+          styleClass="w-full">
+        </p-steps>
+      </div>
 
-          <!-- Información de Ubicación -->
-          <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="pi pi-map-marker text-green-600 text-lg"></i>
-              <h2 class="text-lg font-bold text-gray-900">Información de Ubicación</h2>
-            </div>
+      <!-- Step Content CON MAPA EN STEP 0 -->
+      <div class="flex-1 flex gap-6 min-h-0">
 
-            <div class="space-y-4">
-              <!-- Coordenadas -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label for="latitude" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Latitud <span class="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="latitude"
-                    type="text"
-                    formControlName="latitude"
-                    class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                    [class.border-red-500]="isFieldInvalid('latitude')"
-                    [class.border-gray-200]="!isFieldInvalid('latitude')"
-                    placeholder="-12.0464">
-                  @if (isFieldInvalid('latitude')) {
-                    <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('latitude') }}</span>
-                  }
+        <!-- Form Content -->
+        <div [class]="activeStep === 0 ? 'flex-1' : 'w-full'">
+          <form [formGroup]="containerForm" class="h-full">
+
+            <!-- STEP 0: Ubicación con Mapa -->
+            @if (activeStep === 0) {
+              <div class="h-full flex gap-6">
+                <!-- Form Side -->
+                <div class="flex-1 overflow-y-auto pr-2 scrollbar-thin">
+                  <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-2 mb-4">
+                      <i class="pi pi-map-marker text-green-600 text-lg"></i>
+                      <h2 class="text-lg font-bold text-gray-900">Información de Ubicación</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                      <!-- Coordenadas -->
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label for="latitude" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Latitud <span class="text-red-600">*</span>
+                          </label>
+                          <input
+                            id="latitude"
+                            type="text"
+                            formControlName="latitude"
+                            class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                            [class.border-red-500]="isFieldInvalid('latitude')"
+                            [class.border-gray-200]="!isFieldInvalid('latitude')"
+                            placeholder="-12.0464">
+                          @if (isFieldInvalid('latitude')) {
+                            <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('latitude') }}</span>
+                          }
+                        </div>
+
+                        <div>
+                          <label for="longitude" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Longitud <span class="text-red-600">*</span>
+                          </label>
+                          <input
+                            id="longitude"
+                            type="text"
+                            formControlName="longitude"
+                            class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                            [class.border-red-500]="isFieldInvalid('longitude')"
+                            [class.border-gray-200]="!isFieldInvalid('longitude')"
+                            placeholder="-77.0428">
+                          @if (isFieldInvalid('longitude')) {
+                            <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('longitude') }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Dirección -->
+                      <div>
+                        <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">
+                          Dirección <span class="text-red-600">*</span>
+                        </label>
+                        <textarea
+                          id="address"
+                          formControlName="address"
+                          class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
+                          [class.border-red-500]="isFieldInvalid('address')"
+                          [class.border-gray-200]="!isFieldInvalid('address')"
+                          placeholder="Ingrese la dirección completa del contenedor"
+                          rows="3"></textarea>
+                        @if (isFieldInvalid('address')) {
+                          <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('address') }}</span>
+                        }
+                      </div>
+
+                      <!-- Código de Distrito -->
+                      <div>
+                        <label for="districtCode" class="block text-sm font-semibold text-gray-700 mb-2">
+                          Código de Distrito <span class="text-red-600">*</span>
+                        </label>
+                        <input
+                          id="districtCode"
+                          type="text"
+                          formControlName="districtCode"
+                          class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          [class.border-red-500]="isFieldInvalid('districtCode')"
+                          [class.border-gray-200]="!isFieldInvalid('districtCode')"
+                          placeholder="LIMA-01">
+                        @if (isFieldInvalid('districtCode')) {
+                          <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('districtCode') }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label for="longitude" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Longitud <span class="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="longitude"
-                    type="text"
-                    formControlName="longitude"
-                    class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                    [class.border-red-500]="isFieldInvalid('longitude')"
-                    [class.border-gray-200]="!isFieldInvalid('longitude')"
-                    placeholder="-77.0428">
-                  @if (isFieldInvalid('longitude')) {
-                    <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('longitude') }}</span>
-                  }
+                <!-- Map Side -->
+                <div class="w-[45%] flex-shrink-0">
+                  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
+                    <div class="bg-gradient-to-r from-green-600 to-teal-600 p-3 flex-shrink-0">
+                      <h3 class="text-white font-bold text-sm flex items-center gap-2">
+                        <i class="pi pi-map"></i>
+                        Ubicación en el Mapa
+                      </h3>
+                      <p class="text-white/90 text-xs mt-0.5">Haz click o arrastra el marcador</p>
+                    </div>
+
+                    <div class="flex-1"
+                         leaflet
+                         [leafletOptions]="mapOptions"
+                         (leafletMapReady)="onMapReady($event)">
+                    </div>
+                  </div>
                 </div>
               </div>
+            }
 
-              <!-- Dirección -->
-              <div>
-                <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Dirección <span class="text-red-600">*</span>
-                </label>
-                <textarea
-                  id="address"
-                  formControlName="address"
-                  class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
-                  [class.border-red-500]="isFieldInvalid('address')"
-                  [class.border-gray-200]="!isFieldInvalid('address')"
-                  placeholder="Ingrese la dirección completa del contenedor"
-                  rows="3"></textarea>
-                @if (isFieldInvalid('address')) {
-                  <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('address') }}</span>
-                }
-              </div>
-
-              <!-- Código de Distrito -->
-              <div>
-                <label for="districtCode" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Código de Distrito <span class="text-red-600">*</span>
-                </label>
-                <input
-                  id="districtCode"
-                  type="text"
-                  formControlName="districtCode"
-                  class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  [class.border-red-500]="isFieldInvalid('districtCode')"
-                  [class.border-gray-200]="!isFieldInvalid('districtCode')"
-                  placeholder="LIMA-01">
-                @if (isFieldInvalid('districtCode')) {
-                  <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('districtCode') }}</span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Características del Contenedor -->
-          <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="pi pi-box text-green-600 text-lg"></i>
-              <h2 class="text-lg font-bold text-gray-900">Características del Contenedor</h2>
-            </div>
-
-            <div class="space-y-4">
-              <!-- Volumen y Peso -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label for="volumeLiters" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Volumen (Litros) <span class="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="volumeLiters"
-                    type="number"
-                    formControlName="volumeLiters"
-                    class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                    [class.border-red-500]="isFieldInvalid('volumeLiters')"
-                    [class.border-gray-200]="!isFieldInvalid('volumeLiters')"
-                    min="50"
-                    max="5000">
-                  @if (isFieldInvalid('volumeLiters')) {
-                    <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('volumeLiters') }}</span>
-                  }
+            <!-- STEP 1: Características -->
+            @if (activeStep === 1) {
+              <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <i class="pi pi-box text-green-600 text-lg"></i>
+                  <h2 class="text-lg font-bold text-gray-900">Características del Contenedor</h2>
                 </div>
 
-                <div>
-                  <label for="maxWeightKg" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Peso Máximo (Kg) <span class="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="maxWeightKg"
-                    type="number"
-                    formControlName="maxWeightKg"
-                    class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                    [class.border-red-500]="isFieldInvalid('maxWeightKg')"
-                    [class.border-gray-200]="!isFieldInvalid('maxWeightKg')"
-                    min="10"
-                    max="1000">
-                  @if (isFieldInvalid('maxWeightKg')) {
-                    <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('maxWeightKg') }}</span>
-                  }
+                <div class="space-y-4 max-w-2xl">
+                  <!-- Volumen y Peso -->
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label for="volumeLiters" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Volumen (Litros) <span class="text-red-600">*</span>
+                      </label>
+                      <input
+                        id="volumeLiters"
+                        type="number"
+                        formControlName="volumeLiters"
+                        class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-500]="isFieldInvalid('volumeLiters')"
+                        [class.border-gray-200]="!isFieldInvalid('volumeLiters')"
+                        min="50"
+                        max="5000">
+                      @if (isFieldInvalid('volumeLiters')) {
+                        <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('volumeLiters') }}</span>
+                      }
+                    </div>
+
+                    <div>
+                      <label for="maxWeightKg" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Peso Máximo (Kg) <span class="text-red-600">*</span>
+                      </label>
+                      <input
+                        id="maxWeightKg"
+                        type="number"
+                        formControlName="maxWeightKg"
+                        class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-500]="isFieldInvalid('maxWeightKg')"
+                        [class.border-gray-200]="!isFieldInvalid('maxWeightKg')"
+                        min="10"
+                        max="1000">
+                      @if (isFieldInvalid('maxWeightKg')) {
+                        <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('maxWeightKg') }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Tipo de Contenedor -->
+                  <div>
+                    <label for="containerType" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Tipo de Contenedor <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                      id="containerType"
+                      formControlName="containerType"
+                      class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                      @for (type of containerTypes; track type) {
+                        <option [value]="type">{{ getContainerTypeLabel(type) }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <!-- Sensor ID -->
+                  <div>
+                    <label for="sensorId" class="block text-sm font-semibold text-gray-700 mb-2">
+                      ID del Sensor <span class="text-xs text-gray-500 font-normal">(Opcional)</span>
+                    </label>
+                    <input
+                      id="sensorId"
+                      type="text"
+                      formControlName="sensorId"
+                      class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      placeholder="SENSOR-001">
+                  </div>
                 </div>
               </div>
+            }
 
-              <!-- Tipo de Contenedor -->
-              <div>
-                <label for="containerType" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Tipo de Contenedor <span class="text-red-600">*</span>
-                </label>
-                <select
-                  id="containerType"
-                  formControlName="containerType"
-                  class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                  @for (type of containerTypes; track type) {
-                    <option [value]="type">{{ getContainerTypeLabel(type) }}</option>
-                  }
-                </select>
+            <!-- STEP 2: Configuración -->
+            @if (activeStep === 2) {
+              <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <i class="pi pi-cog text-green-600 text-lg"></i>
+                  <h2 class="text-lg font-bold text-gray-900">Configuración Operacional</h2>
+                </div>
+
+                <div class="space-y-4 max-w-2xl">
+                  <div>
+                    <label for="districtId" class="block text-sm font-semibold text-gray-700 mb-2">
+                      ID del Distrito <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="districtId"
+                      type="text"
+                      formControlName="districtId"
+                      class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      [class.border-red-500]="isFieldInvalid('districtId')"
+                      [class.border-gray-200]="!isFieldInvalid('districtId')"
+                      placeholder="DIST-001">
+                    @if (isFieldInvalid('districtId')) {
+                      <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('districtId') }}</span>
+                    }
+                  </div>
+
+                  <div>
+                    <label for="collectionFrequencyDays" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Frecuencia de Recolección (Días) <span class="text-red-600">*</span>
+                    </label>
+                    <input
+                      id="collectionFrequencyDays"
+                      type="number"
+                      formControlName="collectionFrequencyDays"
+                      class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      [class.border-red-500]="isFieldInvalid('collectionFrequencyDays')"
+                      [class.border-gray-200]="!isFieldInvalid('collectionFrequencyDays')"
+                      min="1"
+                      max="30">
+                    @if (isFieldInvalid('collectionFrequencyDays')) {
+                      <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('collectionFrequencyDays') }}</span>
+                    }
+                  </div>
+                </div>
               </div>
+            }
 
-              <!-- Sensor ID -->
-              <div>
-                <label for="sensorId" class="block text-sm font-semibold text-gray-700 mb-2">
-                  ID del Sensor <span class="text-xs text-gray-500 font-normal">(Opcional)</span>
-                </label>
-                <input
-                  id="sensorId"
-                  type="text"
-                  formControlName="sensorId"
-                  class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  placeholder="SENSOR-001">
+            <!-- STEP 3: Confirmación -->
+            @if (activeStep === 3) {
+              <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <i class="pi pi-check-circle text-green-600 text-lg"></i>
+                  <h2 class="text-lg font-bold text-gray-900">Confirmar Información</h2>
+                </div>
+
+                <div class="space-y-6 max-w-3xl">
+                  <!-- Ubicación Summary -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                      <i class="pi pi-map-marker text-green-600"></i>
+                      Ubicación
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div><span class="text-gray-600">Latitud:</span> <span class="font-medium">{{ containerForm.get('latitude')?.value }}</span></div>
+                      <div><span class="text-gray-600">Longitud:</span> <span class="font-medium">{{ containerForm.get('longitude')?.value }}</span></div>
+                      <div class="col-span-2"><span class="text-gray-600">Dirección:</span> <span class="font-medium">{{ containerForm.get('address')?.value }}</span></div>
+                      <div><span class="text-gray-600">Distrito:</span> <span class="font-medium">{{ containerForm.get('districtCode')?.value }}</span></div>
+                    </div>
+                  </div>
+
+                  <!-- Características Summary -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                      <i class="pi pi-box text-green-600"></i>
+                      Características
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div><span class="text-gray-600">Volumen:</span> <span class="font-medium">{{ containerForm.get('volumeLiters')?.value }}L</span></div>
+                      <div><span class="text-gray-600">Peso Máximo:</span> <span class="font-medium">{{ containerForm.get('maxWeightKg')?.value }}kg</span></div>
+                      <div><span class="text-gray-600">Tipo:</span> <span class="font-medium">{{ getContainerTypeLabel(containerForm.get('containerType')?.value) }}</span></div>
+                      @if (containerForm.get('sensorId')?.value) {
+                        <div><span class="text-gray-600">Sensor ID:</span> <span class="font-medium">{{ containerForm.get('sensorId')?.value }}</span></div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Configuración Summary -->
+                  <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                      <i class="pi pi-cog text-green-600"></i>
+                      Configuración
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                      <div><span class="text-gray-600">ID Distrito:</span> <span class="font-medium">{{ containerForm.get('districtId')?.value }}</span></div>
+                      <div><span class="text-gray-600">Frecuencia:</span> <span class="font-medium">Cada {{ containerForm.get('collectionFrequencyDays')?.value }} días</span></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            }
+          </form>
+        </div>
+      </div>
 
-          <!-- Configuración Operacional -->
-          <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-2 mb-4">
-              <i class="pi pi-cog text-green-600 text-lg"></i>
-              <h2 class="text-lg font-bold text-gray-900">Configuración Operacional</h2>
-            </div>
+      <!-- Step Navigation Buttons -->
+      <div class="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+        <div class="flex justify-between gap-3">
+          <button
+            type="button"
+            (click)="prevStep()"
+            [disabled]="activeStep === 0"
+            class="px-6 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-300">
+            <i class="pi pi-arrow-left mr-2"></i>
+            Anterior
+          </button>
 
-            <div class="space-y-4">
-              <div>
-                <label for="districtId" class="block text-sm font-semibold text-gray-700 mb-2">
-                  ID del Distrito <span class="text-red-600">*</span>
-                </label>
-                <input
-                  id="districtId"
-                  type="text"
-                  formControlName="districtId"
-                  class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  [class.border-red-500]="isFieldInvalid('districtId')"
-                  [class.border-gray-200]="!isFieldInvalid('districtId')"
-                  placeholder="DIST-001">
-                @if (isFieldInvalid('districtId')) {
-                  <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('districtId') }}</span>
-                }
-              </div>
+          <button
+            type="button"
+            (click)="onReset()"
+            class="px-6 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
+            <i class="pi pi-refresh mr-2"></i>
+            Limpiar
+          </button>
 
-              <div>
-                <label for="collectionFrequencyDays" class="block text-sm font-semibold text-gray-700 mb-2">
-                  Frecuencia de Recolección (Días) <span class="text-red-600">*</span>
-                </label>
-                <input
-                  id="collectionFrequencyDays"
-                  type="number"
-                  formControlName="collectionFrequencyDays"
-                  class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  [class.border-red-500]="isFieldInvalid('collectionFrequencyDays')"
-                  [class.border-gray-200]="!isFieldInvalid('collectionFrequencyDays')"
-                  min="1"
-                  max="30">
-                @if (isFieldInvalid('collectionFrequencyDays')) {
-                  <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('collectionFrequencyDays') }}</span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Form Actions -->
-          <div class="flex gap-3 pb-4">
+          @if (activeStep < 3) {
             <button
               type="button"
-              class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
-              (click)="onReset()"
-              [disabled]="isLoading()">
-              <i class="pi pi-refresh mr-2"></i>
-              Limpiar
+              (click)="nextStep()"
+              [disabled]="!isStepValid(activeStep)"
+              class="px-6 py-2.5 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+              Siguiente
+              <i class="pi pi-arrow-right ml-2"></i>
             </button>
-
+          } @else {
             <button
-              type="submit"
-              class="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              [disabled]="!isFormValid() || isLoading()">
+              type="button"
+              (click)="onSubmit()"
+              [disabled]="!isFormValid() || isLoading()"
+              class="px-6 py-2.5 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
               @if (isLoading()) {
-                <div class="flex items-center justify-center gap-2">
+                <div class="flex items-center gap-2">
                   <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Creando...</span>
                 </div>
               } @else {
-                <div class="flex items-center justify-center gap-2">
-                  <i class="pi pi-plus"></i>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-check"></i>
                   <span>Crear Contenedor</span>
                 </div>
               }
             </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Mapa fijo (40%) -->
-      <div class="w-[40%] flex-shrink-0" style="height: 400px">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
-          <div class="bg-gradient-to-r from-green-600 to-teal-600 p-3 flex-shrink-0">
-            <h3 class="text-white font-bold text-sm flex items-center gap-2">
-              <i class="pi pi-map"></i>
-              Ubicación en el Mapa
-            </h3>
-            <p class="text-white/90 text-xs mt-0.5">Haz click o arrastra el marcador</p>
-          </div>
-
-          <div class="flex-1"
-               leaflet
-               [leafletOptions]="mapOptions"
-               (leafletMapReady)="onMapReady($event)">
-          </div>
+          }
         </div>
       </div>
     </div>
