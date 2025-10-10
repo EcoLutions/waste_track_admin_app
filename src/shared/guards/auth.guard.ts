@@ -61,10 +61,13 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
     );
 
     if (hasRequiredRole) {
+      console.log('User has required role');
       return true;
     }
 
-    router.navigate(['/unauthorized']).then(() => {});
+    router.navigate(['/unauthorized']).then(() => {
+      console.log('User does not have required role');
+    });
     return false;
   };
 };

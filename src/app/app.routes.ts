@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard, roleGuard } from '../shared';
 
 import { AdminLayoutComponent } from './pages/admin-layout/ui/admin-layout/admin-layout.page';
 import { DashboardPage } from './pages/dashboard/ui/dashboard/dashboard.page';
@@ -38,11 +39,25 @@ import { SettingsPage } from './pages/settings/ui/settings/settings.page';
 import { ProfileSettingsPage } from './pages/profile-settings/ui/profile-settings/profile-settings.page';
 import { NotificationSettingsPage } from './pages/notification-settings/ui/notification-settings/notification-settings.page';
 import { IntegrationsPage } from './pages/integrations/ui/integrations/integrations.page';
+import {LoginPage} from './pages/authentication/ui/login/login.page';
+import {UnauthorizedPage} from './pages/authentication/ui/unauthorized/unauthorized.page';
 
 export const routes: Routes = [
+  // ==================== PÁGINAS PÚBLICAS ====================
+  {
+    path: 'login',
+    component: LoginPage
+  },
+  {
+    path: 'unauthorized',
+    component: UnauthorizedPage
+  },
+
+  // ==================== PÁGINAS PRINCIPALES ====================
   {
     path: '',
     component: AdminLayoutComponent,
+    canActivate: [authGuard], // 🔒 Requiere autenticación
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
@@ -61,7 +76,11 @@ export const routes: Routes = [
           { path: 'alerts', component: ContainerAlertsPage },
           { path: 'history/:id', component: ContainerHistoryPage },
           { path: 'settings/:id', component: ContainerSettingsPage },
-          { path: 'create', component: CreateContainerPage }
+          {
+            path: 'create',
+            component: CreateContainerPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          }
         ]
       },
 
@@ -74,7 +93,11 @@ export const routes: Routes = [
           { path: 'active', component: ActiveRoutesPage },
           { path: 'history', component: RoutesHistoryPage },
           { path: 'reports', component: RouteReportsPage },
-          { path: 'create', component: CreateRoutePage }
+          {
+            path: 'create',
+            component: CreateRoutePage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          }
         ]
       },
 
@@ -95,8 +118,16 @@ export const routes: Routes = [
         path: 'citizen-reports',
         children: [
           { path: '', component: CitizenReportsPage },
-          { path: 'create', component: CreateReportPage },
-          { path: 'manage', component: ManageReportsPage },
+          {
+            path: 'create',
+            component: CreateReportPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
+          {
+            path: 'manage',
+            component: ManageReportsPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
           { path: 'analytics', component: ReportsAnalyticsPage }
         ]
       },
@@ -106,15 +137,28 @@ export const routes: Routes = [
         path: 'analytics',
         children: [
           { path: '', component: AnalyticsPage },
-          { path: 'predictions', component: ContainerPredictionPage },
-          { path: 'patterns', component: GenerationPatternsPage },
-          { path: 'executive', component: ExecutiveDashboardPage }
+          {
+            path: 'predictions',
+            component: ContainerPredictionPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
+          {
+            path: 'patterns',
+            component: GenerationPatternsPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
+          {
+            path: 'executive',
+            component: ExecutiveDashboardPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          }
         ]
       },
 
       // ==================== CUMPLIMIENTO REGULATORIO ====================
       {
         path: 'compliance',
+        canActivate: [roleGuard(['ADMIN', 'COMPLIANCE_OFFICER'])],
         children: [
           { path: '', component: CompliancePage },
           { path: 'minam-reports', component: MinamReportsPage },
@@ -126,6 +170,7 @@ export const routes: Routes = [
       // ==================== GESTIÓN DE USUARIOS ====================
       {
         path: 'users',
+        canActivate: [roleGuard(['ADMIN', 'USER_MANAGER'])],
         children: [
           { path: '', component: UserManagementPage },
           { path: 'drivers', component: DriversPage },
@@ -138,10 +183,18 @@ export const routes: Routes = [
       {
         path: 'settings',
         children: [
-          { path: '', component: SettingsPage },
+          {
+            path: '',
+            component: SettingsPage,
+            canActivate: [roleGuard(['ADMIN'])]
+          },
           { path: 'profile', component: ProfileSettingsPage },
           { path: 'notifications', component: NotificationSettingsPage },
-          { path: 'integrations', component: IntegrationsPage }
+          {
+            path: 'integrations',
+            component: IntegrationsPage,
+            canActivate: [roleGuard(['ADMIN'])]
+          }
         ]
       }
     ]
