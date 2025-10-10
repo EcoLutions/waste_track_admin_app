@@ -8,6 +8,7 @@ export class UserProfileEntityFromResponseMapper {
       id: dto.id ?? '',
       userId: dto.userId ?? '',
       photoPath: dto.photoPath,
+      photoUrl: dto.temporalPhotoUrl,
       userType: UserProfileEntityFromResponseMapper.mapStringToUserType(dto.userType ?? ''),
       districtId: dto.districtId ?? '',
       email: dto.email ?? '',
@@ -25,9 +26,12 @@ export class UserProfileEntityFromResponseMapper {
   }
 
   private static mapStringToUserType(userType: string): UserTypeEnum {
-    const typeKey = Object.keys(UserTypeEnum).find(
-      key => UserTypeEnum[key as keyof typeof UserTypeEnum] === userType
-    );
+    const normalized = (userType ?? '').toString().trim().toLowerCase();
+
+    const typeKey = Object.keys(UserTypeEnum).find(key => {
+      const val = UserTypeEnum[key as keyof typeof UserTypeEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (typeKey) {
       return UserTypeEnum[typeKey as keyof typeof UserTypeEnum];
@@ -38,9 +42,12 @@ export class UserProfileEntityFromResponseMapper {
   }
 
   private static mapStringToLanguage(language: string): LanguageEnum {
-    const languageKey = Object.keys(LanguageEnum).find(
-      key => LanguageEnum[key as keyof typeof LanguageEnum] === language
-    );
+    const normalized = (language ?? '').toString().trim().toLowerCase();
+
+    const languageKey = Object.keys(LanguageEnum).find(key => {
+      const val = LanguageEnum[key as keyof typeof LanguageEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (languageKey) {
       return LanguageEnum[languageKey as keyof typeof LanguageEnum];
