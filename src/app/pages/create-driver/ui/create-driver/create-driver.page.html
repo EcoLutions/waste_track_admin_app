@@ -1,30 +1,54 @@
-<div class="h-full flex flex-col gap-6">
-
-  <!-- Header -->
-  <div class="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-    <div class="flex items-center gap-2.5 mb-1">
-      <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
-        <i class="pi pi-plus-circle text-green-600 text-lg"></i>
+<div class="h-full flex flex-col gap-4">
+  <!-- Compact Header with Breadcrumb -->
+  <div class="bg-white rounded-lg px-4 py-3 border border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <button
+          routerLink="/users/drivers"
+          class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+          <i class="pi pi-arrow-left text-sm"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+            <i class="pi pi-user-plus text-green-600"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-gray-900">Nuevo Conductor</h1>
+            <p class="text-xs text-gray-500">
+              @if (districtName()) {
+                {{ districtName() }}
+              } @else {
+                Registro de conductor
+              }
+            </p>
+          </div>
+        </div>
       </div>
-      <h1 class="text-xl font-bold text-gray-900">Crear Nuevo Conductor</h1>
+
+      <!-- Progress Indicator -->
+      <div class="hidden sm:flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
+          <div [class]="getSectionCompletionClass(0)" class="w-2 h-2 rounded-full transition-all"></div>
+          <div [class]="getSectionCompletionClass(1)" class="w-2 h-2 rounded-full transition-all"></div>
+          <div [class]="getSectionCompletionClass(2)" class="w-2 h-2 rounded-full transition-all"></div>
+        </div>
+        <span class="text-xs font-medium text-gray-600 ml-2">
+          {{ getCompletedSectionsCount() }}/3 secciones
+        </span>
+      </div>
     </div>
-    <p class="text-xs text-gray-600 ml-11">
-      @if (districtName()) {
-        Registre un nuevo conductor para el distrito {{ districtName() }}
-      } @else {
-        Complete la información para registrar un nuevo conductor
-      }
-    </p>
   </div>
 
   <!-- Success Message -->
   @if (isSuccess()) {
-    <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-4 shadow-sm animate-slide-down">
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm animate-slide-down">
       <div class="flex items-start gap-3">
-        <i class="pi pi-check-circle text-green-600 text-2xl"></i>
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-green-900 mb-1">¡Conductor creado exitosamente!</h3>
-          <p class="text-sm text-green-700">El conductor ha sido registrado en el sistema. Será redirigido automáticamente...</p>
+        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <i class="pi pi-check text-green-600 text-lg"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-bold text-green-900">¡Conductor creado exitosamente!</h3>
+          <p class="text-sm text-green-700 mt-1">El conductor se ha registrado correctamente. Redirigiendo...</p>
         </div>
       </div>
     </div>
@@ -32,255 +56,635 @@
 
   <!-- Error Message -->
   @if (error()) {
-    <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm animate-slide-down">
-      <div class="flex items-start gap-3">
-        <i class="pi pi-exclamation-triangle text-red-600 text-2xl"></i>
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-red-900 mb-1">Error al crear conductor</h3>
-          <p class="text-sm text-red-700">{{ error() }}</p>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm animate-slide-down">
+      <div class="flex items-start gap-2.5">
+        <i class="pi pi-exclamation-circle text-red-600 text-lg mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-red-900">{{ error() }}</p>
         </div>
+        <button
+          (click)="store.setError(null)"
+          class="text-red-400 hover:text-red-600 transition-colors">
+          <i class="pi pi-times text-sm"></i>
+        </button>
       </div>
     </div>
   }
 
   <!-- Loading State -->
   @if (isLoading()) {
-    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
-      <div class="flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 text-gray-600 font-medium">Creando conductor...</p>
+    <div class="flex-1 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-12 h-12 border-3 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="mt-4 text-sm text-gray-600 font-medium">Creando conductor...</p>
+        <p class="text-xs text-gray-500 mt-1">Por favor espere</p>
       </div>
     </div>
   }
 
-  <!-- Form -->
+  <!-- Accordion Form -->
   @if (!isLoading() && !isSuccess()) {
-    <div class="flex-1 flex flex-col gap-6 min-h-0">
-      <form [formGroup]="driverForm" class="space-y-6">
+    <div class="flex-1 flex gap-4 min-h-0">
 
-        <!-- Información Personal -->
-        <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <div class="flex items-center gap-2 mb-4">
-            <i class="pi pi-user text-green-600 text-lg"></i>
-            <h2 class="text-lg font-bold text-gray-900">Información Personal</h2>
-          </div>
+      <!-- Main Form with Accordion -->
+      <div class="flex-1 overflow-y-auto">
+        <form [formGroup]="driverForm" class="space-y-3 pb-4">
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Nombre -->
-            <div>
-              <label for="firstName" class="block text-sm font-semibold text-gray-700 mb-2">
-                Nombre <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                formControlName="firstName"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('firstName')"
-                [class.border-gray-200]="!isFieldInvalid('firstName')"
-                placeholder="Ingrese el nombre">
-              @if (isFieldInvalid('firstName')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('firstName') }}</span>
-              }
-            </div>
+          <!-- Section 1: Información Personal -->
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300"
+               [class.ring-2]="expandedSection() == 0"
+               [class.ring-green-500]="expandedSection() == 0">
 
-            <!-- Apellido -->
-            <div>
-              <label for="lastName" class="block text-sm font-semibold text-gray-700 mb-2">
-                Apellido <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                formControlName="lastName"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('lastName')"
-                [class.border-gray-200]="!isFieldInvalid('lastName')"
-                placeholder="Ingrese el apellido">
-              @if (isFieldInvalid('lastName')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('lastName') }}</span>
-              }
-            </div>
-
-            <!-- Documento -->
-            <div>
-              <label for="documentNumber" class="block text-sm font-semibold text-gray-700 mb-2">
-                Número de Documento <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="documentNumber"
-                type="text"
-                formControlName="documentNumber"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('documentNumber')"
-                [class.border-gray-200]="!isFieldInvalid('documentNumber')"
-                placeholder="DNI o documento de identidad">
-              @if (isFieldInvalid('documentNumber')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('documentNumber') }}</span>
-              }
-            </div>
-
-            <!-- Teléfono -->
-            <div>
-              <label for="phoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">
-                Teléfono <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="phoneNumber"
-                type="tel"
-                formControlName="phoneNumber"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('phoneNumber')"
-                [class.border-gray-200]="!isFieldInvalid('phoneNumber')"
-                placeholder="+51 999 999 999">
-              @if (isFieldInvalid('phoneNumber')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('phoneNumber') }}</span>
-              }
-            </div>
-
-            <!-- Email -->
-            <div class="md:col-span-2">
-              <label for="emailAddress" class="block text-sm font-semibold text-gray-700 mb-2">
-                Correo Electrónico <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="emailAddress"
-                type="email"
-                formControlName="emailAddress"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('emailAddress')"
-                [class.border-gray-200]="!isFieldInvalid('emailAddress')"
-                placeholder="conductor@empresa.com">
-              @if (isFieldInvalid('emailAddress')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('emailAddress') }}</span>
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- Información de Licencia -->
-        <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <div class="flex items-center gap-2 mb-4">
-            <i class="pi pi-id-card text-green-600 text-lg"></i>
-            <h2 class="text-lg font-bold text-gray-900">Licencia de Conducir</h2>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Número de Licencia -->
-            <div>
-              <label for="driverLicense" class="block text-sm font-semibold text-gray-700 mb-2">
-                Número de Licencia <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="driverLicense"
-                type="text"
-                formControlName="driverLicense"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all uppercase"
-                [class.border-red-500]="isFieldInvalid('driverLicense')"
-                [class.border-gray-200]="!isFieldInvalid('driverLicense')"
-                placeholder="A1-123456789"
-                style="text-transform: uppercase;">
-              @if (isFieldInvalid('driverLicense')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('driverLicense') }}</span>
-              }
-            </div>
-
-            <!-- Fecha de Vencimiento -->
-            <div>
-              <label for="licenseExpiryDate" class="block text-sm font-semibold text-gray-700 mb-2">
-                Fecha de Vencimiento <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="licenseExpiryDate"
-                type="date"
-                formControlName="licenseExpiryDate"
-                class="w-full px-3 py-2.5 border-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                [class.border-red-500]="isFieldInvalid('licenseExpiryDate')"
-                [class.border-gray-200]="!isFieldInvalid('licenseExpiryDate')">
-              @if (isFieldInvalid('licenseExpiryDate')) {
-                <span class="text-xs text-red-600 mt-1 block">{{ getFieldError('licenseExpiryDate') }}</span>
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- Estado y Asignación -->
-        <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <div class="flex items-center gap-2 mb-4">
-            <i class="pi pi-cog text-green-600 text-lg"></i>
-            <h2 class="text-lg font-bold text-gray-900">Estado y Asignación</h2>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Estado -->
-            <div>
-              <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">
-                Estado Inicial <span class="text-red-600">*</span>
-              </label>
-              <select
-                id="status"
-                formControlName="status"
-                class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                @for (status of driverStatuses; track status) {
-                  <option [value]="status">{{ getStatusLabel(status) }}</option>
+            <!-- Section Header -->
+            <button
+              type="button"
+              (click)="toggleSection(0)"
+              class="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div [class]="getSectionIconClass(0)"
+                     class="w-9 h-9 rounded-lg flex items-center justify-center transition-all">
+                  <i class="pi pi-user text-sm"></i>
+                </div>
+                <div class="text-left">
+                  <h3 class="text-sm font-bold text-gray-900">Información Personal</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    @if (isSectionComplete(0)) {
+                      <span class="text-green-600 font-medium">✓ Completo</span>
+                    } @else {
+                      Nombre, documento y contacto
+                    }
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                @if (isSectionComplete(0)) {
+                  <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="pi pi-check text-green-600 text-xs"></i>
+                  </div>
                 }
-              </select>
+                <i [class]="expandedSection() == 0 ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                   class="text-gray-400 text-sm transition-transform"></i>
+              </div>
+            </button>
+
+            <!-- Section Content -->
+            <div [class.hidden]="expandedSection() != 0"
+                 class="px-5 pb-5 animate-slide-down">
+              <div class="pt-3 border-t border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <!-- Nombre -->
+                  <div>
+                    <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Nombre <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="firstName"
+                        type="text"
+                        formControlName="firstName"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('firstName')"
+                        [class.border-gray-300]="!isFieldInvalid('firstName')"
+                        placeholder="Ej: Juan">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('firstName')?.valid && driverForm.get('firstName')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('firstName')) {
+                      <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <i class="pi pi-info-circle text-xs"></i>
+                        {{ getFieldError('firstName') }}
+                      </p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Nombre del conductor</p>
+                    }
+                  </div>
+
+                  <!-- Apellido -->
+                  <div>
+                    <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Apellido <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="lastName"
+                        type="text"
+                        formControlName="lastName"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('lastName')"
+                        [class.border-gray-300]="!isFieldInvalid('lastName')"
+                        placeholder="Ej: Pérez">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('lastName')?.valid && driverForm.get('lastName')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('lastName')) {
+                      <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <i class="pi pi-info-circle text-xs"></i>
+                        {{ getFieldError('lastName') }}
+                      </p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Apellido del conductor</p>
+                    }
+                  </div>
+
+                  <!-- Documento -->
+                  <div>
+                    <label for="documentNumber" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Número de Documento <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="documentNumber"
+                        type="text"
+                        formControlName="documentNumber"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('documentNumber')"
+                        [class.border-gray-300]="!isFieldInvalid('documentNumber')"
+                        placeholder="DNI"
+                        maxlength="12">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('documentNumber')?.valid && driverForm.get('documentNumber')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('documentNumber')) {
+                      <p class="text-xs text-red-600 mt-1">{{ getFieldError('documentNumber') }}</p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">8-12 caracteres</p>
+                    }
+                  </div>
+
+                  <!-- Teléfono -->
+                  <div>
+                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Teléfono <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="phoneNumber"
+                        type="tel"
+                        formControlName="phoneNumber"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('phoneNumber')"
+                        [class.border-gray-300]="!isFieldInvalid('phoneNumber')"
+                        placeholder="+51999999999">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('phoneNumber')?.valid && driverForm.get('phoneNumber')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('phoneNumber')) {
+                      <p class="text-xs text-red-600 mt-1">{{ getFieldError('phoneNumber') }}</p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Número de contacto</p>
+                    }
+                  </div>
+
+                  <!-- Email -->
+                  <div class="md:col-span-2">
+                    <label for="emailAddress" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Correo Electrónico <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="emailAddress"
+                        type="email"
+                        formControlName="emailAddress"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('emailAddress')"
+                        [class.border-gray-300]="!isFieldInvalid('emailAddress')"
+                        placeholder="conductor@empresa.com">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('emailAddress')?.valid && driverForm.get('emailAddress')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('emailAddress')) {
+                      <p class="text-xs text-red-600 mt-1">{{ getFieldError('emailAddress') }}</p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Email corporativo o personal</p>
+                    }
+                  </div>
+
+                </div>
+
+                <!-- Continue Button -->
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    type="button"
+                    (click)="goToNextSection(0)"
+                    [disabled]="!isSectionComplete(0)"
+                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    Continuar
+                    <i class="pi pi-arrow-right text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Licencia de Conducir -->
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300"
+               [class.ring-2]="expandedSection() == 1"
+               [class.ring-green-500]="expandedSection() == 1"
+               [class.opacity-50]="!isSectionComplete(0) && expandedSection() != 1">
+
+            <!-- Section Header -->
+            <button
+              type="button"
+              (click)="toggleSection(1)"
+              [disabled]="!isSectionComplete(0) && expandedSection() != 1"
+              class="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors disabled:cursor-not-allowed">
+              <div class="flex items-center gap-3">
+                <div [class]="getSectionIconClass(1)"
+                     class="w-9 h-9 rounded-lg flex items-center justify-center transition-all">
+                  <i class="pi pi-id-card text-sm"></i>
+                </div>
+                <div class="text-left">
+                  <h3 class="text-sm font-bold text-gray-900">Licencia de Conducir</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    @if (isSectionComplete(1)) {
+                      <span class="text-green-600 font-medium">✓ Completo</span>
+                    } @else {
+                      Número y fecha de vencimiento
+                    }
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                @if (isSectionComplete(1)) {
+                  <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="pi pi-check text-green-600 text-xs"></i>
+                  </div>
+                }
+                <i [class]="expandedSection() == 1 ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                   class="text-gray-400 text-sm transition-transform"></i>
+              </div>
+            </button>
+
+            <!-- Section Content -->
+            <div [class.hidden]="expandedSection() != 1"
+                 class="px-5 pb-5 animate-slide-down">
+              <div class="pt-3 border-t border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <!-- Número de Licencia -->
+                  <div>
+                    <label for="licenseNumber" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Número de Licencia <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="licenseNumber"
+                        type="text"
+                        formControlName="licenseNumber"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all uppercase font-medium"
+                        [class.border-red-300]="isFieldInvalid('licenseNumber')"
+                        [class.border-gray-300]="!isFieldInvalid('licenseNumber')"
+                        placeholder="A1123456">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        @if (driverForm.get('licenseNumber')?.valid && driverForm.get('licenseNumber')?.value) {
+                          <i class="pi pi-check-circle text-green-500 text-sm"></i>
+                        }
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('licenseNumber')) {
+                      <p class="text-xs text-red-600 mt-1">{{ getFieldError('licenseNumber') }}</p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                    }
+                  </div>
+
+                  <!-- Fecha de Vencimiento -->
+                  <div>
+                    <label for="licenseExpiryDate" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Fecha de Vencimiento <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <input
+                        id="licenseExpiryDate"
+                        type="date"
+                        formControlName="licenseExpiryDate"
+                        class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        [class.border-red-300]="isFieldInvalid('licenseExpiryDate')"
+                        [class.border-gray-300]="!isFieldInvalid('licenseExpiryDate')"
+                        [min]="getTodayDate()">
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i class="pi pi-calendar text-gray-400 text-sm"></i>
+                      </div>
+                    </div>
+                    @if (isFieldInvalid('licenseExpiryDate')) {
+                      <p class="text-xs text-red-600 mt-1">{{ getFieldError('licenseExpiryDate') }}</p>
+                    } @else {
+                      <p class="text-xs text-gray-500 mt-1">Debe ser una fecha futura</p>
+                    }
+                  </div>
+
+                </div>
+
+                <!-- Info Box -->
+                <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div class="flex items-start gap-2">
+                    <i class="pi pi-info-circle text-blue-600 text-sm mt-0.5"></i>
+                    <div class="flex-1">
+                      <p class="text-xs font-medium text-blue-900">Información Importante</p>
+                      <p class="text-xs text-blue-700 mt-1">La licencia debe estar vigente y corresponder a la categoría requerida para operar vehículos de recolección.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <button
+                    type="button"
+                    (click)="goToPreviousSection(1)"
+                    class="px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm font-medium rounded-lg transition-all flex items-center gap-2">
+                    <i class="pi pi-arrow-left text-xs"></i>
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    (click)="goToNextSection(1)"
+                    [disabled]="!isSectionComplete(1)"
+                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    Continuar
+                    <i class="pi pi-arrow-right text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Estado y Asignación -->
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300"
+               [class.ring-2]="expandedSection() == 2"
+               [class.ring-green-500]="expandedSection() == 2"
+               [class.opacity-50]="!isSectionComplete(1) && expandedSection() != 2">
+
+            <!-- Section Header -->
+            <button
+              type="button"
+              (click)="toggleSection(2)"
+              [disabled]="!isSectionComplete(1) && expandedSection() != 2"
+              class="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors disabled:cursor-not-allowed">
+              <div class="flex items-center gap-3">
+                <div [class]="getSectionIconClass(2)"
+                     class="w-9 h-9 rounded-lg flex items-center justify-center transition-all">
+                  <i class="pi pi-cog text-sm"></i>
+                </div>
+                <div class="text-left">
+                  <h3 class="text-sm font-bold text-gray-900">Estado y Asignación</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    <span class="text-gray-400">Opcional</span> · Configuración inicial
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <i [class]="expandedSection() == 2 ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                   class="text-gray-400 text-sm transition-transform"></i>
+              </div>
+            </button>
+
+            <!-- Section Content -->
+            <div [class.hidden]="expandedSection() != 2"
+                 class="px-5 pb-5 animate-slide-down">
+              <div class="pt-3 border-t border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <!-- Estado -->
+                  <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Estado Inicial <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <select
+                        id="status"
+                        formControlName="status"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white">
+                        @for (status of driverStatuses; track status) {
+                          <option [value]="status">{{ getStatusLabel(status) }}</option>
+                        }
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i class="pi pi-chevron-down text-gray-400 text-xs"></i>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Estado inicial del conductor</p>
+                  </div>
+
+                  <!-- Vehículo Asignado -->
+                  <div>
+                    <label for="assignedVehicleId" class="block text-sm font-medium text-gray-700 mb-1.5">
+                      Vehículo Asignado
+                    </label>
+                    <input
+                      id="assignedVehicleId"
+                      type="text"
+                      formControlName="assignedVehicleId"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      placeholder="VEH-001">
+                    <p class="text-xs text-gray-500 mt-1">Puede asignarse posteriormente</p>
+                  </div>
+
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <button
+                    type="button"
+                    (click)="goToPreviousSection(2)"
+                    class="px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm font-medium rounded-lg transition-all flex items-center gap-2">
+                    <i class="pi pi-arrow-left text-xs"></i>
+                    Anterior
+                  </button>
+                  <span class="text-xs text-green-600 font-medium">
+                    <i class="pi pi-check-circle mr-1"></i>
+                    Listo para crear
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Sidebar Preview (Desktop) -->
+      <div class="hidden xl:block w-80 flex-shrink-0">
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-5 border border-green-200 sticky top-0">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+              <i class="pi pi-eye text-green-600 text-sm"></i>
+            </div>
+            <h3 class="text-sm font-bold text-gray-900">Vista Previa</h3>
+          </div>
+
+          <!-- Progress Overview -->
+          <div class="bg-white rounded-lg p-3 mb-3 border border-gray-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-gray-600">Progreso</span>
+              <span class="text-xs font-bold text-green-600">{{ getCompletionPercentage() }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-green-600 h-2 rounded-full transition-all duration-500"
+                   [style.width.%]="getCompletionPercentage()"></div>
+            </div>
+          </div>
+
+          <!-- Preview Card -->
+          <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+              <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="pi pi-user text-gray-600 text-xl"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-gray-900 truncate">
+                  {{ driverForm.get('firstName')?.value || 'Nombre' }} {{ driverForm.get('lastName')?.value || 'Apellido' }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ driverForm.get('documentNumber')?.value || 'Sin documento' }}
+                </p>
+              </div>
             </div>
 
-            <!-- Vehículo Asignado -->
-            <div>
-              <label for="assignedVehicleId" class="block text-sm font-semibold text-gray-700 mb-2">
-                Vehículo Asignado <span class="text-xs text-gray-500 font-normal">(Opcional)</span>
-              </label>
-              <input
-                id="assignedVehicleId"
-                type="text"
-                formControlName="assignedVehicleId"
-                class="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                placeholder="VEH-001">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Email</span>
+                <span class="font-medium text-gray-900 truncate ml-2">
+                  {{ driverForm.get('emailAddress')?.value || 'Sin email' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Teléfono</span>
+                <span class="font-medium text-gray-900">
+                  {{ driverForm.get('phoneNumber')?.value || 'Sin teléfono' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Licencia</span>
+                <span class="font-medium text-gray-900">
+                  {{ driverForm.get('licenseNumber')?.value || 'Sin licencia' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-sm pt-3 border-t border-gray-100">
+                <span class="text-gray-600">Estado</span>
+                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+                  {{ getStatusLabel(driverForm.get('status')?.value) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Checklist -->
+          <div class="mt-3 bg-white rounded-lg p-3 border border-gray-200">
+            <p class="text-xs font-semibold text-gray-900 mb-2">Secciones Completadas</p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <div [class]="isSectionComplete(0) ? 'w-4 h-4 bg-green-100 rounded flex items-center justify-center' : 'w-4 h-4 bg-gray-100 rounded'">
+                  @if (isSectionComplete(0)) {
+                    <i class="pi pi-check text-green-600 text-xs"></i>
+                  }
+                </div>
+                <span [class]="isSectionComplete(0) ? 'text-xs text-gray-900 font-medium' : 'text-xs text-gray-500'">
+                  Información Personal
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div [class]="isSectionComplete(1) ? 'w-4 h-4 bg-green-100 rounded flex items-center justify-center' : 'w-4 h-4 bg-gray-100 rounded'">
+                  @if (isSectionComplete(1)) {
+                    <i class="pi pi-check text-green-600 text-xs"></i>
+                  }
+                </div>
+                <span [class]="isSectionComplete(1) ? 'text-xs text-gray-900 font-medium' : 'text-xs text-gray-500'">
+                  Licencia de Conducir
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-gray-100 rounded flex items-center justify-center">
+                  <i class="pi pi-minus text-gray-400 text-xs"></i>
+                </div>
+                <span class="text-xs text-gray-500">
+                  Estado (opcional)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tips -->
+          <div class="mt-3 bg-white rounded-lg p-3 border border-green-200">
+            <div class="flex items-start gap-2">
+              <i class="pi pi-lightbulb text-green-600 text-sm mt-0.5"></i>
+              <div>
+                <p class="text-xs font-medium text-gray-900 mb-1">Tip</p>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  Asegúrese que la licencia esté vigente antes de registrar al conductor.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </form>
+      </div>
 
-      <!-- Action Buttons -->
-      <div class="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-        <div class="flex justify-between gap-3">
+    </div>
+
+    <!-- Sticky Action Bar -->
+    <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-lg">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Form Status -->
+        <div class="flex items-center gap-3">
+          @if (canSubmitForm()) {
+            <div class="flex items-center gap-2 text-green-600">
+              <i class="pi pi-check-circle text-sm"></i>
+              <span class="text-sm font-medium">Listo para crear</span>
+            </div>
+          } @else {
+            <div class="flex items-center gap-2 text-gray-500">
+              <i class="pi pi-info-circle text-sm"></i>
+              <span class="text-sm">Complete las secciones obligatorias</span>
+            </div>
+          }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
           <button
-            routerLink="/users/drivers"
             type="button"
-            class="px-6 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
-            <i class="pi pi-arrow-left mr-2"></i>
-            Volver a Conductores
+            routerLink="/users/drivers"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all flex items-center gap-1.5">
+            <i class="pi pi-times text-sm"></i>
+            <span>Cancelar</span>
           </button>
 
-          <div class="flex gap-3">
-            <button
-              type="button"
-              (click)="onReset()"
-              class="px-6 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300">
-              <i class="pi pi-refresh mr-2"></i>
-              Limpiar
-            </button>
+          <button
+            type="button"
+            (click)="onReset()"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all flex items-center gap-1.5">
+            <i class="pi pi-refresh text-sm"></i>
+            <span>Reiniciar</span>
+          </button>
 
-            <button
-              type="button"
-              (click)="onSubmit()"
-              [disabled]="!isFormValid() || isLoading()"
-              class="px-6 py-2.5 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-              @if (isLoading()) {
-                <div class="flex items-center gap-2">
-                  <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creando...</span>
-                </div>
-              } @else {
-                <div class="flex items-center gap-2">
-                  <i class="pi pi-check"></i>
-                  <span>Crear Conductor</span>
-                </div>
-              }
-            </button>
-          </div>
+          <button
+            type="button"
+            (click)="onSubmit()"
+            [disabled]="!canSubmitForm() || isLoading()"
+            class="px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow flex items-center gap-2">
+            @if (isLoading()) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Creando...</span>
+            } @else {
+              <i class="pi pi-check text-sm"></i>
+              <span>Crear Conductor</span>
+            }
+          </button>
         </div>
       </div>
     </div>
