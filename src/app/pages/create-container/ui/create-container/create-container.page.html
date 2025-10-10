@@ -160,12 +160,16 @@
                 <!-- Map Side -->
                 <div class="w-[45%] flex-shrink-0">
                   <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
-                    <div class="bg-gradient-to-r from-green-600 to-teal-600 p-3 flex-shrink-0">
-                      <h3 class="text-white font-bold text-sm flex items-center gap-2">
-                        <i class="pi pi-map"></i>
-                        Ubicación en el Mapa
-                      </h3>
-                      <p class="text-white/90 text-xs mt-0.5">Haz click o arrastra el marcador</p>
+                    <div class="bg-green-50/50 backdrop-blur-sm border-b border-green-100 p-4 flex-shrink-0">
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm border border-green-200">
+                          <i class="pi pi-map-marker text-green-600 text-base"></i>
+                        </div>
+                        <div>
+                          <h3 class="text-sm font-semibold text-gray-800 leading-tight">Selección de Ubicación</h3>
+                          <p class="text-xs text-gray-600 mt-0.5">Haga clic en el mapa o arrastre el marcador para establecer coordenadas</p>
+                        </div>
+                      </div>
                     </div>
 
                     <div class="flex-1"
