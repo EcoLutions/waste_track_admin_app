@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { DriverEntity } from '../../model';
 import { DriverResponse } from '../types/driver-response.type';
 import { CreateDriverRequest } from '../types/create-driver-request.type';
@@ -33,6 +33,13 @@ export class DriverService extends BaseService {
       catchError(this.handleError),
       retry(2)
     );
+  }
+
+  getAllByDistrictId(districtId: string): Observable<DriverEntity[]> {
+    return this.http.get<DriverResponse[]>(`${this.resourcePath()}/district/${districtId}`, this.httpOptions).pipe(
+      map((responses: DriverResponse[]) => responses.map(r => DriverEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
   }
 
   create(driver: DriverEntity): Observable<DriverEntity> {
