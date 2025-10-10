@@ -1,0 +1,158 @@
+<div class="unauthorized-container" [class.visible]="isVisible()">
+  <!-- Background decorative elements -->
+  <div class="background-decoration">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <!-- Main content card -->
+  <div class="unauthorized-card">
+    <!-- Icon with animation -->
+    <div class="icon-wrapper">
+      <div class="icon-background"></div>
+      <div class="unauthorized-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <h1 class="title">Acceso Restringido</h1>
+
+      <p class="subtitle">
+        Hola <strong>{{ username() }}</strong>
+      </p>
+
+      <!-- User type specific message -->
+      <div class="message-box" [style.border-color]="userTypeMessage().color">
+        <div class="message-icon" [style.background]="userTypeMessage().color">
+          <i [class]="'pi ' + userTypeMessage().icon"></i>
+        </div>
+        <div class="message-content">
+          <h3 class="message-title">Tipo de cuenta: {{ userTypeMessage().type }}</h3>
+          <p class="message-text">{{ userTypeMessage().message }}</p>
+        </div>
+      </div>
+
+      @if (attemptedUrl()) {
+        <div class="info-box">
+          <i class="pi pi-info-circle"></i>
+          <div class="info-content">
+            <span class="info-label">Intentaste acceder a:</span>
+            <span class="info-value">{{ attemptedUrl() }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- User roles display -->
+      <div class="user-info-card">
+        <div class="user-info-header">
+          <i class="pi pi-id-card"></i>
+          <span>Información de tu cuenta</span>
+        </div>
+        <div class="user-info-body">
+          <div class="info-row">
+            <span class="label">Usuario:</span>
+            <span class="value">{{ username() }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Rol(es) asignado(s):</span>
+            <div class="roles-container">
+              @for (role of userRoles(); track role.id) {
+                <span class="role-tag">
+                  {{ role.name === 'role_citizen' ? 'Ciudadano' :
+                  role.name === 'role_driver' ? 'Conductor' :
+                    role.name === 'role_municipal_administrator' ? 'Admin Municipal' :
+                      role.name === 'role_system_administrator' ? 'Admin Sistema' :
+                        role.name }}
+                </span>
+              }
+              @empty {
+                <span class="value text-muted">Sin roles asignados</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help section based on user type -->
+      @if (userTypeMessage().type === 'Ciudadano' || userTypeMessage().type === 'Conductor') {
+        <div class="mobile-app-cta">
+          <div class="cta-icon">
+            <i class="pi pi-mobile"></i>
+          </div>
+          <div class="cta-content">
+            <h4 class="cta-title">Descarga la App Móvil</h4>
+            <p class="cta-text">
+              Accede a todos nuestros servicios desde tu dispositivo móvil
+            </p>
+            <div class="app-badges">
+              <a href="#" class="app-badge" aria-label="Descargar en App Store">
+                <i class="pi pi-apple"></i>
+                <span>App Store</span>
+              </a>
+              <a href="#" class="app-badge" aria-label="Descargar en Google Play">
+                <i class="pi pi-android"></i>
+                <span>Google Play</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (!isMunicipalAdmin() && userTypeMessage().type !== 'Ciudadano' && userTypeMessage().type !== 'Conductor') {
+        <div class="help-box">
+          <i class="pi pi-question-circle"></i>
+          <div class="help-content">
+            <h4 class="help-title">¿Necesitas acceso a esta sección?</h4>
+            <p class="help-text">
+              Si consideras que deberías tener acceso, contacta al administrador del sistema para solicitar los permisos necesarios.
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Action buttons -->
+    <div class="actions">
+      <button
+        class="btn btn-primary"
+        (click)="handleSignOut()"
+        [disabled]="isLoading()"
+        type="button"
+        aria-label="Cerrar sesión y volver al login">
+        @if (isLoading()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Cerrando sesión...</span>
+        } @else {
+          <i class="pi pi-sign-out"></i>
+          <span>Cerrar Sesión</span>
+        }
+      </button>
+
+      @if (userTypeMessage().type !== 'Ciudadano' && userTypeMessage().type !== 'Conductor') {
+        <button
+          class="btn btn-secondary"
+          (click)="contactSupport()"
+          [disabled]="isLoading()"
+          type="button"
+          aria-label="Contactar soporte técnico">
+          <i class="pi pi-envelope"></i>
+          <span>Contactar Soporte</span>
+        </button>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p class="footer-text">
+        <i class="pi pi-shield"></i>
+        <span>Sistema de Gestión de Residuos - WasteTrack</span>
+      </p>
+    </div>
+  </div>
+</div>
