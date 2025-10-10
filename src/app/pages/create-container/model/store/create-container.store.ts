@@ -3,6 +3,7 @@ import { computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContainerService } from '../../../../../entities';
 import { ContainerEntity, ContainerTypeEnum, ContainerStatusEnum } from '../../../../../entities';
+import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
 
 export interface CreateContainerState {
   // Form data
@@ -10,12 +11,10 @@ export interface CreateContainerState {
     latitude: string;
     longitude: string;
     address: string;
-    districtCode: string;
     volumeLiters: number;
     maxWeightKg: number;
     containerType: ContainerTypeEnum;
     sensorId: string;
-    districtId: string;
     collectionFrequencyDays: number;
   };
 
@@ -30,12 +29,10 @@ const initialState: CreateContainerState = {
     latitude: '',
     longitude: '',
     address: '',
-    districtCode: '',
     volumeLiters: 240,
     maxWeightKg: 100,
     containerType: ContainerTypeEnum.GENERAL,
     sensorId: '',
-    districtId: '',
     collectionFrequencyDays: 7
   },
   isLoading: false,
@@ -50,49 +47,61 @@ export const CreateContainerStore = signalStore(
   withState(initialState),
 
   // Computed properties
-  withComputed((state) => ({
-    isFormValid: computed(() => {
-      const form = state.formData();
-      return form.latitude.trim() !== '' &&
-             form.longitude.trim() !== '' &&
-             form.address.trim() !== '' &&
-             form.districtCode.trim() !== '' &&
-             form.volumeLiters > 0 &&
-             form.maxWeightKg > 0 &&
-             form.districtId.trim() !== '' &&
-             form.collectionFrequencyDays > 0;
-    }),
+  withComputed((state) => {
+    const districtContextStore = inject(DistrictContextStore);
 
-    containerPreview: computed((): Partial<ContainerEntity> => {
-      const form = state.formData();
-      return {
-        latitude: form.latitude,
-        longitude: form.longitude,
-        address: form.address,
-        districtCode: form.districtCode,
-        volumeLiters: form.volumeLiters,
-        maxWeightKg: form.maxWeightKg,
-        containerType: form.containerType,
-        status: ContainerStatusEnum.ACTIVE,
-        currentFillLevel: 0,
-        sensorId: form.sensorId || null,
-        districtId: form.districtId,
-        collectionFrequencyDays: form.collectionFrequencyDays,
-        lastReadingTimestamp: null,
-        lastCollectionDate: null,
-        createdAt: null,
-        updatedAt: null,
-        id: 'preview'
-      };
-    })
-  })),
+    return {
+      isFormValid: computed(() => {
+        const form = state.formData();
+        return form.latitude.trim() !== '' &&
+          form.longitude.trim() !== '' &&
+          form.address.trim() !== '' &&
+          form.volumeLiters > 0 &&
+          form.maxWeightKg > 0 &&
+          form.collectionFrequencyDays > 0;
+      }),
+
+      // Auto-populate district data from context
+      districtId: computed(() => districtContextStore.districtId()),
+      districtName: computed(() => districtContextStore.districtName()),
+      districtCode: computed(() => districtContextStore.districtCode()),
+
+      containerPreview: computed((): Partial<ContainerEntity> => {
+        const form = state.formData();
+        const districtId = districtContextStore.districtId();
+        const districtCode = districtContextStore.districtCode();
+
+        return {
+          latitude: form.latitude,
+          longitude: form.longitude,
+          address: form.address,
+          districtCode: districtCode || '',
+          volumeLiters: form.volumeLiters,
+          maxWeightKg: form.maxWeightKg,
+          containerType: form.containerType,
+          status: ContainerStatusEnum.ACTIVE,
+          currentFillLevel: 0,
+          sensorId: form.sensorId || null,
+          districtId: districtId || '',
+          collectionFrequencyDays: form.collectionFrequencyDays,
+          lastReadingTimestamp: null,
+          lastCollectionDate: null,
+          createdAt: null,
+          updatedAt: null,
+          id: 'preview'
+        };
+      })
+    };
+  }),
 
   // Methods
   withMethods((store) => {
     const containerService = inject(ContainerService);
     const router = inject(Router);
+    const districtContextStore = inject(DistrictContextStore);
 
     return {
+
       // Form actions
       updateFormField<K extends keyof CreateContainerState['formData']>(
         field: K,
@@ -132,6 +141,17 @@ export const CreateContainerStore = signalStore(
           return;
         }
 
+        // Check if district context is available
+        const districtId = districtContextStore.districtId();
+        const districtCode = districtContextStore.districtCode();
+
+        if (!districtId || !districtCode) {
+          patchState(store, {
+            error: 'No se pudo obtener la información del distrito. Por favor recargue la página.'
+          });
+          return;
+        }
+
         patchState(store, {
           isLoading: true,
           error: null
@@ -146,7 +166,7 @@ export const CreateContainerStore = signalStore(
             latitude: formData.latitude,
             longitude: formData.longitude,
             address: formData.address,
-            districtCode: formData.districtCode,
+            districtCode: districtCode,
             volumeLiters: formData.volumeLiters,
             maxWeightKg: formData.maxWeightKg,
             containerType: formData.containerType,
@@ -154,7 +174,7 @@ export const CreateContainerStore = signalStore(
             currentFillLevel: 0,
             sensorId: formData.sensorId || null,
             lastReadingTimestamp: null,
-            districtId: formData.districtId,
+            districtId: districtId,
             lastCollectionDate: null,
             collectionFrequencyDays: formData.collectionFrequencyDays,
             createdAt: null,
@@ -162,7 +182,7 @@ export const CreateContainerStore = signalStore(
           };
 
           containerService.create(containerEntity).subscribe({
-            next: (createdContainer) => {
+            next: () => {
               patchState(store, {
                 isLoading: false,
                 isSuccess: true,

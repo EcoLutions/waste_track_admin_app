@@ -88,12 +88,10 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       latitude: ['', [Validators.required, Validators.pattern(/^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}$/)]],
       longitude: ['', [Validators.required, Validators.pattern(/^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}$/)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
-      districtCode: ['', [Validators.required, Validators.minLength(2)]],
       volumeLiters: [240, [Validators.required, Validators.min(50), Validators.max(5000)]],
       maxWeightKg: [100, [Validators.required, Validators.min(10), Validators.max(1000)]],
       containerType: [ContainerTypeEnum.GENERAL, Validators.required],
       sensorId: [''],
-      districtId: ['', [Validators.required, Validators.minLength(2)]],
       collectionFrequencyDays: [7, [Validators.required, Validators.min(1), Validators.max(30)]]
     });
   }
@@ -128,12 +126,10 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       latitude: '',
       longitude: '',
       address: '',
-      districtCode: '',
       volumeLiters: 240,
       maxWeightKg: 100,
       containerType: ContainerTypeEnum.GENERAL,
       sensorId: '',
-      districtId: '',
       collectionFrequencyDays: 7
     });
     this.store.resetForm();
@@ -165,6 +161,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
     };
     return labels[type] || type;
   }
+
 
   onMapReady(map: L.Map): void {
     this.map = map;
@@ -316,8 +313,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
         return !!(
           this.containerForm.get('latitude')?.valid &&
           this.containerForm.get('longitude')?.valid &&
-          this.containerForm.get('address')?.valid &&
-          this.containerForm.get('districtCode')?.valid
+          this.containerForm.get('address')?.valid
         );
       case 1: // Características
         return !!(
@@ -326,10 +322,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
           this.containerForm.get('containerType')?.valid
         );
       case 2: // Configuración
-        return !!(
-          this.containerForm.get('districtId')?.valid &&
-          this.containerForm.get('collectionFrequencyDays')?.valid
-        );
+        return !!(this.containerForm.get('collectionFrequencyDays')?.valid);
       default:
         return true;
     }
