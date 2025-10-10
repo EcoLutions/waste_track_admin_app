@@ -54,26 +54,75 @@
       <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
 
       <!-- User Profile -->
-      <button
-        type="button"
-        (click)="goToProfile()"
-        class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-green-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 group">
-
-        <!-- User Info (Desktop) -->
-        <div class="hidden md:block text-right">
-          <div class="text-sm font-semibold text-gray-900 leading-tight">
-            {{ userInfo().name }}
-          </div>
-          <div class="text-xs text-gray-500">
-            {{ userInfo().role }}
+      @if (isLoading()) {
+        <!-- Loading State -->
+        <div class="flex items-center gap-3 px-2 py-1.5">
+          <div class="w-9 h-9 bg-gray-200 rounded-full animate-pulse"></div>
+          <div class="hidden md:block">
+            <div class="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div class="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
           </div>
         </div>
+      } @else if (hasError()) {
+        <!-- Error State -->
+        <div class="flex items-center gap-3 px-2 py-1.5">
+          <div class="w-9 h-9 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-semibold text-sm">
+            ?
+          </div>
+          <div class="hidden md:block text-right">
+            <div class="text-sm font-semibold text-gray-900 leading-tight">
+              Error al cargar
+            </div>
+            <div class="text-xs text-red-500">
+              Usuario
+            </div>
+          </div>
+        </div>
+      } @else if (userInfo(); as user) {
+        <!-- User Profile -->
+        <button
+          type="button"
+          (click)="goToProfile()"
+          class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-green-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 group">
+
+          <!-- User Info (Desktop) -->
+          <div class="hidden md:block text-right">
+            <div class="text-sm font-semibold text-gray-900 leading-tight">
+              {{ user.name }}
+            </div>
+            <div class="text-xs text-gray-500">
+              {{ user.role }}
+            </div>
+          </div>
 
         <!-- Avatar -->
-        <div class="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold text-sm ring-2 ring-white shadow-sm group-hover:ring-green-100 transition-all">
-          {{ userInfo().initials }}
+        @if (user.avatar) {
+          <img
+            [src]="user.avatar"
+            alt="{{ user.name }}"
+            class="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm transition-all group-hover:ring-green-100">
+        } @else {
+          <div class="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold text-sm ring-2 ring-white shadow-sm group-hover:ring-green-100 transition-all">
+            {{ user.initials }}
+          </div>
+        }
+        </button>
+      } @else {
+        <!-- Not Authenticated -->
+        <div class="flex items-center gap-3 px-2 py-1.5">
+          <div class="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-semibold text-sm">
+            ?
+          </div>
+          <div class="hidden md:block text-right">
+            <div class="text-sm font-semibold text-gray-900 leading-tight">
+              No autenticado
+            </div>
+            <div class="text-xs text-gray-500">
+              Usuario
+            </div>
+          </div>
         </div>
-      </button>
+      }
 
       <!-- Logout -->
       <button
