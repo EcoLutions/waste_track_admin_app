@@ -1,181 +1,8 @@
-/* Fleet Management Page Styles */
-
-/* Status indicators */
-.status-active {
-  background-color: var(--success-50);
-  color: var(--success-700);
-}
-
-.status-inactive {
-  background-color: var(--neutral-100);
-  color: var(--neutral-600);
-}
-
-.status-maintenance-due {
-  background-color: var(--destructive-50);
-  color: var(--destructive-700);
-}
-
-.status-maintenance-warning {
-  background-color: var(--warning-50);
-  color: var(--warning-700);
-}
-
-/* Statistics cards */
-.stats-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--drop-shadow-large);
-}
-
-/* Table styles */
-.vehicles-table {
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.vehicles-table th {
-  background-color: var(--neutral-50);
-  border-bottom: 0.2rem solid var(--neutral-200);
-  font-weight: var(--font-weight-semibold);
-  color: var(--neutral-700);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 1.2rem;
-  padding: var(--spacing-4);
-}
-
-.vehicles-table td {
-  padding: var(--spacing-4);
-  border-bottom: 0.1rem solid var(--neutral-100);
-  vertical-align: middle;
-}
-
-.vehicles-table tr:hover {
-  background-color: var(--neutral-25);
-}
-
-.vehicles-table tr:last-child td {
-  border-bottom: none;
-}
-
-/* Filter controls */
-.filter-section {
-  background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-25) 100%);
-  border: 0.1rem solid var(--neutral-200);
-  border-radius: var(--spacing-3);
-}
-
-.filter-input {
-  transition: all 0.2s ease;
-}
-
-.filter-input:focus {
-  transform: scale(1.02);
-  box-shadow: var(--focus-ring-2px-primary-100);
-}
-
-/* Action buttons */
-.action-button {
-  transition: all 0.2s ease;
-  border-radius: var(--spacing-2);
-}
-
-.action-button:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--drop-shadow-small);
-}
-
-.action-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Loading animation */
-.loading-spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Empty state */
-.empty-state {
-  background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-25) 100%);
-  border: 0.2rem dashed var(--neutral-300);
-  border-radius: var(--spacing-4);
-}
-
-.empty-state-icon {
-  color: var(--neutral-400);
-  opacity: 0.6;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .filter-section {
-    flex-direction: column;
-    gap: var(--spacing-3);
-  }
-
-  .filter-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .vehicles-table {
-    font-size: 1.4rem;
-  }
-
-  .vehicles-table th,
-  .vehicles-table td {
-    padding: var(--spacing-2);
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-3);
-  }
-}
-
-@media (max-width: 640px) {
-  .header-section {
-    text-align: center;
-  }
-
-  .header-icon {
-    margin: 0 auto var(--spacing-2) auto;
-  }
-
-  .filter-input {
-    width: 100%;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    gap: var(--spacing-2);
-  }
-}
-
-/* Animation for content loading */
-.content-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
+/* Smooth animations */
+@keyframes slide-down {
   from {
     opacity: 0;
-    transform: translateY(2rem);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -183,81 +10,89 @@
   }
 }
 
-/* Status badge animations */
-.status-badge {
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.status-badge::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.status-badge:hover::before {
-  left: 100%;
-}
-
-/* Maintenance warning pulse animation */
-.status-maintenance-warning {
-  animation: pulse-warning 2s infinite;
-}
-
-@keyframes pulse-warning {
-  0%, 100% {
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
     opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
+    transform: translateX(0);
   }
 }
 
-/* Scrollbar styling */
-.table-container::-webkit-scrollbar {
-  height: 0.8rem;
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
 }
 
-.table-container::-webkit-scrollbar-track {
-  background: var(--neutral-100);
-  border-radius: var(--spacing-2);
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
 }
 
-.table-container::-webkit-scrollbar-thumb {
-  background: var(--neutral-400);
-  border-radius: var(--spacing-2);
+/* Custom scrollbar for aside panel */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) transparent;
 }
 
-.table-container::-webkit-scrollbar-thumb:hover {
-  background: var(--neutral-500);
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(156 163 175);
+}
+
+/* Hover effect for table rows */
+tbody tr {
+  transition: all 0.15s ease;
+}
+
+tbody tr:hover {
+  transform: translateX(2px);
 }
 
 /* Focus states for accessibility */
-.filter-input:focus,
-.action-button:focus {
-  outline: none;
-  box-shadow: var(--focus-ring-2px-primary-100);
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(34 197 94);
+  outline-offset: 2px;
 }
 
-/* Print styles */
-@media print {
-  .filter-section,
-  .action-buttons {
-    display: none;
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
+}
 
-  .vehicles-table {
-    break-inside: avoid;
-  }
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 
-  .vehicles-table th {
-    background-color: var(--neutral-700) !important;
-    color: var(--color-white) !important;
-  }
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select {
+  transition: all 0.2s ease;
+}
+
+/* Badge hover effect */
+.status-badge {
+  transition: transform 0.2s ease;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
 }

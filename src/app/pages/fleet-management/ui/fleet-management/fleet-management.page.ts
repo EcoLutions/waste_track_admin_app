@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FleetManagementStore } from '../../model/store/fleet-management.store';
-import {DistrictContextStore} from '../../../../../shared/stores/district-context.store';
-import {VehicleEntity, VehicleTypeEnum} from '../../../../../entities';
+import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
+import { VehicleEntity, VehicleTypeEnum } from '../../../../../entities';
 
 @Component({
   selector: 'app-fleet-management',
@@ -14,6 +14,9 @@ import {VehicleEntity, VehicleTypeEnum} from '../../../../../entities';
 export class FleetManagementPage implements OnInit, OnDestroy {
   readonly store = inject(FleetManagementStore);
   readonly districtContextStore = inject(DistrictContextStore);
+
+  // Selected vehicle for detail panel
+  selectedVehicle = signal<VehicleEntity | null>(null);
 
   // Search and filter signals
   searchTerm = signal('');
@@ -35,19 +38,23 @@ export class FleetManagementPage implements OnInit, OnDestroy {
   // Vehicle type options
   readonly vehicleTypes = Object.values(VehicleTypeEnum);
 
+  // Check if there are active filters
+  readonly hasActiveFilters = computed(() => {
+    return this.searchTerm() !== '' ||
+      this.selectedVehicleType() !== null ||
+      !this.showOnlyActive();
+  });
+
   ngOnInit(): void {
     this.initializePage().then(() => {});
   }
 
   ngOnDestroy(): void {
-    // Reset store state when leaving the page
     this.store.resetState();
   }
 
   private async initializePage(): Promise<void> {
-    // Wait for district context to be available
     if (!this.districtContextStore.isDistrictLoaded()) {
-      // If district is not loaded, try to initialize it
       try {
         await this.districtContextStore.initializeDistrictContext();
       } catch (error) {
@@ -55,12 +62,10 @@ export class FleetManagementPage implements OnInit, OnDestroy {
       }
     }
 
-    // Load vehicles once district context is available
     if (this.districtContextStore.districtId()) {
       await this.store.loadVehicles();
     }
 
-    // Initialize filter signals from store
     this.searchTerm.set(this.store.searchTerm());
     this.selectedVehicleType.set(this.store.selectedVehicleType());
     this.showOnlyActive.set(this.store.showOnlyActive());
@@ -83,6 +88,12 @@ export class FleetManagementPage implements OnInit, OnDestroy {
     this.store.setShowOnlyActive(showOnlyActive);
   }
 
+  toggleActiveFilter(): void {
+    const newValue = !this.showOnlyActive();
+    this.showOnlyActive.set(newValue);
+    this.store.setShowOnlyActive(newValue);
+  }
+
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedVehicleType.set(null);
@@ -95,6 +106,20 @@ export class FleetManagementPage implements OnInit, OnDestroy {
     await this.store.refreshVehicles();
   }
 
+  // Vehicle selection for detail panel
+  selectVehicle(vehicle: VehicleEntity): void {
+    // Toggle: if clicking the same vehicle, close the panel
+    if (this.selectedVehicle()?.id === vehicle.id) {
+      this.selectedVehicle.set(null);
+    } else {
+      this.selectedVehicle.set(vehicle);
+    }
+  }
+
+  closeVehicleDetail(): void {
+    this.selectedVehicle.set(null);
+  }
+
   // Helper methods for template
   getVehicleTypeLabel(type: VehicleTypeEnum): string {
     const labels = {
@@ -105,27 +130,37 @@ export class FleetManagementPage implements OnInit, OnDestroy {
     return labels[type] || type;
   }
 
+  getVehicleTypeIcon(type: VehicleTypeEnum): string {
+    const icons = {
+      [VehicleTypeEnum.COMPACTOR]: 'pi pi-box',
+      [VehicleTypeEnum.TRUCK]: 'pi pi-truck',
+      [VehicleTypeEnum.MINI_TRUCK]: 'pi pi-car'
+    };
+    return icons[type] || 'pi pi-truck';
+  }
+
   getVehicleStatusClass(vehicle: VehicleEntity): string {
-    if (!vehicle.isActive) return 'status-inactive';
+    if (!vehicle.isActive) {
+      return 'inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700';
+    }
 
     if (vehicle.nextMaintenanceDate) {
       const today = new Date();
       const maintenanceDate = new Date(vehicle.nextMaintenanceDate);
 
       if (maintenanceDate <= today) {
-        return 'status-maintenance-due';
+        return 'inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700';
       }
 
-      // Check if maintenance is due within 7 days
       const sevenDaysFromNow = new Date();
       sevenDaysFromNow.setDate(today.getDate() + 7);
 
       if (maintenanceDate <= sevenDaysFromNow) {
-        return 'status-maintenance-warning';
+        return 'inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700';
       }
     }
 
-    return 'status-active';
+    return 'inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700';
   }
 
   getVehicleStatusText(vehicle: VehicleEntity): string {
@@ -148,6 +183,17 @@ export class FleetManagementPage implements OnInit, OnDestroy {
     }
 
     return 'Activo';
+  }
+
+  needsMaintenanceSoon(vehicle: VehicleEntity): boolean {
+    if (!vehicle.nextMaintenanceDate || !vehicle.isActive) return false;
+
+    const today = new Date();
+    const maintenanceDate = new Date(vehicle.nextMaintenanceDate);
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(today.getDate() + 7);
+
+    return maintenanceDate <= sevenDaysFromNow;
   }
 
   formatDate(date: Date | null): string {
