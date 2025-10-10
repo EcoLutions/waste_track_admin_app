@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { catchError } from 'rxjs/operators';
 import {CitizenEntity} from '../../model';
 import {CitizenResponse} from '../types/citizen-response.type';
@@ -33,6 +33,13 @@ export class CitizenService extends BaseService {
       catchError(this.handleError),
       retry(2)
     );
+  }
+
+  getAllByDistrictId(districtId: string): Observable<CitizenEntity[]> {
+    return this.http.get<CitizenResponse[]>(`${this.resourcePath()}/district/${districtId}`, this.httpOptions).pipe(
+      map((responses: CitizenResponse[]) => responses.map(r => CitizenEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
   }
 
   create(entity: CitizenEntity): Observable<CitizenEntity> {
