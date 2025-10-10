@@ -50,6 +50,6 @@ export class HeaderComponent {
   }
 
   goToProfile(): void {
-    this.router.navigate(['/settings/profile']);
+    this.router.navigate(['/settings/profile']).then(() => {});
   }
 }

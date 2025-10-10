@@ -1,4 +1,4 @@
-import { Component, computed, effect, HostListener, inject, signal } from '@angular/core';
+import { Component, effect, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {RouterOutlet, Router, NavigationEnd, RouterModule} from '@angular/router';
 import { filter } from 'rxjs';
@@ -16,13 +16,6 @@ interface NavItem {
   separator?: boolean;
 }
 
-interface UserInfo {
-  name: string;
-  initials: string;
-  role: string;
-  avatar?: string;
-}
-
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
@@ -37,15 +30,6 @@ export class AdminLayoutComponent {
   sidebarOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isMobile = signal<boolean>(false);
-
-  userInfo = signal<UserInfo>({
-    name: 'Juan Pérez',
-    initials: 'JP',
-    role: 'Administrador Municipal'
-  });
-
-  // Computed
-  showOverlay = computed(() => this.sidebarOpen() && this.isMobile());
 
   // Navigation items
   navItems: NavItem[] = [
@@ -371,6 +355,8 @@ export class AdminLayoutComponent {
 
   handleLogout(): void {
     console.log('Logging out...');
-    this.router.navigate(['/login']);
+    // El header component ya maneja el logout con authStore.signOut()
+    // Solo necesitamos navegar al login después del logout
+    this.router.navigate(['/login']).then(() => {});
   }
 }
