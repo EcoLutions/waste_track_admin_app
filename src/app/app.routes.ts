@@ -164,7 +164,7 @@ export const routes: Routes = [
       // ==================== CUMPLIMIENTO REGULATORIO ====================
       {
         path: 'compliance',
-        canActivate: [roleGuard(['ADMIN', 'COMPLIANCE_OFFICER'])],
+        canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
         children: [
           { path: '', component: CompliancePage },
           { path: 'minam-reports', component: MinamReportsPage },
@@ -176,7 +176,7 @@ export const routes: Routes = [
       // ==================== GESTIÓN DE USUARIOS ====================
       {
         path: 'users',
-        canActivate: [roleGuard(['ADMIN', 'USER_MANAGER'])],
+        canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
         children: [
           { path: '', component: UserManagementPage },
           { path: 'drivers', component: DriversPage },
@@ -192,14 +192,14 @@ export const routes: Routes = [
           {
             path: '',
             component: SettingsPage,
-            canActivate: [roleGuard(['ADMIN'])]
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
           },
           { path: 'profile', component: ProfileSettingsPage },
           { path: 'notifications', component: NotificationSettingsPage },
           {
             path: 'integrations',
             component: IntegrationsPage,
-            canActivate: [roleGuard(['ADMIN'])]
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
           }
         ]
       }
