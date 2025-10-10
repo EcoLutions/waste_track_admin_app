@@ -1,4 +1,4 @@
-/* Smooth animations */
+/* Accordion animations */
 @keyframes slide-down {
   from {
     opacity: 0;
@@ -10,11 +10,20 @@
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
 }
 
-/* Custom scrollbar for form container */
+/* Custom scrollbar */
 .overflow-y-auto {
   scrollbar-width: thin;
   scrollbar-color: rgb(209 213 219) transparent;
@@ -37,7 +46,7 @@
   background-color: rgb(156 163 175);
 }
 
-/* Focus states for accessibility */
+/* Focus states */
 input:focus-visible,
 select:focus-visible,
 button:focus-visible {
@@ -45,7 +54,7 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* Loading spinner animation */
+/* Loading spinner */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -59,43 +68,22 @@ button:focus-visible {
 /* Smooth transitions */
 input,
 select,
-button {
+button,
+.bg-white {
   transition: all 0.2s ease;
 }
 
-/* Input validation states */
-input:invalid:focus {
-  border-color: rgb(239 68 68);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+/* Section hover effect */
+.bg-white:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-input:valid:not(:placeholder-shown) {
-  border-color: rgb(34 197 94);
+/* Progress bar animation */
+.bg-green-600 {
+  transition: width 0.5s ease-out;
 }
 
-/* Toggle switch styling */
-input[type="checkbox"]:checked + .toggle-bg {
-  background-color: rgb(34 197 94);
-}
-
-/* Custom number input arrows (hide in some browsers for cleaner look) */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  opacity: 0.5;
-}
-
-input[type="number"]:hover::-webkit-inner-spin-button,
-input[type="number"]:hover::-webkit-outer-spin-button {
-  opacity: 1;
-}
-
-/* Disabled state for buttons */
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* Hover effects */
+/* Button hover effects */
 button:not(:disabled):hover {
   transform: translateY(-1px);
 }
@@ -104,29 +92,38 @@ button:not(:disabled):active {
   transform: translateY(0);
 }
 
-/* Custom select dropdown arrow */
-select {
-  background-image: none;
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-/* Form section transitions */
-.bg-white {
-  transition: box-shadow 0.2s ease;
+/* Checkbox/Toggle animations */
+input[type="checkbox"]:checked + div {
+  transition: background-color 0.2s ease;
 }
 
-.bg-white:hover {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+/* Icon transitions */
+.pi {
+  transition: all 0.2s ease;
 }
 
-/* Label animation on focus */
-input:focus + label,
-select:focus + label {
-  color: rgb(34 197 94);
+/* Ring effect for active section */
+.ring-2 {
+  box-shadow: 0 0 0 2px rgb(34 197 94);
 }
 
-/* Preview card smooth appearance */
-.sticky {
-  transition: all 0.3s ease;
+/* Completion indicator pulse */
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.pi-check-circle {
+  animation: pulse-green 2s ease-in-out infinite;
 }
 
 /* Responsive adjustments */
@@ -134,9 +131,14 @@ select:focus + label {
   .grid {
     gap: 1rem;
   }
+
+  .px-5 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
-/* Custom date picker styling */
+/* Date picker styling */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.6;
@@ -147,33 +149,26 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
-/* Success message animation */
-@keyframes check-bounce {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+/* Number input styling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 
-.pi-check-circle {
-  animation: check-bounce 0.6s ease;
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:hover::-webkit-outer-spin-button {
+  opacity: 1;
 }
 
-/* Form validation icon animation */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Section opacity transition */
+.opacity-50 {
+  transition: opacity 0.3s ease;
 }
 
-.pi-check-circle,
-.pi-info-circle {
-  animation: fade-in 0.2s ease;
+/* Sticky positioning smooth */
+.sticky {
+  position: sticky;
+  top: 1rem;
+  transition: all 0.3s ease;
 }
