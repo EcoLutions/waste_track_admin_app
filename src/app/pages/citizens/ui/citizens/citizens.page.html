@@ -1,1 +1,247 @@
-<p>citizens works!</p>
+<div class="h-full flex flex-col gap-6">
+
+  <!-- Header -->
+  <div class="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+    <div class="flex items-center gap-2.5 mb-1">
+      <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+        <i class="pi pi-users text-blue-600 text-lg"></i>
+      </div>
+      <h1 class="text-xl font-bold text-gray-900">Gestión de Ciudadanos</h1>
+    </div>
+    <p class="text-xs text-gray-600 ml-11">
+      @if (districtName()) {
+        Gestión de ciudadanos para el distrito {{ districtName() }}
+      } @else {
+        Gestión completa de la comunidad de ciudadanos
+      }
+    </p>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm animate-slide-down">
+      <div class="flex items-start gap-3">
+        <i class="pi pi-exclamation-triangle text-red-600 text-2xl"></i>
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-red-900 mb-1">Error al cargar ciudadanos</h3>
+          <p class="text-sm text-red-700">{{ error() }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+      <div class="flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600 font-medium">Cargando ciudadanos...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading()) {
+    <div class="flex-1 flex flex-col gap-6 min-h-0">
+
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Citizens -->
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-users text-blue-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Total Ciudadanos</p>
+              <p class="text-2xl font-bold text-gray-900">{{ formatNumber(totalCitizens()) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gold Members -->
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-crown text-yellow-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Miembros Oro</p>
+              <p class="text-2xl font-bold text-gray-900">{{ formatNumber(goldMembers().length) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Points -->
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-star text-green-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Puntos Totales</p>
+              <p class="text-2xl font-bold text-gray-900">{{ formatNumber(totalPoints()) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Reports -->
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-chart-line text-purple-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Reportes Totales</p>
+              <p class="text-2xl font-bold text-gray-900">{{ formatNumber(totalReportsSubmitted()) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <!-- Search -->
+          <div class="flex-1 max-w-md">
+            <div class="relative">
+              <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              <input
+                type="text"
+                [value]="searchTerm()"
+                (input)="onSearchTermChange($any($event.target).value)"
+                placeholder="Buscar por nombre, email, teléfono..."
+                class="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap gap-3 items-center">
+            <!-- Membership Filter -->
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-700">Nivel:</label>
+              <select
+                [value]="selectedMembershipLevel() || 'all'"
+                (change)="onMembershipFilterChange($any($event.target).value)"
+                class="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                <option value="all">Todos</option>
+                @for (level of membershipLevels; track level) {
+                  <option [value]="level">{{ getMembershipLabel(level) }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Active Filter -->
+            <div class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                [checked]="showActiveOnly()"
+                (change)="onActiveFilterChange($any($event.target).checked)"
+                id="activeFilter"
+                class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+              <label for="activeFilter" class="text-sm font-medium text-gray-700">Solo activos</label>
+            </div>
+
+            <!-- Clear Filters -->
+            <button
+              (click)="clearFilters()"
+              class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+              <i class="pi pi-filter-slash mr-1"></i>
+              Limpiar
+            </button>
+
+            <!-- Refresh -->
+            <button
+              (click)="refreshCitizens()"
+              [disabled]="isLoading()"
+              class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              <i class="pi pi-refresh mr-1"></i>
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Citizens Table -->
+      <div class="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="border-b border-gray-100 p-4">
+          <h2 class="text-lg font-bold text-gray-900">Lista de Ciudadanos</h2>
+          <p class="text-sm text-gray-600">{{ formatNumber(citizens().length) }} ciudadanos encontrados</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          @if (citizens().length > 0) {
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ciudadano</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Contacto</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Nivel</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Puntos</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reportes</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Última Actividad</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                @for (citizen of citizens(); track citizen.id) {
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ citizen.id }}</td>
+                    <td class="px-4 py-3">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-900">{{ citizen.firstName }} {{ citizen.lastName }}</p>
+                        <p class="text-xs text-gray-500">{{ citizen.userId }}</p>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div>
+                        <p class="text-sm text-gray-600">{{ citizen.email }}</p>
+                        <p class="text-xs text-gray-500">{{ citizen.phoneNumber }}</p>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span [class]="'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ' + getMembershipClass(citizen.membershipLevel)">
+                        <i [class]="getMembershipIcon(citizen.membershipLevel) + ' text-xs'"></i>
+                        {{ getMembershipLabel(citizen.membershipLevel) }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ formatNumber(citizen.totalPoints) }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ formatNumber(citizen.totalReportsSubmitted) }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(citizen.lastActivityDate) }}</td>
+                    <td class="px-4 py-3">
+                      <span [class]="'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ' + getActivityStatusClass(citizen)">
+                        {{ getActivityStatusText(citizen) }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                      <button class="text-blue-600 hover:text-blue-800 mr-2">
+                        <i class="pi pi-eye"></i>
+                      </button>
+                      <button class="text-gray-600 hover:text-gray-800">
+                        <i class="pi pi-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="flex flex-col items-center justify-center py-12">
+              <i class="pi pi-users text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500 text-lg mb-2">No se encontraron ciudadanos</p>
+              <p class="text-gray-400 text-sm">
+                @if (searchTerm() || selectedMembershipLevel()) {
+                  Intente ajustar los filtros de búsqueda
+                } @else {
+                  No hay ciudadanos registrados en este distrito
+                }
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
