@@ -1,1 +1,465 @@
-<p>fleet-management works!</p>
+<div class="h-full flex flex-col gap-4">
+  <!-- Compact Header -->
+  <div class="bg-white rounded-lg px-4 py-3 border border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-truck text-green-600"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-gray-900">Gestión de Flota</h1>
+          <p class="text-xs text-gray-500">
+            @if (districtName()) {
+              {{ districtName() }}
+            }
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          (click)="refreshVehicles()"
+          [disabled]="isLoading()"
+          class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+          <i class="pi pi-refresh text-sm" [class.animate-spin]="isLoading()"></i>
+          <span>Actualizar</span>
+        </button>
+
+        <button
+          routerLink="/fleet/create"
+          class="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow">
+          <i class="pi pi-plus text-sm"></i>
+          <span>Nuevo Vehículo</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm animate-slide-down">
+      <div class="flex items-start gap-2.5">
+        <i class="pi pi-exclamation-circle text-red-600 text-lg mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-red-900">Error al cargar vehículos</p>
+          <p class="text-sm text-red-700 mt-0.5">{{ error() }}</p>
+        </div>
+        <button class="text-red-400 hover:text-red-600 transition-colors">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex-1 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-10 h-10 border-3 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="mt-3 text-sm text-gray-600 font-medium">Cargando vehículos...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading()) {
+    <div class="flex-1 flex flex-col gap-4 min-h-0">
+
+      <!-- Compact Statistics Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Total Vehicles -->
+        <div class="bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <p class="text-xs text-gray-500 font-medium mb-0.5">Total</p>
+              <p class="text-xl font-bold text-gray-900">{{ formatNumber(totalVehicles()) }}</p>
+            </div>
+            <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+              <i class="pi pi-truck text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Vehicles -->
+        <div class="bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <p class="text-xs text-gray-500 font-medium mb-0.5">Activos</p>
+              <p class="text-xl font-bold text-green-600">{{ formatNumber(activeVehicles().length) }}</p>
+            </div>
+            <div class="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center">
+              <i class="pi pi-check-circle text-green-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Capacity -->
+        <div class="bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <p class="text-xs text-gray-500 font-medium mb-0.5">Capacidad</p>
+              <p class="text-xl font-bold text-gray-900">{{ formatNumber(totalCapacity()) }}<span class="text-sm text-gray-500 ml-0.5">L</span></p>
+            </div>
+            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center">
+              <i class="pi pi-chart-bar text-purple-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maintenance Alerts -->
+        <div class="bg-white rounded-lg p-3 border border-gray-200 hover:border-orange-300 transition-colors cursor-pointer group">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <p class="text-xs text-gray-500 font-medium mb-0.5">Mantenimiento</p>
+              <p class="text-xl font-bold text-orange-600">{{ formatNumber(vehiclesNeedingMaintenance().length) }}</p>
+            </div>
+            <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+              <i class="pi pi-wrench text-orange-600"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Filters Bar -->
+      <div class="bg-white rounded-lg px-4 py-3 border border-gray-200">
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <!-- Search -->
+          <div class="flex-1 min-w-0">
+            <div class="relative">
+              <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input
+                type="text"
+                [value]="searchTerm()"
+                (input)="onSearchTermChange($any($event.target).value)"
+                placeholder="Buscar por placa o conductor..."
+                class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+            </div>
+          </div>
+
+          <!-- Compact Filters -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <!-- Vehicle Type Dropdown -->
+            <select
+              [value]="selectedVehicleType() || 'all'"
+              (change)="onVehicleTypeFilterChange($any($event.target).value)"
+              class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white">
+              <option value="all">Todos los tipos</option>
+              @for (type of vehicleTypes; track type) {
+                <option [value]="type">{{ getVehicleTypeLabel(type) }}</option>
+              }
+            </select>
+
+            <!-- Active Filter Toggle -->
+            <button
+              (click)="toggleActiveFilter()"
+              [class]="showOnlyActive()
+                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                : 'bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100'"
+              class="px-3 py-2 border rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5">
+              <i [class]="showOnlyActive() ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+              <span>Solo activos</span>
+            </button>
+
+            <!-- Clear Filters -->
+            @if (hasActiveFilters()) {
+              <button
+                (click)="clearFilters()"
+                class="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 flex items-center gap-1.5">
+                <i class="pi pi-filter-slash text-sm"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Active Filters Tags -->
+        @if (hasActiveFilters()) {
+          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <span class="text-xs text-gray-500 font-medium">Filtros activos:</span>
+
+            @if (searchTerm()) {
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-md">
+                Búsqueda: "{{ searchTerm() }}"
+                <button (click)="onSearchTermChange('')" class="hover:text-blue-900">
+                  <i class="pi pi-times text-xs"></i>
+                </button>
+              </span>
+            }
+
+            @if (selectedVehicleType()) {
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-md">
+                {{ getVehicleTypeLabel(selectedVehicleType()!) }}
+                <button (click)="onVehicleTypeFilterChange('all')" class="hover:text-purple-900">
+                  <i class="pi pi-times text-xs"></i>
+                </button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Vehicles Table with Aside Panel -->
+      <div class="flex-1 flex gap-4 min-h-0">
+        <!-- Main Table -->
+        <div class="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+          <!-- Table Header -->
+          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-bold text-gray-900">Vehículos</h2>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  Mostrando {{ formatNumber(vehicles().length) }} de {{ formatNumber(totalVehicles()) }}
+                </p>
+              </div>
+
+              <!-- View Toggle (future: list/grid) -->
+              <div class="flex items-center gap-1 bg-white rounded-lg border border-gray-200 p-0.5">
+                <button class="px-2 py-1 text-xs text-white bg-green-600 rounded">
+                  <i class="pi pi-list"></i>
+                </button>
+                <button class="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <i class="pi pi-th-large"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Content -->
+          <div class="flex-1 overflow-auto">
+            @if (vehicles().length > 0) {
+              <table class="w-full">
+                <thead class="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Placa
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Tipo
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Estado
+                  </th>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Capacidad
+                  </th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Acciones
+                  </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  @for (vehicle of vehicles(); track vehicle.id) {
+                    <tr
+                      (click)="selectVehicle(vehicle)"
+                      [class.bg-green-50]="selectedVehicle()?.id === vehicle.id"
+                      class="hover:bg-gray-50 cursor-pointer transition-colors group">
+
+                      <!-- License Plate -->
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <div class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                            <i class="pi pi-truck text-gray-600 text-sm"></i>
+                          </div>
+                          <div>
+                            <p class="text-sm font-bold text-gray-900">{{ vehicle.licensePlate }}</p>
+                            @if (vehicle.assignedDriverId) {
+                              <p class="text-xs text-gray-500">Conductor asignado</p>
+                            }
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Type -->
+                      <td class="px-4 py-3">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                          <i [class]="getVehicleTypeIcon(vehicle.vehicleType) + ' text-xs'"></i>
+                          {{ getVehicleTypeLabel(vehicle.vehicleType) }}
+                        </span>
+                      </td>
+
+                      <!-- Status -->
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                          <span [class]="getVehicleStatusClass(vehicle)">
+                            {{ getVehicleStatusText(vehicle) }}
+                          </span>
+                          @if (needsMaintenanceSoon(vehicle)) {
+                            <i class="pi pi-exclamation-triangle text-orange-500 text-sm"
+                               title="Mantenimiento próximo"></i>
+                          }
+                        </div>
+                      </td>
+
+                      <!-- Capacity -->
+                      <td class="px-4 py-3 text-center">
+                        <span class="text-sm font-semibold text-gray-900">{{ formatNumber(vehicle.volumeCapacity) }}</span>
+                        <span class="text-xs text-gray-500 ml-0.5">L</span>
+                      </td>
+
+                      <!-- Actions -->
+                      <td class="px-4 py-3 text-right">
+                        <button
+                          (click)="selectVehicle(vehicle); $event.stopPropagation()"
+                          class="text-gray-400 hover:text-green-600 transition-colors p-1.5 hover:bg-green-50 rounded">
+                          <i class="pi pi-angle-right text-sm"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <div class="flex flex-col items-center justify-center h-full py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <i class="pi pi-truck text-gray-400 text-2xl"></i>
+                </div>
+                <p class="text-gray-900 font-medium text-base mb-1">No se encontraron vehículos</p>
+                <p class="text-gray-500 text-sm text-center max-w-sm">
+                  @if (searchTerm() || selectedVehicleType()) {
+                    Intenta ajustar los filtros de búsqueda para ver más resultados
+                  } @else {
+                    No hay vehículos registrados en este distrito
+                  }
+                </p>
+                @if (hasActiveFilters()) {
+                  <button
+                    (click)="clearFilters()"
+                    class="mt-4 px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    Limpiar filtros
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Aside Detail Panel -->
+        @if (selectedVehicle()) {
+          <div class="w-80 bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col animate-slide-in-right">
+            <!-- Aside Header -->
+            <div class="px-4 py-3 border-b border-gray-200 bg-gradient-to-br from-green-50 to-green-100">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h3 class="text-lg font-bold text-gray-900">{{ selectedVehicle()!.licensePlate }}</h3>
+                  <p class="text-xs text-gray-600 mt-0.5">{{ getVehicleTypeLabel(selectedVehicle()!.vehicleType) }}</p>
+                </div>
+                <button
+                  (click)="closeVehicleDetail()"
+                  class="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-white/50 rounded">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+
+              <!-- Status Badge -->
+              <div [class]="getVehicleStatusClass(selectedVehicle()!) + ' w-fit'">
+                {{ getVehicleStatusText(selectedVehicle()!) }}
+              </div>
+            </div>
+
+            <!-- Aside Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+              <!-- Basic Information -->
+              <div>
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Información Básica</h4>
+                <div class="space-y-2.5">
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">ID del Sistema</span>
+                    <span class="text-sm font-medium text-gray-900 text-right">{{ selectedVehicle()!.id }}</span>
+                  </div>
+
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Placa</span>
+                    <span class="text-sm font-bold text-gray-900">{{ selectedVehicle()!.licensePlate }}</span>
+                  </div>
+
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Tipo de Vehículo</span>
+                    <span class="text-sm font-medium text-gray-900">{{ getVehicleTypeLabel(selectedVehicle()!.vehicleType) }}</span>
+                  </div>
+
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Estado</span>
+                    <span [class]="selectedVehicle()!.isActive ? 'text-green-700 font-medium' : 'text-gray-500 font-medium'" class="text-sm">
+                      {{ selectedVehicle()!.isActive ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Capacity & Performance -->
+              <div>
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Capacidad y Rendimiento</h4>
+                <div class="space-y-2.5">
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Capacidad</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ formatNumber(selectedVehicle()!.volumeCapacity) }} L</span>
+                  </div>
+
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Kilometraje</span>
+                    <span class="text-sm font-medium text-gray-900">{{ formatNumber(selectedVehicle()!.mileage) }} km</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Maintenance -->
+              <div>
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Mantenimiento</h4>
+                <div class="space-y-2.5">
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Último Mantenimiento</span>
+                    <span class="text-sm font-medium text-gray-900">{{ formatDate(selectedVehicle()!.lastMaintenanceDate) }}</span>
+                  </div>
+
+                  <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                    <span class="text-sm text-gray-600">Próximo Mantenimiento</span>
+                    <span [class]="needsMaintenanceSoon(selectedVehicle()!) ? 'text-orange-600 font-semibold' : 'text-gray-900 font-medium'" class="text-sm">
+                      {{ formatDate(selectedVehicle()!.nextMaintenanceDate) }}
+                    </span>
+                  </div>
+
+                  @if (needsMaintenanceSoon(selectedVehicle()!)) {
+                    <div class="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg mt-2">
+                      <i class="pi pi-exclamation-triangle text-orange-600 text-sm mt-0.5"></i>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs font-medium text-orange-900">Mantenimiento Próximo</p>
+                        <p class="text-xs text-orange-700 mt-0.5">Este vehículo requiere mantenimiento pronto</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Assignment -->
+              @if (selectedVehicle()!.assignedDriverId) {
+                <div>
+                  <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Asignación</h4>
+                  <div class="space-y-2.5">
+                    <div class="flex items-start justify-between py-2 border-b border-gray-100">
+                      <span class="text-sm text-gray-600">Conductor Asignado</span>
+                      <span class="text-sm font-medium text-gray-900">{{ selectedVehicle()!.assignedDriverId }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+
+            </div>
+
+            <!-- Aside Footer Actions -->
+            <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
+              <button
+                disabled
+                class="w-full px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <i class="pi pi-pencil text-sm"></i>
+                Editar Vehículo
+              </button>
+              <p class="text-xs text-gray-500 text-center mt-2">Funcionalidad en desarrollo</p>
+            </div>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</div>

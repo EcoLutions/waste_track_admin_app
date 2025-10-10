@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { VehicleEntity } from '../../model';
 import { VehicleResponse } from '../types/vehicle-response.type';
 import { CreateVehicleRequest } from '../types/create-vehicle-request.type';

@@ -8,6 +8,7 @@ import { ContainerAlertsPage } from './pages/container-alerts/ui/container-alert
 import { ContainerHistoryPage } from './pages/container-history/ui/container-history/container-history.page';
 import { ContainerSettingsPage } from './pages/container-settings/ui/container-settings/container-settings.page';
 import { CreateContainerPage } from './pages/create-container/ui/create-container/create-container.page';
+import { CreateVehiclePage } from './pages/create-vehicle/ui/create-vehicle/create-vehicle.page';
 import { RouteOptimizationPage } from './pages/route-optimization/ui/route-optimization/route-optimization.page';
 import { RouteOptimizerPage } from './pages/route-optimizer/ui/route-optimizer/route-optimizer.page';
 import { ActiveRoutesPage } from './pages/active-routes/ui/active-routes/active-routes.page';
@@ -106,6 +107,11 @@ export const routes: Routes = [
         path: 'fleet',
         children: [
           { path: '', component: FleetManagementPage },
+          {
+            path: 'create',
+            component: CreateVehiclePage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
           { path: 'monitoring', component: FleetMonitoringPage },
           { path: 'maintenance', component: MaintenanceSchedulePage },
           { path: 'costs', component: OperationalCostsPage },
@@ -158,7 +164,7 @@ export const routes: Routes = [
       // ==================== CUMPLIMIENTO REGULATORIO ====================
       {
         path: 'compliance',
-        canActivate: [roleGuard(['ADMIN', 'COMPLIANCE_OFFICER'])],
+        canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
         children: [
           { path: '', component: CompliancePage },
           { path: 'minam-reports', component: MinamReportsPage },
@@ -170,7 +176,7 @@ export const routes: Routes = [
       // ==================== GESTIÓN DE USUARIOS ====================
       {
         path: 'users',
-        canActivate: [roleGuard(['ADMIN', 'USER_MANAGER'])],
+        canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
         children: [
           { path: '', component: UserManagementPage },
           { path: 'drivers', component: DriversPage },
@@ -186,14 +192,14 @@ export const routes: Routes = [
           {
             path: '',
             component: SettingsPage,
-            canActivate: [roleGuard(['ADMIN'])]
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
           },
           { path: 'profile', component: ProfileSettingsPage },
           { path: 'notifications', component: NotificationSettingsPage },
           {
             path: 'integrations',
             component: IntegrationsPage,
-            canActivate: [roleGuard(['ADMIN'])]
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
           }
         ]
       }
