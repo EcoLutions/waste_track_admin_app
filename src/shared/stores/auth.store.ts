@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { StorageService } from '../services';
 import { AuthenticationService } from '../../entities';
 import { UserEntity } from '../../entities';
-import { SignInCredentials } from '../../entities/user/api/mappers/sign-in-request-from-credentials.mapper';
+import { SignInCredentials } from '../../entities';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {RolesEnum} from '../../entities';
 import {firstValueFrom} from 'rxjs';
