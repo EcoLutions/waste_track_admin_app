@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CitizensStore } from '../../model/store/citizens.store';
-import {CitizenEntity, MembershipLevelEnum} from '../../../../../entities';
-import {DistrictContextStore} from '../../../../../shared/stores/district-context.store';
+import { CitizenEntity, MembershipLevelEnum } from '../../../../../entities';
+import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
 
 @Component({
   selector: 'app-citizens',
@@ -14,6 +14,9 @@ import {DistrictContextStore} from '../../../../../shared/stores/district-contex
 export class CitizensPage implements OnInit, OnDestroy {
   readonly store = inject(CitizensStore);
   readonly districtContextStore = inject(DistrictContextStore);
+
+  // Selected citizen for detail panel
+  selectedCitizen = signal<CitizenEntity | null>(null);
 
   // Search and filter signals
   searchTerm = signal('');
@@ -35,22 +38,24 @@ export class CitizensPage implements OnInit, OnDestroy {
   readonly mostActiveCitizens = computed(() => this.store.mostActiveCitizens());
   readonly districtName = computed(() => this.store.districtName());
 
-  // Membership level options
   readonly membershipLevels = Object.values(MembershipLevelEnum);
+
+  // Check if there are active filters
+  readonly hasActiveFilters = computed(() => {
+    return this.searchTerm() !== '' ||
+      this.selectedMembershipLevel() !== null;
+  });
 
   ngOnInit(): void {
     this.initializePage().then(() => {});
   }
 
   ngOnDestroy(): void {
-    // Reset store state when leaving the page
     this.store.resetState();
   }
 
   private async initializePage(): Promise<void> {
-    // Wait for district context to be available
     if (!this.districtContextStore.isDistrictLoaded()) {
-      // If district is not loaded, try to initialize it
       try {
         await this.districtContextStore.initializeDistrictContext();
       } catch (error) {
@@ -58,12 +63,10 @@ export class CitizensPage implements OnInit, OnDestroy {
       }
     }
 
-    // Load citizens once district context is available
     if (this.districtContextStore.districtId()) {
       await this.store.loadCitizens();
     }
 
-    // Initialize filter signals from store
     this.searchTerm.set(this.store.searchTerm());
     this.selectedMembershipLevel.set(this.store.selectedMembershipLevel());
     this.showActiveOnly.set(this.store.showActiveOnly());
@@ -86,6 +89,12 @@ export class CitizensPage implements OnInit, OnDestroy {
     this.store.setShowActiveOnly(showActiveOnly);
   }
 
+  toggleActiveFilter(): void {
+    const newValue = !this.showActiveOnly();
+    this.showActiveOnly.set(newValue);
+    this.store.setShowActiveOnly(newValue);
+  }
+
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedMembershipLevel.set(null);
@@ -93,9 +102,21 @@ export class CitizensPage implements OnInit, OnDestroy {
     this.store.clearFilters();
   }
 
-  // Citizen management methods
   async refreshCitizens(): Promise<void> {
     await this.store.refreshCitizens();
+  }
+
+  // Citizen selection for detail panel
+  selectCitizen(citizen: CitizenEntity): void {
+    if (this.selectedCitizen()?.id === citizen.id) {
+      this.selectedCitizen.set(null);
+    } else {
+      this.selectedCitizen.set(citizen);
+    }
+  }
+
+  closeCitizenDetail(): void {
+    this.selectedCitizen.set(null);
   }
 
   // Helper methods for template
@@ -110,16 +131,16 @@ export class CitizensPage implements OnInit, OnDestroy {
 
   getMembershipClass(level: MembershipLevelEnum): string {
     const classes = {
-      [MembershipLevelEnum.BRONZE]: 'membership-bronze',
-      [MembershipLevelEnum.SILVER]: 'membership-silver',
-      [MembershipLevelEnum.GOLD]: 'membership-gold'
+      [MembershipLevelEnum.BRONZE]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-700',
+      [MembershipLevelEnum.SILVER]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700',
+      [MembershipLevelEnum.GOLD]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-700'
     };
-    return classes[level] || 'membership-default';
+    return classes[level] || 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700';
   }
 
   getMembershipIcon(level: MembershipLevelEnum): string {
     const icons = {
-      [MembershipLevelEnum.BRONZE]: 'pi pi-star',
+      [MembershipLevelEnum.BRONZE]: 'pi pi-circle-fill',
       [MembershipLevelEnum.SILVER]: 'pi pi-star',
       [MembershipLevelEnum.GOLD]: 'pi pi-crown'
     };
@@ -142,18 +163,17 @@ export class CitizensPage implements OnInit, OnDestroy {
   isRecentlyActive(citizen: CitizenEntity): boolean {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return citizen.lastActivityDate >= thirtyDaysAgo;
+    return new Date(citizen.lastActivityDate) >= thirtyDaysAgo;
   }
 
   getActivityStatusClass(citizen: CitizenEntity): string {
-    return this.isRecentlyActive(citizen) ? 'activity-active' : 'activity-inactive';
+    if (this.isRecentlyActive(citizen)) {
+      return 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700';
+    }
+    return 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500';
   }
 
   getActivityStatusText(citizen: CitizenEntity): string {
     return this.isRecentlyActive(citizen) ? 'Activo' : 'Inactivo';
-  }
-
-  hasActiveFilters(): boolean {
-    return !!(this.searchTerm() || this.selectedMembershipLevel());
   }
 }
