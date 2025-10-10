@@ -1,17 +1,8 @@
-import {Component, NgZone, OnInit} from '@angular/core';
-import {LeafletDirective} from '@bluehalo/ngx-leaflet';
+import { Component, NgZone, OnInit, inject, computed } from '@angular/core';
+import { LeafletDirective } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
-
-interface Container {
-  id: string;
-  numeroContenedor: string;
-  lat: number;
-  lng: number;
-  estado: 'EN_TRANSITO' | 'DETENIDO' | 'EN_PUERTO' | 'ENTREGADO';
-  destino: string;
-  eta: string;
-  temperatura?: number;
-}
+import { ContainerMonitoringStore } from '../../model/store/container-monitoring.store';
+import { ContainerEntity, ContainerStatusEnum, ContainerTypeEnum } from '../../../../../entities';
 
 @Component({
   selector: 'app-container-monitoring',
@@ -20,93 +11,78 @@ interface Container {
   styleUrl: './container-monitoring.page.css'
 })
 export class ContainerMonitoringPage implements OnInit {
-  // Configuración del mapa
-  options: L.MapOptions = {
+  readonly store = inject(ContainerMonitoringStore);
+  private zone = inject(NgZone);
+
+  // Configuración del mapa usando datos del store
+  options = computed<L.MapOptions>(() => ({
     layers: [
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '© OpenStreetMap contributors'
       })
     ],
-    zoom: 5,
-    center: L.latLng(-12.0464, -77.0428) // Lima, Perú
-  };
+    zoom: this.store.mapZoom(),
+    center: L.latLng(this.store.mapCenter().lat, this.store.mapCenter().lng)
+  }));
 
   map!: L.Map;
   markers: Map<string, L.Marker> = new Map();
 
-  // Datos de ejemplo de contenedores
-  containers: Container[] = [
-    {
-      id: '1',
-      numeroContenedor: 'CONT-001',
-      lat: -12.0464,
-      lng: -77.0428,
-      estado: 'EN_TRANSITO',
-      destino: 'Callao',
-      eta: '2025-10-15 14:30',
-      temperatura: 18
-    },
-    {
-      id: '2',
-      numeroContenedor: 'CONT-002',
-      lat: -12.1200,
-      lng: -77.0300,
-      estado: 'DETENIDO',
-      destino: 'Lima Centro',
-      eta: '2025-10-15 16:00',
-      temperatura: 22
-    },
-    {
-      id: '3',
-      numeroContenedor: 'CONT-003',
-      lat: -11.9500,
-      lng: -77.1000,
-      estado: 'EN_PUERTO',
-      destino: 'Puerto',
-      eta: '2025-10-15 18:00',
-      temperatura: 20
-    }
-  ];
+  // Computed properties desde el store
+  containers = computed(() => this.store.filteredContainers());
+  isLoading = computed(() => this.store.isLoading());
+  error = computed(() => this.store.error());
+  selectedContainer = computed(() => this.store.selectedContainer());
+  hasValidContainers = computed(() => this.store.hasValidContainers());
 
-  constructor(private zone: NgZone) {}
+  // Estadísticas rápidas
+  quickStats = computed(() => this.store.getQuickStats());
+
+  constructor() {}
 
   ngOnInit() {
-    // Aquí puedes cargar datos desde tu backend
-    // this.loadContainersFromBackend();
+    this.loadContainers().then(() => {});
+  }
+
+  /**
+   * Cargar containers desde el servicio
+   */
+  async loadContainers(): Promise<void> {
+    await this.store.loadContainers();
   }
 
   // Evento cuando el mapa está listo
   onMapReady(map: L.Map) {
     this.map = map;
+
+    // Agregar marcadores cuando haya containers válidos
     this.addAllContainerMarkers();
 
-    // Ajustar vista para mostrar todos los marcadores
-    this.fitMapToMarkers();
+    // Ajustar vista para mostrar todos los marcadores si hay containers válidos
+    if (this.hasValidContainers()) {
+      this.fitMapToMarkers();
+    }
   }
 
   // Crear icono personalizado según estado
-  private createCustomIcon(estado: Container['estado']): L.Icon {
+  private createCustomIcon(status: ContainerStatusEnum): L.Icon {
     const iconConfig = {
-      'EN_TRANSITO': {
-        url: 'assets/icons/container-moving.png',
-        className: 'marker-en-transito'
+      [ContainerStatusEnum.ACTIVE]: {
+        url: 'assets/icons/container-active.png',
+        className: 'marker-active'
       },
-      'DETENIDO': {
-        url: 'assets/icons/container-stopped.png',
-        className: 'marker-detenido'
+      [ContainerStatusEnum.MAINTENANCE]: {
+        url: 'assets/icons/container-maintenance.png',
+        className: 'marker-maintenance'
       },
-      'EN_PUERTO': {
-        url: 'assets/icons/container-port.png',
-        className: 'marker-puerto'
-      },
-      'ENTREGADO': {
-        url: 'assets/icons/container-delivered.png',
-        className: 'marker-entregado'
+      [ContainerStatusEnum.DECOMMISSIONED]: {
+        url: 'assets/icons/container-decommissioned.png',
+        className: 'marker-decommissioned'
       }
     };
 
-    const config = iconConfig[estado];
+    const config = iconConfig[status];
 
     return L.icon({
       iconUrl: config.url,
@@ -120,23 +96,31 @@ export class ContainerMonitoringPage implements OnInit {
   }
 
   // Crear DivIcon personalizado (alternativa más flexible)
-  private createCustomDivIcon(container: Container): L.DivIcon {
-    const estadoColors = {
-      'EN_TRANSITO': '#3498db',
-      'DETENIDO': '#e74c3c',
-      'EN_PUERTO': '#f39c12',
-      'ENTREGADO': '#27ae60'
+  private createCustomDivIcon(container: ContainerEntity): L.DivIcon {
+    const statusColors = {
+      [ContainerStatusEnum.ACTIVE]: '#27ae60',
+      [ContainerStatusEnum.MAINTENANCE]: '#f39c12',
+      [ContainerStatusEnum.DECOMMISSIONED]: '#e74c3c'
+    };
+
+    const typeIcons = {
+      [ContainerTypeEnum.ORGANIC]: '🌱',
+      [ContainerTypeEnum.RECYCLABLE]: '♻️',
+      [ContainerTypeEnum.GENERAL]: '🗑️'
     };
 
     const html = `
-      <div class="custom-marker ${container.estado.toLowerCase()}">
+      <div class="custom-marker ${container.status.toLowerCase()}">
         <div class="marker-icon">
-          <img src="assets/images/smart-trash.png" alt="Container" />
+          <span class="type-icon">${typeIcons[container.containerType]}</span>
         </div>
-        <div class="marker-badge" style="background: ${estadoColors[container.estado]}">
-          ${container.numeroContenedor}
+        <div class="marker-badge" style="background: ${statusColors[container.status]}">
+          ${container.id.substring(0, 8)}
         </div>
-        ${container.estado === 'EN_TRANSITO' ? '<div class="marker-pulse"></div>' : ''}
+        ${container.status === ContainerStatusEnum.ACTIVE && container.currentFillLevel > 80 ?
+          '<div class="marker-pulse warning"></div>' : ''}
+        ${container.status === ContainerStatusEnum.MAINTENANCE ?
+          '<div class="marker-pulse maintenance"></div>' : ''}
       </div>
     `;
 
@@ -150,27 +134,50 @@ export class ContainerMonitoringPage implements OnInit {
   }
 
   // Crear contenido del popup
-  private createPopupContent(container: Container): string {
-    const estadoLabels = {
-      'EN_TRANSITO': 'En Tránsito',
-      'DETENIDO': 'Detenido',
-      'EN_PUERTO': 'En Puerto',
-      'ENTREGADO': 'Entregado'
+  private createPopupContent(container: ContainerEntity): string {
+    const statusLabels = {
+      [ContainerStatusEnum.ACTIVE]: 'Activo',
+      [ContainerStatusEnum.MAINTENANCE]: 'Mantenimiento',
+      [ContainerStatusEnum.DECOMMISSIONED]: 'Fuera de Servicio'
+    };
+
+    const typeLabels = {
+      [ContainerTypeEnum.ORGANIC]: 'Orgánico',
+      [ContainerTypeEnum.RECYCLABLE]: 'Reciclable',
+      [ContainerTypeEnum.GENERAL]: 'General'
+    };
+
+    const formatDate = (date: Date | null) => {
+      if (!date) return 'No disponible';
+      return new Intl.DateTimeFormat('es-PE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
     };
 
     return `
       <div class="container-popup">
-        <h3>${container.numeroContenedor}</h3>
+        <h3>Contenedor ${container.id.substring(0, 8)}</h3>
         <div class="popup-content">
           <p>
             <strong>Estado:</strong>
-            <span class="badge ${container.estado.toLowerCase()}">
-              ${estadoLabels[container.estado]}
+            <span class="badge ${container.status.toLowerCase()}">
+              ${statusLabels[container.status]}
             </span>
           </p>
-          <p><strong>Destino:</strong> ${container.destino}</p>
-          <p><strong>ETA:</strong> ${container.eta}</p>
-          ${container.temperatura ? `<p><strong>Temperatura:</strong> ${container.temperatura}°C</p>` : ''}
+          <p><strong>Tipo:</strong> ${typeLabels[container.containerType]}</p>
+          <p><strong>Dirección:</strong> ${container.address}</p>
+          <p><strong>Distrito:</strong> ${container.districtCode}</p>
+          <p><strong>Capacidad:</strong> ${container.volumeLiters}L / ${container.maxWeightKg}kg</p>
+          <p><strong>Llenado:</strong> ${container.currentFillLevel}%</p>
+          ${container.lastReadingTimestamp ?
+            `<p><strong>Última lectura:</strong> ${formatDate(container.lastReadingTimestamp)}</p>` : ''}
+          ${container.lastCollectionDate ?
+            `<p><strong>Última recolección:</strong> ${formatDate(container.lastCollectionDate)}</p>` : ''}
+          <p><strong>Frecuencia:</strong> Cada ${container.collectionFrequencyDays} días</p>
         </div>
         <button class="details-btn" onclick="window.verDetalles('${container.id}')">
           Ver Detalles Completos
@@ -181,26 +188,32 @@ export class ContainerMonitoringPage implements OnInit {
 
   // Agregar todos los marcadores
   private addAllContainerMarkers() {
-    this.containers.forEach(container => {
+    this.containers().forEach(container => {
       this.addContainerMarker(container);
     });
   }
 
   // Agregar un marcador individual
-  addContainerMarker(container: Container) {
-    // Opción 1: Usar icono personalizado con imagen
-    // const icon = this.createCustomIcon(container.estado);
+  addContainerMarker(container: ContainerEntity) {
+    // Verificar que el container tenga coordenadas válidas
+    const lat = parseFloat(container.latitude);
+    const lng = parseFloat(container.longitude);
 
-    // Opción 2: Usar DivIcon con HTML/CSS (más flexible)
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn(`Container ${container.id} tiene coordenadas inválidas: ${container.latitude}, ${container.longitude}`);
+      return;
+    }
+
+    // Usar DivIcon con HTML/CSS (más flexible)
     const icon = this.createCustomDivIcon(container);
 
-    const marker = L.marker([container.lat, container.lng], { icon })
+    const marker = L.marker([lat, lng], { icon })
       .bindPopup(this.createPopupContent(container), {
         maxWidth: 300,
         className: 'custom-popup'
       })
       .bindTooltip(
-        `<b>${container.numeroContenedor}</b><br>${container.estado}`,
+        `<b>Contenedor ${container.id.substring(0, 8)}</b><br>${container.address}`,
         {
           permanent: false,
           direction: 'top',
@@ -212,7 +225,7 @@ export class ContainerMonitoringPage implements OnInit {
     marker.on('click', () => {
       this.zone.run(() => {
         console.log('Contenedor seleccionado:', container);
-        // Aquí puedes emitir eventos o actualizar el estado
+        this.store.selectContainer(container);
       });
     });
 
@@ -221,27 +234,32 @@ export class ContainerMonitoringPage implements OnInit {
   }
 
   // Actualizar estado de un contenedor en tiempo real
-  updateContainer(containerId: string, updates: Partial<Container>) {
-    const container = this.containers.find(c => c.id === containerId);
-    if (!container) return;
+  updateContainer(containerId: string, updates: Partial<ContainerEntity>) {
+    // Usar el store para actualizar
+    this.store.updateContainer(containerId, updates);
 
-    // Actualizar datos del contenedor
-    Object.assign(container, updates);
+    const container = this.store.getContainerById(containerId);
+    if (!container) return;
 
     // Obtener el marcador existente
     const marker = this.markers.get(containerId);
     if (!marker) return;
 
-    // Actualizar icono si cambió el estado
-    if (updates.estado) {
+    // Actualizar icono si cambió el estado o tipo
+    if (updates.status || updates.containerType) {
       const newIcon = this.createCustomDivIcon(container);
       marker.setIcon(newIcon);
     }
 
-    // Actualizar posición si cambió
-    if (updates.lat && updates.lng) {
-      // Animar el movimiento
-      this.animateMarkerToPosition(marker, [updates.lat, updates.lng], 2000);
+    // Actualizar posición si cambiaron las coordenadas
+    if (updates.latitude || updates.longitude) {
+      const lat = parseFloat(container.latitude);
+      const lng = parseFloat(container.longitude);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        // Animar el movimiento
+        this.animateMarkerToPosition(marker, [lat, lng], 2000);
+      }
     }
 
     // Actualizar popup
@@ -286,15 +304,26 @@ export class ContainerMonitoringPage implements OnInit {
   // Simular actualización en tiempo real (para testing)
   simulateRealTimeUpdate() {
     setInterval(() => {
-      const randomContainer = this.containers[
-        Math.floor(Math.random() * this.containers.length)
-        ];
+      const containers = this.containers();
+      if (containers.length === 0) return;
 
-      // Mover ligeramente la posición
-      this.updateContainer(randomContainer.id, {
-        lat: randomContainer.lat + (Math.random() - 0.5) * 0.01,
-        lng: randomContainer.lng + (Math.random() - 0.5) * 0.01
-      });
+      const randomContainer = containers[
+        Math.floor(Math.random() * containers.length)
+      ];
+
+      // Actualizar nivel de llenado o estado
+      const updates: Partial<ContainerEntity> = {};
+
+      if (Math.random() > 0.5) {
+        // Actualizar nivel de llenado
+        updates.currentFillLevel = Math.floor(Math.random() * 100);
+      } else {
+        // Cambiar estado aleatoriamente
+        const statuses = Object.values(ContainerStatusEnum);
+        updates.status = statuses[Math.floor(Math.random() * statuses.length)];
+      }
+
+      this.updateContainer(randomContainer.id, updates);
     }, 5000);
   }
 }

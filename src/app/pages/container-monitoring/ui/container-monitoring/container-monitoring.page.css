@@ -1,4 +1,126 @@
-/* container-map.component.css */
+/* Container Monitoring Page Styles */
+.container-monitoring-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: var(--spacing-4);
+  gap: var(--spacing-4);
+}
+
+/* Header con estadísticas */
+.stats-header {
+  flex-shrink: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.stat-card {
+  background: var(--color-white);
+  padding: var(--spacing-4);
+  border-radius: var(--spacing-2);
+  box-shadow: var(--drop-shadow-small);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  border-left: 0.4rem solid var(--neutral-300);
+}
+
+.stat-card.active {
+  border-left-color: var(--success-500-main);
+}
+
+.stat-card.maintenance {
+  border-left-color: var(--warning-500-main);
+}
+
+.stat-card.warning {
+  border-left-color: var(--destructive-500-main);
+}
+
+.stat-icon {
+  font-size: 2.4rem;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 2.4rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--neutral-900);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 1.4rem;
+  color: var(--neutral-600);
+  margin-top: var(--spacing-1);
+}
+
+/* Filtros */
+.filters-section {
+  flex-shrink: 0;
+  background: var(--color-white);
+  padding: var(--spacing-4);
+  border-radius: var(--spacing-2);
+  box-shadow: var(--drop-shadow-small);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--spacing-4);
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.filter-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--neutral-700);
+  font-size: 1.4rem;
+}
+
+.filter-select,
+.filter-input {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 0.1rem solid var(--neutral-300);
+  border-radius: var(--spacing-1);
+  font-size: 1.4rem;
+  transition: border-color 0.2s ease;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary-200-main);
+  box-shadow: var(--focus-ring-2px-primary-100);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Mapa */
+.map-section {
+  flex: 1;
+  position: relative;
+  min-height: 40rem;
+  border-radius: var(--spacing-2);
+  overflow: hidden;
+  box-shadow: var(--drop-shadow-medium);
+}
+
 .map-wrapper {
   position: relative;
   width: 100%;
@@ -8,8 +130,112 @@
 .map-container {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--spacing-2);
+}
+
+/* Estados del mapa */
+.loading-overlay,
+.error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 0.3rem solid var(--neutral-200);
+  border-top: 0.3rem solid var(--primary-200-main);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 4rem;
+}
+
+/* Controles del mapa */
+.map-controls {
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.selected-container-info {
+  background: var(--color-white);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--spacing-1);
+  box-shadow: var(--drop-shadow-small);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 1.2rem;
+}
+
+/* Leyenda del mapa */
+.map-legend {
+  position: absolute;
+  bottom: var(--spacing-4);
+  left: var(--spacing-4);
+  background: var(--color-white);
+  padding: var(--spacing-3);
+  border-radius: var(--spacing-1);
+  box-shadow: var(--drop-shadow-small);
+  display: flex;
+  gap: var(--spacing-4);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 1.2rem;
+}
+
+.legend-dot {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  border: 0.2rem solid var(--color-white);
+  box-shadow: var(--drop-shadow-small);
+}
+
+.legend-dot.active {
+  background: var(--success-500-main);
+}
+
+.legend-dot.maintenance {
+  background: var(--warning-500-main);
+}
+
+.legend-dot.decommissioned {
+  background: var(--destructive-500-main);
+}
+
+/* Info footer */
+.info-footer {
+  flex-shrink: 0;
+  text-align: center;
+  color: var(--neutral-600);
+  font-size: 1.4rem;
 }
 
 .map-controls {
@@ -47,26 +273,52 @@
   align-items: center;
 }
 
-:host ::ng-deep .marker-icon img {
+:host ::ng-deep .marker-icon {
   width: 40px;
   height: 40px;
+  background: var(--color-white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  border: 0.2rem solid var(--color-white);
+  box-shadow: var(--drop-shadow-small);
+}
+
+:host ::ng-deep .type-icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 :host ::ng-deep .marker-badge {
   position: absolute;
   top: -8px;
   right: -8px;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: bold;
+  color: var(--color-white);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--spacing-4);
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--drop-shadow-small);
+  border: 0.2rem solid var(--color-white);
 }
 
-/* Animación de pulso para contenedores en tránsito */
+/* Estados específicos de marcadores */
+:host ::ng-deep .custom-marker.active .marker-badge {
+  background: var(--success-500-main);
+}
+
+:host ::ng-deep .custom-marker.maintenance .marker-badge {
+  background: var(--warning-500-main);
+}
+
+:host ::ng-deep .custom-marker.decommissioned .marker-badge {
+  background: var(--destructive-500-main);
+}
+
+/* Animación de pulso para contenedores activos con alto nivel de llenado */
 :host ::ng-deep .marker-pulse {
   position: absolute;
   bottom: 0;
@@ -74,9 +326,31 @@
   transform: translateX(-50%);
   width: 20px;
   height: 20px;
-  background: rgba(52, 152, 219, 0.4);
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  animation: pulse-warning 2s infinite;
+}
+
+:host ::ng-deep .marker-pulse.warning {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+:host ::ng-deep .marker-pulse.maintenance {
+  background: rgba(245, 158, 11, 0.4);
+}
+
+@keyframes pulse-warning {
+  0% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.7;
+  }
 }
 
 @keyframes pulse {
@@ -92,8 +366,8 @@
 
 /* Estilos para el popup */
 :host ::ng-deep .custom-popup .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+  border-radius: var(--spacing-2);
+  box-shadow: var(--drop-shadow-large);
 }
 
 :host ::ng-deep .container-popup {
@@ -102,58 +376,135 @@
 }
 
 :host ::ng-deep .container-popup h3 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-  font-size: 18px;
-  border-bottom: 2px solid #3498db;
-  padding-bottom: 8px;
+  margin: 0 0 var(--spacing-3) 0;
+  color: var(--neutral-900);
+  font-size: 1.8rem;
+  border-bottom: 0.2rem solid var(--primary-200-main);
+  padding-bottom: var(--spacing-2);
 }
 
 :host ::ng-deep .popup-content p {
-  margin: 8px 0;
-  font-size: 14px;
+  margin: var(--spacing-2) 0;
+  font-size: 1.4rem;
+  color: var(--neutral-700);
 }
 
 :host ::ng-deep .badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--spacing-1);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-semibold);
 }
 
-:host ::ng-deep .badge.en_transito {
-  background: #3498db;
-  color: white;
+:host ::ng-deep .badge.active {
+  background: var(--success-500-main);
+  color: var(--color-white);
 }
 
-:host ::ng-deep .badge.detenido {
-  background: #e74c3c;
-  color: white;
+:host ::ng-deep .badge.maintenance {
+  background: var(--warning-500-main);
+  color: var(--color-white);
 }
 
-:host ::ng-deep .badge.en_puerto {
-  background: #f39c12;
-  color: white;
+:host ::ng-deep .badge.decommissioned {
+  background: var(--destructive-500-main);
+  color: var(--color-white);
 }
 
-:host ::ng-deep .badge.entregado {
-  background: #27ae60;
-  color: white;
+/* Botones */
+.btn {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--spacing-1);
+  font-size: 1.4rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-200-main);
+  color: var(--color-white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-300);
+}
+
+.btn-secondary {
+  background: var(--neutral-100);
+  color: var(--neutral-700);
+  border: 0.1rem solid var(--neutral-300);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--neutral-200);
+}
+
+.btn-small {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 1.2rem;
 }
 
 :host ::ng-deep .details-btn {
   width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  background: #3498db;
-  color: white;
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--primary-200-main);
+  color: var(--color-white);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--spacing-1);
   cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+  font-weight: var(--font-weight-medium);
+  transition: background 0.2s ease;
 }
 
 :host ::ng-deep .details-btn:hover {
-  background: #2980b9;
+  background: var(--primary-300);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container-monitoring-page {
+    padding: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--spacing-2);
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .filter-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-legend {
+    bottom: var(--spacing-2);
+    left: var(--spacing-2);
+    right: var(--spacing-2);
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .map-controls {
+    top: var(--spacing-2);
+    right: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
 }
