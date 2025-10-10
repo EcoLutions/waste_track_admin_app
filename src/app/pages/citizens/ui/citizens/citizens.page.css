@@ -1,0 +1,213 @@
+/* Smooth animations */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Custom scrollbar for aside panel */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(156 163 175);
+}
+
+/* Hover effect for table rows */
+tbody tr {
+  transition: all 0.15s ease;
+}
+
+tbody tr:hover {
+  transform: translateX(2px);
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(34 197 94);
+  outline-offset: 2px;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select {
+  transition: all 0.2s ease;
+}
+
+/* Avatar/Icon pulse effect on hover */
+.pi-user {
+  transition: transform 0.2s ease;
+}
+
+tr:hover .pi-user {
+  transform: scale(1.1);
+}
+
+/* Membership badge shine effect */
+@keyframes shine {
+  0% {
+    background-position: -100%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.bg-yellow-100 {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-yellow-100::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shine 3s infinite;
+}
+
+/* Enhanced hover states */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Disabled state */
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Smooth card hover */
+.hover\:border-gray-300:hover,
+.hover\:border-yellow-300:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Points badge glow effect */
+.bg-green-50 {
+  transition: all 0.2s ease;
+}
+
+tr:hover .bg-green-50 {
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+/* Membership level colors with subtle gradients */
+.bg-yellow-100 {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.bg-gray-100 {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+
+.bg-orange-100 {
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+  .w-80 {
+    width: 20rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Hide aside panel on tablets/mobile */
+  .animate-slide-in-right {
+    display: none;
+  }
+}
+
+/* Star icon pulse for points */
+@keyframes pulse-star {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.pi-star {
+  animation: pulse-star 2s ease-in-out infinite;
+}
+
+/* Crown icon special effect */
+@keyframes crown-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.8));
+  }
+}
+
+.pi-crown {
+  animation: crown-glow 2s ease-in-out infinite;
+}
