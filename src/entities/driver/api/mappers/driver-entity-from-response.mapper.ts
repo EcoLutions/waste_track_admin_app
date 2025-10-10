@@ -25,9 +25,12 @@ export class DriverEntityFromResponseMapper {
   }
 
   private static mapStringToDriverStatus(status: string): DriverStatusEnum {
-    const statusKey = Object.keys(DriverStatusEnum).find(
-      key => DriverStatusEnum[key as keyof typeof DriverStatusEnum] === status
-    );
+    const normalized = (status ?? '').toString().trim().toLowerCase();
+
+    const statusKey = Object.keys(DriverStatusEnum).find(key => {
+      const val = DriverStatusEnum[key as keyof typeof DriverStatusEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (statusKey) {
       return DriverStatusEnum[statusKey as keyof typeof DriverStatusEnum];
