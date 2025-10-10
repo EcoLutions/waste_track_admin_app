@@ -20,9 +20,12 @@ export class DistrictEntityFromResponseMapper {
   }
 
   private static mapStringToOperationalStatus(status: string): OperationalStatusEnum {
-    const statusKey = Object.keys(OperationalStatusEnum).find(
-      key => OperationalStatusEnum[key as keyof typeof OperationalStatusEnum] === status
-    );
+    const normalized = (status ?? '').toString().trim().toLowerCase();
+
+    const statusKey = Object.keys(OperationalStatusEnum).find(key => {
+      const val = OperationalStatusEnum[key as keyof typeof OperationalStatusEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (statusKey) {
       return OperationalStatusEnum[statusKey as keyof typeof OperationalStatusEnum];

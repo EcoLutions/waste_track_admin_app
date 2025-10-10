@@ -26,9 +26,12 @@ export class ContainerEntityFromResponseMapper {
   }
 
   private static mapStringToContainerType(containerType: string): ContainerTypeEnum {
-    const typeKey = Object.keys(ContainerTypeEnum).find(
-      key => ContainerTypeEnum[key as keyof typeof ContainerTypeEnum] === containerType
-    );
+    const normalized = (containerType ?? '').toString().trim().toLowerCase();
+
+    const typeKey = Object.keys(ContainerTypeEnum).find(key => {
+      const val = ContainerTypeEnum[key as keyof typeof ContainerTypeEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (typeKey) {
       return ContainerTypeEnum[typeKey as keyof typeof ContainerTypeEnum];
@@ -39,9 +42,12 @@ export class ContainerEntityFromResponseMapper {
   }
 
   private static mapStringToContainerStatus(status: string): ContainerStatusEnum {
-    const statusKey = Object.keys(ContainerStatusEnum).find(
-      key => ContainerStatusEnum[key as keyof typeof ContainerStatusEnum] === status
-    );
+    const normalized = (status ?? '').toString().trim().toLowerCase();
+
+    const statusKey = Object.keys(ContainerStatusEnum).find(key => {
+      const val = ContainerStatusEnum[key as keyof typeof ContainerStatusEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (statusKey) {
       return ContainerStatusEnum[statusKey as keyof typeof ContainerStatusEnum];
