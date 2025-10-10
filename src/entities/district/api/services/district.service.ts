@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { DistrictEntity } from '../../model';
 import { DistrictResponse } from '../types/district-response.type';
 import { CreateDistrictRequest } from '../types/create-district-request.type';
