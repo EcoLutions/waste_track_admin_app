@@ -8,6 +8,7 @@ import { ContainerAlertsPage } from './pages/container-alerts/ui/container-alert
 import { ContainerHistoryPage } from './pages/container-history/ui/container-history/container-history.page';
 import { ContainerSettingsPage } from './pages/container-settings/ui/container-settings/container-settings.page';
 import { CreateContainerPage } from './pages/create-container/ui/create-container/create-container.page';
+import { CreateVehiclePage } from './pages/create-vehicle/ui/create-vehicle/create-vehicle.page';
 import { RouteOptimizationPage } from './pages/route-optimization/ui/route-optimization/route-optimization.page';
 import { RouteOptimizerPage } from './pages/route-optimizer/ui/route-optimizer/route-optimizer.page';
 import { ActiveRoutesPage } from './pages/active-routes/ui/active-routes/active-routes.page';
@@ -106,6 +107,11 @@ export const routes: Routes = [
         path: 'fleet',
         children: [
           { path: '', component: FleetManagementPage },
+          {
+            path: 'create',
+            component: CreateVehiclePage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
           { path: 'monitoring', component: FleetMonitoringPage },
           { path: 'maintenance', component: MaintenanceSchedulePage },
           { path: 'costs', component: OperationalCostsPage },

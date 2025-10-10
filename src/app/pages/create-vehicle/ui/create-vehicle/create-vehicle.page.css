@@ -1,0 +1,113 @@
+/* Create Vehicle Page Styles */
+
+/* Form sections */
+.form-section {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-section:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--drop-shadow-medium);
+}
+
+/* Form inputs */
+.form-input {
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  transform: scale(1.01);
+  box-shadow: var(--focus-ring-2px-primary-100);
+}
+
+/* Action buttons */
+.action-button {
+  transition: all 0.2s ease;
+  border-radius: 10rem;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--drop-shadow-medium);
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading animation */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success/Error messages */
+.message-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .form-section {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .header-section {
+    text-align: center;
+  }
+
+  .header-icon {
+    margin: 0 auto var(--spacing-2) auto;
+  }
+}
+
+/* Focus states for accessibility */
+.form-input:focus,
+.action-button:focus {
+  outline: none;
+}
+
+/* Print styles */
+@media print {
+  .action-buttons {
+    display: none;
+  }
+
+  .form-section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 0.1rem solid var(--neutral-300);
+  }
+}
