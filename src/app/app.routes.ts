@@ -42,6 +42,7 @@ import { NotificationSettingsPage } from './pages/notification-settings/ui/notif
 import { IntegrationsPage } from './pages/integrations/ui/integrations/integrations.page';
 import {LoginPage} from './pages/authentication/ui/login/login.page';
 import {UnauthorizedPage} from './pages/authentication/ui/unauthorized/unauthorized.page';
+import {CreateDriverPage} from './pages/create-driver/ui/create-driver/create-driver.page';
 
 export const routes: Routes = [
   // ==================== PÁGINAS PÚBLICAS ====================
@@ -180,6 +181,11 @@ export const routes: Routes = [
         children: [
           { path: '', component: UserManagementPage },
           { path: 'drivers', component: DriversPage },
+          {
+            path: 'drivers/create',
+            component: CreateDriverPage,
+            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+          },
           { path: 'citizens', component: CitizensPage },
           { path: 'roles', component: RolesPage }
         ]

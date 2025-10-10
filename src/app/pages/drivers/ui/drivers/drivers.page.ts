@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { DriversStore } from '../../model/store/drivers.store';
 import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
 import { DriverEntity, DriverStatusEnum } from '../../../../../entities';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-drivers',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './drivers.page.html',
   styleUrl: './drivers.page.css'
 })
