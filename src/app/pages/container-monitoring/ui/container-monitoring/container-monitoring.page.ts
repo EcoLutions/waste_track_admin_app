@@ -14,6 +14,8 @@ export class ContainerMonitoringPage implements OnInit {
   readonly store = inject(ContainerMonitoringStore);
   private zone = inject(NgZone);
 
+  filtersPanelOpen = false;
+
   // Configuración del mapa usando datos del store
   options = computed<L.MapOptions>(() => ({
     layers: [
