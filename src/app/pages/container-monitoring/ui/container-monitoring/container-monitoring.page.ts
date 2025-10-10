@@ -1,4 +1,4 @@
-import { Component, NgZone, OnInit, inject, computed } from '@angular/core';
+import {Component, NgZone, OnInit, inject, computed, effect} from '@angular/core';
 import { LeafletDirective } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { ContainerMonitoringStore } from '../../model/store/container-monitoring.store';
@@ -16,7 +16,7 @@ export class ContainerMonitoringPage implements OnInit {
 
   filtersPanelOpen = false;
 
-  // Configuración del mapa usando datos del store
+  // Configuración del mapa
   options = computed<L.MapOptions>(() => ({
     layers: [
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -31,7 +31,7 @@ export class ContainerMonitoringPage implements OnInit {
   map!: L.Map;
   markers: Map<string, L.Marker> = new Map();
 
-  // Computed properties desde el store
+  // Computed properties (sin cambios)
   containers = computed(() => this.store.filteredContainers());
   isLoading = computed(() => this.store.isLoading());
   error = computed(() => this.store.error());
@@ -41,7 +41,18 @@ export class ContainerMonitoringPage implements OnInit {
   // Estadísticas rápidas
   quickStats = computed(() => this.store.getQuickStats());
 
-  constructor() {}
+  constructor() {
+    effect(() => {
+      this.containers();
+      if (this.map) {
+        console.log('✅ Filtros actualizados en el store. Refrescando marcadores en el mapa...');
+        this.zone.run(() => {
+          this.updateMapMarkers();
+        });
+      }
+    });
+  }
+  // ===============================================================
 
   ngOnInit() {
     this.loadContainers().then(() => {});
@@ -54,7 +65,22 @@ export class ContainerMonitoringPage implements OnInit {
     await this.store.loadContainers();
   }
 
-  // Evento cuando el mapa está listo
+  private updateMapMarkers() {
+    if (!this.map) return;
+
+    // Eliminar todos los marcadores existentes del mapa y del registro
+    this.markers.forEach(marker => marker.remove());
+    this.markers.clear();
+
+    // Agregar solo los containers que pasaron el filtro
+    this.containers().forEach(container => this.addContainerMarker(container));
+
+    // Ajustar la vista del mapa a los nuevos marcadores
+    if (this.hasValidContainers()) {
+      this.fitMapToMarkers();
+    }
+  }
+
   onMapReady(map: L.Map) {
     this.map = map;
 
@@ -65,6 +91,8 @@ export class ContainerMonitoringPage implements OnInit {
     if (this.hasValidContainers()) {
       this.fitMapToMarkers();
     }
+
+    this.updateMapMarkers();
   }
 
   // Crear icono personalizado según estado
