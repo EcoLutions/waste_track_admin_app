@@ -1,1 +1,283 @@
-<p>create-container works!</p>
+<div class="create-container-page">
+  <div class="create-container-page__header">
+    <h1 class="heading-h1-bold-desktop">Crear Nuevo Contenedor</h1>
+    <p class="paragraph-medium-regular">Complete la información para registrar un nuevo contenedor en el sistema</p>
+  </div>
+
+  <!-- Success Message -->
+  @if (isSuccess()) {
+    <div class="alert alert--success">
+      <div class="alert__icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="alert__content">
+        <h3 class="alert__title">¡Contenedor creado exitosamente!</h3>
+        <p class="paragraph-medium-regular">El contenedor ha sido registrado en el sistema. Será redirigido automáticamente...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert--error">
+      <div class="alert__icon">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <div class="alert__content">
+        <h3 class="alert__title">Error al crear contenedor</h3>
+        <p class="paragraph-medium-regular">{{ error() }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p class="paragraph-medium-regular">Creando contenedor...</p>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading() && !isSuccess()) {
+    <form [formGroup]="containerForm" (ngSubmit)="onSubmit()" class="create-container-form">
+
+      <!-- Información de Ubicación -->
+      <div class="form-section">
+        <h2 class="form-section__title heading-h2-semibold-desktop">
+          <i class="pi pi-map-marker form-section__icon"></i>
+          Información de Ubicación
+        </h2>
+
+        <div class="form-grid">
+          <!-- Latitud -->
+          <div class="form-field">
+            <label for="latitude" class="form-field__label">
+              Latitud <span class="form-field__required">*</span>
+            </label>
+            <input
+              id="latitude"
+              type="text"
+              formControlName="latitude"
+              class="form-field__input"
+              [class.form-field__input--error]="isFieldInvalid('latitude')"
+              placeholder="-12.0464"
+            >
+            @if (isFieldInvalid('latitude')) {
+              <span class="form-field__error">{{ getFieldError('latitude') }}</span>
+            }
+          </div>
+
+          <!-- Longitud -->
+          <div class="form-field">
+            <label for="longitude" class="form-field__label">
+              Longitud <span class="form-field__required">*</span>
+            </label>
+            <input
+              id="longitude"
+              type="text"
+              formControlName="longitude"
+              class="form-field__input"
+              [class.form-field__input--error]="isFieldInvalid('longitude')"
+              placeholder="-77.0428"
+            >
+            @if (isFieldInvalid('longitude')) {
+              <span class="form-field__error">{{ getFieldError('longitude') }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-field">
+          <label for="address" class="form-field__label">
+            Dirección <span class="form-field__required">*</span>
+          </label>
+          <textarea
+            id="address"
+            formControlName="address"
+            class="form-field__textarea"
+            [class.form-field__textarea--error]="isFieldInvalid('address')"
+            placeholder="Ingrese la dirección completa del contenedor"
+            rows="3"
+          ></textarea>
+          @if (isFieldInvalid('address')) {
+            <span class="form-field__error">{{ getFieldError('address') }}</span>
+          }
+        </div>
+
+        <!-- Código de Distrito -->
+        <div class="form-field">
+          <label for="districtCode" class="form-field__label">
+            Código de Distrito <span class="form-field__required">*</span>
+          </label>
+          <input
+            id="districtCode"
+            type="text"
+            formControlName="districtCode"
+            class="form-field__input"
+            [class.form-field__input--error]="isFieldInvalid('districtCode')"
+            placeholder="LIMA-01"
+          >
+          @if (isFieldInvalid('districtCode')) {
+            <span class="form-field__error">{{ getFieldError('districtCode') }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Características del Contenedor -->
+      <div class="form-section">
+        <h2 class="form-section__title heading-h2-semibold-desktop">
+          <i class="pi pi-box form-section__icon"></i>
+          Características del Contenedor
+        </h2>
+
+        <div class="form-grid">
+          <!-- Volumen en Litros -->
+          <div class="form-field">
+            <label for="volumeLiters" class="form-field__label">
+              Volumen (Litros) <span class="form-field__required">*</span>
+            </label>
+            <input
+              id="volumeLiters"
+              type="number"
+              formControlName="volumeLiters"
+              class="form-field__input"
+              [class.form-field__input--error]="isFieldInvalid('volumeLiters')"
+              min="50"
+              max="5000"
+            >
+            @if (isFieldInvalid('volumeLiters')) {
+              <span class="form-field__error">{{ getFieldError('volumeLiters') }}</span>
+            }
+          </div>
+
+          <!-- Peso Máximo en Kg -->
+          <div class="form-field">
+            <label for="maxWeightKg" class="form-field__label">
+              Peso Máximo (Kg) <span class="form-field__required">*</span>
+            </label>
+            <input
+              id="maxWeightKg"
+              type="number"
+              formControlName="maxWeightKg"
+              class="form-field__input"
+              [class.form-field__input--error]="isFieldInvalid('maxWeightKg')"
+              min="10"
+              max="1000"
+            >
+            @if (isFieldInvalid('maxWeightKg')) {
+              <span class="form-field__error">{{ getFieldError('maxWeightKg') }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Tipo de Contenedor -->
+        <div class="form-field">
+          <label for="containerType" class="form-field__label">
+            Tipo de Contenedor <span class="form-field__required">*</span>
+          </label>
+          <select
+            id="containerType"
+            formControlName="containerType"
+            class="form-field__select"
+            [class.form-field__select--error]="isFieldInvalid('containerType')"
+          >
+            @for (type of containerTypes; track type) {
+              <option [value]="type">{{ getContainerTypeLabel(type) }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('containerType')) {
+            <span class="form-field__error">{{ getFieldError('containerType') }}</span>
+          }
+        </div>
+
+        <!-- ID del Sensor (Opcional) -->
+        <div class="form-field">
+          <label for="sensorId" class="form-field__label">
+            ID del Sensor
+            <span class="form-field__optional">(Opcional)</span>
+          </label>
+          <input
+            id="sensorId"
+            type="text"
+            formControlName="sensorId"
+            class="form-field__input"
+            placeholder="SENSOR-001"
+          >
+        </div>
+      </div>
+
+      <!-- Configuración Operacional -->
+      <div class="form-section">
+        <h2 class="form-section__title heading-h2-semibold-desktop">
+          <i class="pi pi-cog form-section__icon"></i>
+          Configuración Operacional
+        </h2>
+
+        <!-- ID del Distrito -->
+        <div class="form-field">
+          <label for="districtId" class="form-field__label">
+            ID del Distrito <span class="form-field__required">*</span>
+          </label>
+          <input
+            id="districtId"
+            type="text"
+            formControlName="districtId"
+            class="form-field__input"
+            [class.form-field__input--error]="isFieldInvalid('districtId')"
+            placeholder="DIST-001"
+          >
+          @if (isFieldInvalid('districtId')) {
+            <span class="form-field__error">{{ getFieldError('districtId') }}</span>
+          }
+        </div>
+
+        <!-- Frecuencia de Recolección -->
+        <div class="form-field">
+          <label for="collectionFrequencyDays" class="form-field__label">
+            Frecuencia de Recolección (Días) <span class="form-field__required">*</span>
+          </label>
+          <input
+            id="collectionFrequencyDays"
+            type="number"
+            formControlName="collectionFrequencyDays"
+            class="form-field__input"
+            [class.form-field__input--error]="isFieldInvalid('collectionFrequencyDays')"
+            min="1"
+            max="30"
+          >
+          @if (isFieldInvalid('collectionFrequencyDays')) {
+            <span class="form-field__error">{{ getFieldError('collectionFrequencyDays') }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn--secondary"
+          (click)="onReset()"
+          [disabled]="isLoading()"
+        >
+          <i class="pi pi-refresh"></i>
+          Limpiar Formulario
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn--primary"
+          [disabled]="!isFormValid() || isLoading()"
+        >
+          @if (isLoading()) {
+            <div class="btn__spinner"></div>
+            Creando...
+          } @else {
+            <i class="pi pi-plus"></i>
+            Crear Contenedor
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
