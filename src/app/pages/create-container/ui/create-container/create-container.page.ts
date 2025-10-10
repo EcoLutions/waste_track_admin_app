@@ -3,10 +3,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { CreateContainerStore } from '../../model/store/create-container.store';
 import { ContainerTypeEnum, ContainerStatusEnum } from '../../../../../entities';
+import {LeafletDirective} from '@bluehalo/ngx-leaflet';
+import * as L from 'leaflet';
+import {GeoSearchControl, OpenStreetMapProvider} from 'leaflet-geosearch';
 
 @Component({
   selector: 'app-create-container',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LeafletDirective],
   templateUrl: './create-container.page.html',
   styleUrl: './create-container.page.css'
 })
@@ -16,6 +19,22 @@ export class CreateContainerPage implements OnInit, OnDestroy {
 
   // Form
   containerForm!: FormGroup;
+
+  // LeaFlet map
+  map!: L.Map;
+  marker!: L.Marker;
+  searchControl: any;
+
+  mapOptions: L.MapOptions = {
+    layers: [
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap contributors'
+      })
+    ],
+    zoom: 13,
+    center: L.latLng(-12.0464, -77.0428) // Lima, Perú
+  };
 
   // Signals for template
   readonly isLoading = computed(() => this.store.isLoading());
@@ -32,6 +51,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeForm();
     this.syncFormWithStore();
+    this.watchCoordinateChanges();
   }
 
   ngOnDestroy(): void {
@@ -120,5 +140,133 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       [ContainerTypeEnum.GENERAL]: 'General'
     };
     return labels[type] || type;
+  }
+
+  onMapReady(map: L.Map): void {
+    this.map = map;
+    this.initializeSearchControl();
+    this.initializeMarker();
+    this.setupMapClickListener();
+  }
+
+  private initializeSearchControl(): void {
+    const provider = new OpenStreetMapProvider();
+
+    this.searchControl = new (GeoSearchControl as any)({
+      provider: provider,
+      style: 'bar',
+      showMarker: false,
+      autoClose: true,
+      retainZoomLevel: false,
+      animateZoom: true,
+      keepResult: true,
+      searchLabel: 'Buscar dirección...'
+    });
+
+    this.map.addControl(this.searchControl);
+
+    // Escuchar resultados de búsqueda
+    this.map.on('geosearch/showlocation', (result: any) => {
+      const { x, y, label } = result.location;
+      this.updateLocationFromMap(y, x, label);
+    });
+  }
+
+  private initializeMarker(): void {
+    const icon = L.divIcon({
+      html: `
+      <div class="custom-map-marker">
+        <div class="marker-pin"></div>
+        <div class="marker-pulse"></div>
+      </div>
+    `,
+      className: 'custom-marker-container',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40]
+    });
+
+    // Posición inicial en Lima
+    this.marker = L.marker([-12.0464, -77.0428], {
+      icon: icon,
+      draggable: true
+    }).addTo(this.map);
+
+    // Evento cuando se arrastra el marcador
+    this.marker.on('dragend', () => {
+      const position = this.marker.getLatLng();
+      this.updateLocationFromMap(position.lat, position.lng);
+    });
+  }
+
+  private setupMapClickListener(): void {
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      this.marker.setLatLng([lat, lng]);
+      this.updateLocationFromMap(lat, lng);
+    });
+  }
+
+  private updateLocationFromMap(lat: number, lng: number, address?: string): void {
+    this.containerForm.patchValue({
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6)
+    });
+
+    if (address) {
+      this.containerForm.patchValue({ address });
+    } else {
+      this.reverseGeocode(lat, lng).then(() => {});
+    }
+
+    this.marker.setLatLng([lat, lng]);
+    this.map.setView([lat, lng], this.map.getZoom());
+  }
+
+  private async reverseGeocode(lat: number, lng: number): Promise<void> {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data && data.display_name) {
+        this.containerForm.patchValue({
+          address: data.display_name
+        });
+      }
+    } catch (error) {
+      console.error('Error en reverse geocoding:', error);
+    }
+  }
+
+  private watchCoordinateChanges(): void {
+    // Sincronizar cambios manuales de coordenadas con el mapa
+    this.containerForm.get('latitude')?.valueChanges.subscribe(lat => {
+      if (lat && this.marker) {
+        const lng = this.containerForm.get('longitude')?.value;
+        if (lng) {
+          const latNum = parseFloat(lat);
+          const lngNum = parseFloat(lng);
+          if (!isNaN(latNum) && !isNaN(lngNum)) {
+            this.marker.setLatLng([latNum, lngNum]);
+            this.map.setView([latNum, lngNum], this.map.getZoom());
+          }
+        }
+      }
+    });
+
+    this.containerForm.get('longitude')?.valueChanges.subscribe(lng => {
+      if (lng && this.marker) {
+        const lat = this.containerForm.get('latitude')?.value;
+        if (lat) {
+          const latNum = parseFloat(lat);
+          const lngNum = parseFloat(lng);
+          if (!isNaN(latNum) && !isNaN(lngNum)) {
+            this.marker.setLatLng([latNum, lngNum]);
+            this.map.setView([latNum, lngNum], this.map.getZoom());
+          }
+        }
+      }
+    });
   }
 }

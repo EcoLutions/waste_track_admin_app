@@ -6,6 +6,37 @@
   padding: var(--spacing-6);
   background-color: var(--color-white);
   min-height: 100vh;
+
+  /* Asegurar que el scroll funcione correctamente */
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Scroll personalizado */
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+
+  /* Asegurar que el componente no herede restricciones de scroll del padre */
+  position: relative;
+  z-index: 1;
+}
+
+.create-container-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.create-container-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.create-container-page::-webkit-scrollbar-thumb {
+  background-color: var(--neutral-300);
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.create-container-page::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-200-main);
 }
 
 .create-container-page__header {
@@ -109,6 +140,10 @@
 .create-container-form {
   max-width: 80rem;
   margin: 0 auto;
+
+  /* Asegurar que el formulario tenga scroll independiente */
+  max-height: none;
+  overflow: visible;
 }
 
 .form-section {
@@ -287,6 +322,11 @@
 @media (max-width: 768px) {
   .create-container-page {
     padding: var(--spacing-4);
+
+    /* Asegurar scroll en móviles */
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .create-container-page__header {
@@ -334,6 +374,43 @@
   }
 }
 
+/* ===== SCROLL FIXES ===== */
+
+/* Asegurar que el componente padre no interfiera con el scroll */
+:host {
+  display: block;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Prevenir conflictos con layout padre */
+.create-container-page {
+  contain: layout style;
+  isolation: isolate;
+}
+
+/* ===== MAP CONTAINER FIXES ===== */
+
+/* Asegurar que el mapa no interfiera con el scroll del formulario */
+ng-leaflet {
+  contain: layout style;
+  isolation: isolate;
+}
+
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Prevenir que el mapa capture eventos de scroll innecesarios */
+.leaflet-container .leaflet-control-container {
+  position: absolute;
+  z-index: 1000;
+}
+
 /* ===== ACCESSIBILITY ===== */
 
 @media (prefers-reduced-motion: reduce) {
@@ -372,4 +449,55 @@
   .btn--secondary {
     border-color: var(--neutral-400);
   }
+}
+
+/* ===== SCROLL DEBUG STYLES ===== */
+
+/* Para debugging - mostrar áreas de scroll */
+.create-container-page.debug-scroll {
+  outline: 2px solid red;
+}
+
+.create-container-page.debug-scroll .form-section {
+  outline: 1px solid blue;
+}
+
+.create-container-page.debug-scroll .form-actions {
+  outline: 1px solid green;
+}
+
+/* ===== HOST COMPONENT FIXES ===== */
+
+/* Asegurar que el componente host tenga el comportamiento correcto */
+.create-container-host {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Prevenir conflictos con layout padre */
+  contain: layout style;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== FORM CONTAINER SPECIFIC FIXES ===== */
+
+/* Asegurar que el formulario tenga prioridad sobre otros elementos */
+.create-container-form {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+}
+
+/* Prevenir que elementos flotantes interfieran con el scroll */
+.form-section {
+  position: relative;
+  z-index: 1;
+}
+
+.form-actions {
+  position: relative;
+  z-index: 1;
 }
