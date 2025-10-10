@@ -133,7 +133,12 @@ export const AuthStore = signalStore(
 
           if (user && user.token) {
             storageService.setToken(user.token);
-            storageService.setUser(user);
+
+            const completeUser = await firstValueFrom(authService.getCurrentUser());
+
+            storageService.setUser(completeUser);
+
+            console.log(completeUser);
 
             patchState(store, {
               user,
