@@ -1,0 +1,159 @@
+/* container-map.component.css */
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.map-controls button {
+  background: white;
+  border: 2px solid #3498db;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.map-controls button:hover {
+  background: #3498db;
+  color: white;
+}
+
+/* Estilos para marcadores personalizados con DivIcon */
+:host ::ng-deep .custom-container-marker {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .custom-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+:host ::ng-deep .marker-icon img {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+:host ::ng-deep .marker-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Animación de pulso para contenedores en tránsito */
+:host ::ng-deep .marker-pulse {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: rgba(52, 152, 219, 0.4);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Estilos para el popup */
+:host ::ng-deep .custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+:host ::ng-deep .container-popup {
+  font-family: Arial, sans-serif;
+  min-width: 250px;
+}
+
+:host ::ng-deep .container-popup h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 8px;
+}
+
+:host ::ng-deep .popup-content p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+:host ::ng-deep .badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+:host ::ng-deep .badge.en_transito {
+  background: #3498db;
+  color: white;
+}
+
+:host ::ng-deep .badge.detenido {
+  background: #e74c3c;
+  color: white;
+}
+
+:host ::ng-deep .badge.en_puerto {
+  background: #f39c12;
+  color: white;
+}
+
+:host ::ng-deep .badge.entregado {
+  background: #27ae60;
+  color: white;
+}
+
+:host ::ng-deep .details-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+:host ::ng-deep .details-btn:hover {
+  background: #2980b9;
+}

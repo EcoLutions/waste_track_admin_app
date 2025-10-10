@@ -1,1 +1,14 @@
-<p>container-monitoring works!</p>
+<!-- container-map.component.html -->
+<div class="h-full map-wrapper z-0">
+  <div class="h-full map-container"
+       leaflet
+       [leafletOptions]="options"
+       (leafletMapReady)="onMapReady($event)">
+  </div>
+
+  <div class="map-controls">
+    <button (click)="simulateRealTimeUpdate()">
+      🔄 Simular Tiempo Real
+    </button>
+  </div>
+</div>
