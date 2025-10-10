@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthStore } from '../stores';
 import { HeaderStore } from '../../features/layout/model/header.store';
+import { DistrictContextStore } from '../stores/district-context.store';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +9,7 @@ import { HeaderStore } from '../../features/layout/model/header.store';
 export class AppInitializerService {
   private readonly authStore = inject(AuthStore);
   private readonly headerStore = inject(HeaderStore);
+  private readonly districtContextStore = inject(DistrictContextStore);
 
   initializeApp(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -32,6 +34,13 @@ export class AppInitializerService {
          */
         await this.headerStore.loadUserProfile();
         console.log('Header store initialized');
+
+        /*
+         * Initialize district context store
+         * This will load the district information based on user profile
+         */
+        await this.districtContextStore.initializeDistrictContext();
+        console.log('District context store initialized');
       }
 
       console.log('App initialization complete');
