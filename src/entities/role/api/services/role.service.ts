@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { RoleEntity } from '../../model';
 import { RoleResponse } from '../types/role-response.type';
 import { RoleEntityFromResponseMapper } from '../mappers/role-entity-from-response.mapper';

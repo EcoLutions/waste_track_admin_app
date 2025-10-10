@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { UserEntity } from '../../model';
 import { AuthenticatedUserResponse } from '../types/authenticated-user-response.type';
 import { SignInRequest } from '../types/sign-in-request.type';

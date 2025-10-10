@@ -1,98 +1,302 @@
-import {Component, computed, effect, HostListener, inject, signal} from '@angular/core';
+import { Component, effect, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {RouterOutlet, RouterModule, Router, NavigationEnd} from '@angular/router';
-import {filter} from 'rxjs';
+import {RouterOutlet, Router, NavigationEnd, RouterModule} from '@angular/router';
+import { filter } from 'rxjs';
+import {HeaderComponent} from '../../../../../features/layout/ui/header/header.component';
+import {SidebarComponent} from '../../../../../features/layout/ui/sidebar/sidebar.component';
 
 interface NavItem {
   label: string;
-  routerLink: string;
+  routerLink?: string;
   icon: string;
   badge?: number;
   disabled?: boolean;
   ariaLabel?: string;
+  items?: NavItem[];
+  separator?: boolean;
 }
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterModule],
+  imports: [CommonModule, RouterOutlet, RouterModule, SidebarComponent, HeaderComponent],
   templateUrl: './admin-layout.page.html',
   styleUrl: './admin-layout.page.css'
 })
 export class AdminLayoutComponent {
   private router = inject(Router);
 
+  // Signals
   sidebarOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isMobile = signal<boolean>(false);
 
-  userInfo = signal({
-    name: 'Admin User',
-    initials: 'AU',
-    role: 'Administrador'
-  });
-
   // Navigation items
-/*  navItems = [
-    { label: 'Dashboard', icon: 'pi-chart-line', routerLink: '/dashboard' },
-    { label: 'Contenedores', icon: 'pi-box', routerLink: '/containers' },
-    { label: 'Rutas', icon: 'pi-map', routerLink: '/routes' },
-    { label: 'Flota', icon: 'pi-truck', routerLink: '/fleet' },
-    { label: 'Reportes Ciudadanos', icon: 'pi-file-text', routerLink: '/citizen-reports' },
-    { label: 'Analytics', icon: 'pi-chart-bar', routerLink: '/analytics' },
-    { label: 'Cumplimiento', icon: 'pi-shield', routerLink: '/compliance' },
-    { label: 'Usuarios', icon: 'pi-users', routerLink: '/users' },
-    { label: 'Configuración', icon: 'pi-cog', routerLink: '/settings' }
-  ];*/
-
   navItems: NavItem[] = [
     {
       label: 'Dashboard',
-      routerLink: '/admin/dashboard',
+      routerLink: '/dashboard',
       icon: 'pi pi-home',
       ariaLabel: 'Ir al panel principal'
     },
     {
-      label: 'Usuarios',
-      routerLink: '/admin/users',
-      icon: 'pi pi-users',
-      badge: 3,
-      ariaLabel: 'Gestionar usuarios - 3 nuevos'
+      label: 'Contenedores',
+      icon: 'pi pi-box',
+      ariaLabel: 'Gestión de contenedores',
+      items: [
+        {
+          label: 'Monitoreo',
+          routerLink: '/containers',
+          icon: 'pi pi-map',
+          ariaLabel: 'Monitorear contenedores en mapa'
+        },
+        {
+          label: 'Alertas',
+          routerLink: '/containers/alerts',
+          icon: 'pi pi-bell',
+          badge: 5,
+          ariaLabel: 'Ver alertas de contenedores - 5 nuevas'
+        },
+        {
+          label: 'Crear Contenedor',
+          routerLink: '/containers/create',
+          icon: 'pi pi-plus',
+          ariaLabel: 'Registrar nuevo contenedor'
+        }
+      ]
     },
     {
-      label: 'Reportes',
-      routerLink: '/admin/reports',
-      icon: 'pi pi-chart-bar',
-      ariaLabel: 'Ver reportes y estadísticas'
-    },
-    {
-      label: 'Recolecciones',
-      routerLink: '/admin/collections',
-      icon: 'pi pi-calendar',
-      ariaLabel: 'Programar recolecciones'
-    },
-    {
-      label: 'Vehículos',
-      routerLink: '/admin/vehicles',
-      icon: 'pi pi-car',
-      ariaLabel: 'Gestionar flota de vehículos'
-    },
-    {
-      label: 'Zonas',
-      routerLink: '/admin/zones',
+      label: 'Rutas',
       icon: 'pi pi-map-marker',
-      ariaLabel: 'Administrar zonas de cobertura'
+      ariaLabel: 'Gestión de rutas',
+      items: [
+        {
+          label: 'Optimización',
+          routerLink: '/routes',
+          icon: 'pi pi-sparkles',
+          ariaLabel: 'Optimizar rutas'
+        },
+        {
+          label: 'Optimizador',
+          routerLink: '/routes/optimize',
+          icon: 'pi pi-compass',
+          ariaLabel: 'Herramienta de optimización'
+        },
+        {
+          label: 'Rutas Activas',
+          routerLink: '/routes/active',
+          icon: 'pi pi-directions',
+          ariaLabel: 'Ver rutas activas'
+        },
+        {
+          label: 'Historial',
+          routerLink: '/routes/history',
+          icon: 'pi pi-history',
+          ariaLabel: 'Historial de rutas'
+        },
+        {
+          label: 'Reportes',
+          routerLink: '/routes/reports',
+          icon: 'pi pi-file-pdf',
+          ariaLabel: 'Reportes de rutas'
+        },
+        {
+          label: 'Crear Ruta',
+          routerLink: '/routes/create',
+          icon: 'pi pi-plus',
+          ariaLabel: 'Crear nueva ruta'
+        }
+      ]
+    },
+    {
+      label: 'Flota',
+      icon: 'pi pi-truck',
+      ariaLabel: 'Gestión de flota vehicular',
+      items: [
+        {
+          label: 'Gestión',
+          routerLink: '/fleet',
+          icon: 'pi pi-car',
+          ariaLabel: 'Administrar vehículos'
+        },
+        {
+          label: 'Monitoreo',
+          routerLink: '/fleet/monitoring',
+          icon: 'pi pi-eye',
+          ariaLabel: 'Monitorear vehículos en tiempo real'
+        },
+        {
+          label: 'Mantenimiento',
+          routerLink: '/fleet/maintenance',
+          icon: 'pi pi-wrench',
+          badge: 2,
+          ariaLabel: 'Programar mantenimiento - 2 pendientes'
+        },
+        {
+          label: 'Costos Operacionales',
+          routerLink: '/fleet/costs',
+          icon: 'pi pi-dollar',
+          ariaLabel: 'Ver costos operacionales'
+        },
+        {
+          label: 'Asignación',
+          routerLink: '/fleet/assignment',
+          icon: 'pi pi-users',
+          ariaLabel: 'Asignar vehículos'
+        }
+      ]
+    },
+    {
+      label: 'Reportes Ciudadanos',
+      icon: 'pi pi-megaphone',
+      ariaLabel: 'Gestión de reportes ciudadanos',
+      items: [
+        {
+          label: 'Ver Reportes',
+          routerLink: '/citizen-reports',
+          icon: 'pi pi-list',
+          badge: 8,
+          ariaLabel: 'Ver reportes ciudadanos - 8 nuevos'
+        },
+        {
+          label: 'Gestionar',
+          routerLink: '/citizen-reports/manage',
+          icon: 'pi pi-check-square',
+          ariaLabel: 'Gestionar reportes'
+        },
+        {
+          label: 'Analíticas',
+          routerLink: '/citizen-reports/analytics',
+          icon: 'pi pi-chart-line',
+          ariaLabel: 'Analíticas de reportes'
+        },
+        {
+          label: 'Crear Reporte',
+          routerLink: '/citizen-reports/create',
+          icon: 'pi pi-plus',
+          ariaLabel: 'Crear nuevo reporte'
+        }
+      ]
+    },
+    {
+      label: 'Analytics',
+      icon: 'pi pi-chart-bar',
+      ariaLabel: 'Analytics y predicciones',
+      items: [
+        {
+          label: 'Dashboard Analytics',
+          routerLink: '/analytics',
+          icon: 'pi pi-chart-pie',
+          ariaLabel: 'Dashboard de analytics'
+        },
+        {
+          label: 'Predicciones',
+          routerLink: '/analytics/predictions',
+          icon: 'pi pi-forward',
+          ariaLabel: 'Predicciones de contenedores'
+        },
+        {
+          label: 'Patrones de Generación',
+          routerLink: '/analytics/patterns',
+          icon: 'pi pi-sitemap',
+          ariaLabel: 'Análisis de patrones'
+        },
+        {
+          label: 'Dashboard Ejecutivo',
+          routerLink: '/analytics/executive',
+          icon: 'pi pi-briefcase',
+          ariaLabel: 'Dashboard ejecutivo'
+        }
+      ]
+    },
+    {
+      label: 'Cumplimiento',
+      icon: 'pi pi-shield',
+      ariaLabel: 'Cumplimiento regulatorio',
+      items: [
+        {
+          label: 'Dashboard',
+          routerLink: '/compliance',
+          icon: 'pi pi-check-circle',
+          ariaLabel: 'Dashboard de cumplimiento'
+        },
+        {
+          label: 'Reportes MINAM',
+          routerLink: '/compliance/minam-reports',
+          icon: 'pi pi-file',
+          ariaLabel: 'Reportes para MINAM'
+        },
+        {
+          label: 'Residuos Peligrosos',
+          routerLink: '/compliance/hazardous-waste',
+          icon: 'pi pi-exclamation-triangle',
+          ariaLabel: 'Gestión de residuos peligrosos'
+        }
+      ]
+    },
+    {
+      label: 'Usuarios',
+      icon: 'pi pi-users',
+      ariaLabel: 'Gestión de usuarios',
+      items: [
+        {
+          label: 'Todos los Usuarios',
+          routerLink: '/users',
+          icon: 'pi pi-user',
+          ariaLabel: 'Ver todos los usuarios'
+        },
+        {
+          label: 'Conductores',
+          routerLink: '/users/drivers',
+          icon: 'pi pi-id-card',
+          ariaLabel: 'Gestionar conductores'
+        },
+        {
+          label: 'Ciudadanos',
+          routerLink: '/users/citizens',
+          icon: 'pi pi-user-plus',
+          ariaLabel: 'Gestionar ciudadanos'
+        },
+        {
+          label: 'Roles y Permisos',
+          routerLink: '/users/roles',
+          icon: 'pi pi-key',
+          ariaLabel: 'Administrar roles y permisos'
+        }
+      ]
     },
     {
       label: 'Configuración',
-      routerLink: '/admin/settings',
       icon: 'pi pi-cog',
-      ariaLabel: 'Configuración del sistema'
+      ariaLabel: 'Configuración del sistema',
+      items: [
+        {
+          label: 'General',
+          routerLink: '/settings',
+          icon: 'pi pi-sliders-h',
+          ariaLabel: 'Configuración general'
+        },
+        {
+          label: 'Mi Perfil',
+          routerLink: '/settings/profile',
+          icon: 'pi pi-user-edit',
+          ariaLabel: 'Editar mi perfil'
+        },
+        {
+          label: 'Notificaciones',
+          routerLink: '/settings/notifications',
+          icon: 'pi pi-bell',
+          ariaLabel: 'Configurar notificaciones'
+        },
+        {
+          label: 'Integraciones',
+          routerLink: '/settings/integrations',
+          icon: 'pi pi-link',
+          ariaLabel: 'Gestionar integraciones'
+        }
+      ]
     }
   ];
-
-  // Computed property para determinar si estamos en mobile
-  showOverlay = computed(() => this.sidebarOpen() && this.isMobile());
 
   constructor() {
     this.checkScreenSize();
@@ -100,25 +304,23 @@ export class AdminLayoutComponent {
     this.setupSidebarAutoClose();
   }
 
-  // Detectar tamaño de pantalla
   @HostListener('window:resize')
-  public checkScreenSize(): void {
+  checkScreenSize(): void {
     this.isMobile.set(window.innerWidth < 1024);
+    if (!this.isMobile() && this.sidebarOpen()) {
+      this.sidebarOpen.set(false);
+    }
   }
 
-  // Auto-cerrar sidebar en mobile al cambiar de ruta
   private setupRouterListener(): void {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.isLoading.set(false);
-        if (this.isMobile()) {
-          this.closeSidebar();
-        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
   }
 
-  // Cerrar sidebar al presionar Escape
   private setupSidebarAutoClose(): void {
     effect(() => {
       if (this.sidebarOpen()) {
@@ -135,67 +337,26 @@ export class AdminLayoutComponent {
     }
   };
 
-  // Toggle sidebar con feedback
   toggleSidebar(): void {
     this.sidebarOpen.update(state => !state);
-
-    // Trap focus dentro del sidebar cuando está abierto en mobile
-    if (this.sidebarOpen() && this.isMobile()) {
-      setTimeout(() => this.trapFocus(), 100);
-    }
   }
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
 
-  // Trap focus para accesibilidad
-  private trapFocus(): void {
-    const sidebar = document.querySelector('aside');
-    if (!sidebar) return;
-
-    const focusableElements = sidebar.querySelectorAll(
-      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-
-    const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-    sidebar.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          lastElement.focus();
-          e.preventDefault();
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          firstElement.focus();
-          e.preventDefault();
-        }
-      }
-    });
-  }
-
-  // Navigation handler con loading state
   handleNavigation(item: NavItem): void {
     if (item.disabled) return;
-
     this.isLoading.set(true);
-    this.closeSidebar();
+    if (this.isMobile()) {
+      this.closeSidebar();
+    }
   }
 
-  // Logout handler
   handleLogout(): void {
-    // Aquí iría la lógica de logout real
     console.log('Logging out...');
-    // this.authService.logout();
-    // this.router.navigate(['/login']);
-  }
-
-  // Determinar si un item está activo
-  isItemActive(routerLink: string): boolean {
-    return this.router.url === routerLink;
+    // El header component ya maneja el logout con authStore.signOut()
+    // Solo necesitamos navegar al login después del logout
+    this.router.navigate(['/login']).then(() => {});
   }
 }

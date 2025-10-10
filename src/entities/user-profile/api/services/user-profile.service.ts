@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { catchError } from 'rxjs/operators';
 import {UserProfileResponse} from '../types/user-profile-response.type';
 import {UserProfileEntity} from '../../model';
@@ -33,6 +33,13 @@ export class UserProfileService extends BaseService {
       catchError(this.handleError),
       retry(2)
     );
+  }
+
+  getByUserId(userId: string): Observable<UserProfileEntity> {
+    return this.http.get<UserProfileResponse>(`${this.resourcePath()}/user/${userId}`, this.httpOptions).pipe(
+      map((response: UserProfileResponse) => UserProfileEntityFromResponseMapper.fromDtoToEntity(response)),
+      catchError(this.handleError),
+    )
   }
 
   create(entity: UserProfileEntity): Observable<UserProfileEntity> {

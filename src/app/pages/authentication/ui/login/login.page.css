@@ -1,0 +1,210 @@
+/* login.page.css */
+
+/* ===========================
+   ANIMACIONES PERSONALIZADAS
+   =========================== */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-30px) translateX(20px);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grid-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 30px 30px;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* Aplicar animaciones */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 8s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-grid-move {
+  animation: grid-move 20s linear infinite;
+}
+
+/* Background Grid Pattern */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+
+/* ================================
+   PERSONALIZACIÓN PRIMENG INPUTS
+   ================================ */
+
+::ng-deep {
+
+  /* Input Text Base */
+  .p-inputtext {
+    font-size: 0.9375rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .p-inputtext:enabled:focus {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    border-color: #10b981 !important;
+  }
+
+  /* Error state con animación shake */
+  .p-inputtext.border-red-500 {
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  /* Password Component */
+  .p-password {
+    width: 100%;
+  }
+
+  .p-password input.p-inputtext {
+    width: 100%;
+  }
+
+  /* Ocultar el panel de feedback del password */
+  .p-password-panel {
+    display: none !important;
+  }
+
+  /* Toggle button del password */
+  .p-password .p-password-toggle-icon {
+    color: #64748b;
+  }
+
+  /* Icon positioning */
+  .p-input-icon-left > i:first-child {
+    left: 1rem;
+    color: #9ca3af;
+    transition: color 0.2s ease;
+  }
+
+  /* Cambiar color del icono al hacer focus */
+  .p-inputtext:focus ~ i {
+    color: #10b981;
+  }
+
+  /* Asegurar que el password toggle esté visible */
+  .p-password-toggle {
+    margin-right: 0.75rem;
+  }
+}
+
+
+/* ===========================
+   ACCESIBILIDAD
+   =========================== */
+
+/* Focus visible mejorado */
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Soporte para reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ===========================
+   RESPONSIVE
+   =========================== */
+
+@media (max-width: 640px) {
+  /* Ajustes para móvil */
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* Reducir tamaño de formas flotantes en móvil */
+  .animate-float-delayed {
+    animation: none;
+    opacity: 0.3;
+  }
+}
