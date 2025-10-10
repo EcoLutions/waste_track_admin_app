@@ -1,0 +1,27 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+
+  <!-- Header -->
+  <app-header
+    (toggleSidebar)="toggleSidebar()"
+    (logout)="handleLogout()">
+  </app-header>
+
+  <!-- Main Container -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Sidebar -->
+    <app-sidebar
+      [isOpen]="sidebarOpen()"
+      [navItems]="navItems"
+      (closeSidebar)="closeSidebar()"
+      (itemClick)="handleNavigation($event)">
+    </app-sidebar>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="h-full p-4 lg:p-6">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+</div>
