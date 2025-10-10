@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { FleetManagementStore } from '../../model/store/fleet-management.store';
 import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
 import { VehicleEntity, VehicleTypeEnum } from '../../../../../entities';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-fleet-management',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './fleet-management.page.html',
   styleUrl: './fleet-management.page.css'
 })
