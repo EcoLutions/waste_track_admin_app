@@ -2,51 +2,51 @@
 <div class="h-full flex flex-col gap-6">
 
   <!-- Header con estadísticas -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
-          📦
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="bg-white rounded-lg p-3 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-box text-gray-600 text-lg"></i>
         </div>
         <div>
-          <div class="text-2xl font-bold text-gray-900">{{ quickStats().total }}</div>
-          <div class="text-sm text-gray-500 font-medium">Total</div>
+          <div class="text-xl font-bold text-gray-900">{{ quickStats().total }}</div>
+          <div class="text-xs text-gray-500 font-medium">Total</div>
         </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-green-100 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
-          ✅
+    <div class="bg-white rounded-lg p-3 border border-green-100 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-check-circle text-green-600 text-lg"></i>
         </div>
         <div>
-          <div class="text-2xl font-bold text-green-700">{{ quickStats().active }}</div>
-          <div class="text-sm text-gray-500 font-medium">Activos</div>
+          <div class="text-xl font-bold text-green-700">{{ quickStats().active }}</div>
+          <div class="text-xs text-gray-500 font-medium">Activos</div>
         </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-2xl">
-          🔧
+    <div class="bg-white rounded-lg p-3 border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-wrench text-orange-600 text-lg"></i>
         </div>
         <div>
-          <div class="text-2xl font-bold text-orange-700">{{ quickStats().maintenance }}</div>
-          <div class="text-sm text-gray-500 font-medium">Mantenimiento</div>
+          <div class="text-xl font-bold text-orange-700">{{ quickStats().maintenance }}</div>
+          <div class="text-xs text-gray-500 font-medium">Mantenimiento</div>
         </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl p-4 border border-red-100 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-2xl">
-          ⚠️
+    <div class="bg-white rounded-lg p-3 border border-red-100 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-exclamation-triangle text-red-600 text-lg"></i>
         </div>
         <div>
-          <div class="text-2xl font-bold text-red-700">{{ quickStats().highFillLevel }}</div>
-          <div class="text-sm text-gray-500 font-medium">Llenos (>80%)</div>
+          <div class="text-xl font-bold text-red-700">{{ quickStats().highFillLevel }}</div>
+          <div class="text-xs text-gray-500 font-medium">Llenos (>80%)</div>
         </div>
       </div>
     </div>
@@ -93,10 +93,11 @@
           </button>
 
           <button
-            class="px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg shadow-md hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
+            class="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 text-sm font-semibold rounded-lg shadow-md hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
             (click)="simulateRealTimeUpdate()"
             title="Simular actualizaciones en tiempo real">
-            🔄 Tiempo Real
+            <i class="pi pi-sync text-green-600"></i>
+            <span>Tiempo Real</span>
           </button>
 
           @if (selectedContainer()) {
