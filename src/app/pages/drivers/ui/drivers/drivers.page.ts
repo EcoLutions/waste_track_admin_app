@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DriversStore } from '../../model/store/drivers.store';
-import {DistrictContextStore} from '../../../../../shared/stores/district-context.store';
-import {DriverEntity, DriverStatusEnum} from '../../../../../entities';
+import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
+import { DriverEntity, DriverStatusEnum } from '../../../../../entities';
 
 @Component({
   selector: 'app-drivers',
@@ -14,6 +14,9 @@ import {DriverEntity, DriverStatusEnum} from '../../../../../entities';
 export class DriversPage implements OnInit, OnDestroy {
   readonly store = inject(DriversStore);
   readonly districtContextStore = inject(DistrictContextStore);
+
+  // Selected driver for detail panel
+  selectedDriver = signal<DriverEntity | null>(null);
 
   // Search and filter signals
   searchTerm = signal('');
@@ -35,19 +38,23 @@ export class DriversPage implements OnInit, OnDestroy {
   // Status options
   readonly driverStatuses = Object.values(DriverStatusEnum);
 
+  // Check if there are active filters
+  readonly hasActiveFilters = computed(() => {
+    return this.searchTerm() !== '' ||
+      this.selectedStatus() !== null ||
+      this.showAssignedOnly();
+  });
+
   ngOnInit(): void {
     this.initializePage().then(() => {});
   }
 
   ngOnDestroy(): void {
-    // Reset store state when leaving the page
     this.store.resetState();
   }
 
   private async initializePage(): Promise<void> {
-    // Wait for district context to be available
     if (!this.districtContextStore.isDistrictLoaded()) {
-      // If district is not loaded, try to initialize it
       try {
         await this.districtContextStore.initializeDistrictContext();
       } catch (error) {
@@ -55,12 +62,10 @@ export class DriversPage implements OnInit, OnDestroy {
       }
     }
 
-    // Load drivers once district context is available
     if (this.districtContextStore.districtId()) {
       await this.store.loadDrivers();
     }
 
-    // Initialize filter signals from store
     this.searchTerm.set(this.store.searchTerm());
     this.selectedStatus.set(this.store.selectedStatus());
     this.showAssignedOnly.set(this.store.showAssignedOnly());
@@ -83,6 +88,12 @@ export class DriversPage implements OnInit, OnDestroy {
     this.store.setShowAssignedOnly(showAssignedOnly);
   }
 
+  toggleAssignedFilter(): void {
+    const newValue = !this.showAssignedOnly();
+    this.showAssignedOnly.set(newValue);
+    this.store.setShowAssignedOnly(newValue);
+  }
+
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedStatus.set(null);
@@ -93,6 +104,20 @@ export class DriversPage implements OnInit, OnDestroy {
   // Driver management methods
   async refreshDrivers(): Promise<void> {
     await this.store.refreshDrivers();
+  }
+
+  // Driver selection for detail panel
+  selectDriver(driver: DriverEntity): void {
+    // Toggle: if clicking the same driver, close the panel
+    if (this.selectedDriver()?.id === driver.id) {
+      this.selectedDriver.set(null);
+    } else {
+      this.selectedDriver.set(driver);
+    }
+  }
+
+  closeDriverDetail(): void {
+    this.selectedDriver.set(null);
   }
 
   // Helper methods for template
@@ -108,12 +133,12 @@ export class DriversPage implements OnInit, OnDestroy {
 
   getStatusClass(status: DriverStatusEnum): string {
     const classes = {
-      [DriverStatusEnum.AVAILABLE]: 'status-available',
-      [DriverStatusEnum.ON_ROUTE]: 'status-on-route',
-      [DriverStatusEnum.OFF_DUTY]: 'status-off-duty',
-      [DriverStatusEnum.SUSPENDED]: 'status-suspended'
+      [DriverStatusEnum.AVAILABLE]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700',
+      [DriverStatusEnum.ON_ROUTE]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700',
+      [DriverStatusEnum.OFF_DUTY]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700',
+      [DriverStatusEnum.SUSPENDED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700'
     };
-    return classes[status] || 'status-default';
+    return classes[status] || 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700';
   }
 
   getStatusIcon(status: DriverStatusEnum): string {
@@ -121,7 +146,7 @@ export class DriversPage implements OnInit, OnDestroy {
       [DriverStatusEnum.AVAILABLE]: 'pi pi-check-circle',
       [DriverStatusEnum.ON_ROUTE]: 'pi pi-truck',
       [DriverStatusEnum.OFF_DUTY]: 'pi pi-pause-circle',
-      [DriverStatusEnum.SUSPENDED]: 'pi pi-exclamation-triangle'
+      [DriverStatusEnum.SUSPENDED]: 'pi pi-ban'
     };
     return icons[status] || 'pi pi-user';
   }
@@ -140,14 +165,44 @@ export class DriversPage implements OnInit, OnDestroy {
   }
 
   hasExpiredLicense(driver: DriverEntity): boolean {
-    return driver.licenseExpiryDate <= new Date();
+    const today = new Date();
+    const expiryDate = new Date(driver.licenseExpiryDate);
+    return expiryDate <= today;
   }
 
   getLicenseStatusClass(driver: DriverEntity): string {
-    return this.hasExpiredLicense(driver) ? 'license-expired' : 'license-valid';
+    if (this.hasExpiredLicense(driver)) {
+      return 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700';
+    }
+
+    // Check if license expires soon (within 30 days)
+    const today = new Date();
+    const expiryDate = new Date(driver.licenseExpiryDate);
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+    if (expiryDate <= thirtyDaysFromNow) {
+      return 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700';
+    }
+
+    return 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700';
   }
 
   getLicenseStatusText(driver: DriverEntity): string {
-    return this.hasExpiredLicense(driver) ? 'Vencida' : 'Válida';
+    if (this.hasExpiredLicense(driver)) {
+      return 'Vencida';
+    }
+
+    // Check if license expires soon (within 30 days)
+    const today = new Date();
+    const expiryDate = new Date(driver.licenseExpiryDate);
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+    if (expiryDate <= thirtyDaysFromNow) {
+      return 'Por vencer';
+    }
+
+    return 'Válida';
   }
 }
