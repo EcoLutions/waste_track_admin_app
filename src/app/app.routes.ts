@@ -80,8 +80,7 @@ export const routes: Routes = [
           { path: 'settings/:id', component: ContainerSettingsPage },
           {
             path: 'create',
-            component: CreateContainerPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: CreateContainerPage
           }
         ]
       },
@@ -97,8 +96,7 @@ export const routes: Routes = [
           { path: 'reports', component: RouteReportsPage },
           {
             path: 'create',
-            component: CreateRoutePage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: CreateRoutePage
           }
         ]
       },
@@ -110,8 +108,7 @@ export const routes: Routes = [
           { path: '', component: FleetManagementPage },
           {
             path: 'create',
-            component: CreateVehiclePage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: CreateVehiclePage
           },
           { path: 'monitoring', component: FleetMonitoringPage },
           { path: 'maintenance', component: MaintenanceSchedulePage },
@@ -127,13 +124,11 @@ export const routes: Routes = [
           { path: '', component: CitizenReportsPage },
           {
             path: 'create',
-            component: CreateReportPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: CreateReportPage
           },
           {
             path: 'manage',
-            component: ManageReportsPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: ManageReportsPage
           },
           { path: 'analytics', component: ReportsAnalyticsPage }
         ]
@@ -146,18 +141,15 @@ export const routes: Routes = [
           { path: '', component: AnalyticsPage },
           {
             path: 'predictions',
-            component: ContainerPredictionPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: ContainerPredictionPage
           },
           {
             path: 'patterns',
-            component: GenerationPatternsPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: GenerationPatternsPage
           },
           {
             path: 'executive',
-            component: ExecutiveDashboardPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: ExecutiveDashboardPage
           }
         ]
       },
@@ -177,14 +169,12 @@ export const routes: Routes = [
       // ==================== GESTIÓN DE USUARIOS ====================
       {
         path: 'users',
-        canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
         children: [
           { path: '', component: UserManagementPage },
           { path: 'drivers', component: DriversPage },
           {
             path: 'drivers/create',
-            component: CreateDriverPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: CreateDriverPage
           },
           { path: 'citizens', component: CitizensPage },
           { path: 'roles', component: RolesPage }
@@ -197,15 +187,13 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            component: SettingsPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: SettingsPage
           },
           { path: 'profile', component: ProfileSettingsPage },
           { path: 'notifications', component: NotificationSettingsPage },
           {
             path: 'integrations',
-            component: IntegrationsPage,
-            canActivate: [roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])]
+            component: IntegrationsPage
           }
         ]
       }
