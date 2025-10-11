@@ -1,8 +1,16 @@
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { computed, inject } from '@angular/core';
-import { ContainerService, VehicleService, DriverService, RouteService, CitizenService } from '../../../../../entities';
-import { ContainerEntity, VehicleEntity, DriverEntity, RouteEntity, CitizenEntity } from '../../../../../entities';
+import {
+  ContainerService,
+  VehicleService,
+  DriverService,
+  CitizenService,
+  ContainerStatusEnum, DriverStatusEnum
+} from '../../../../../entities';
+import { ContainerEntity, VehicleEntity, DriverEntity, CitizenEntity } from '../../../../../entities';
 import { DistrictContextStore } from '../../../../../shared/stores/district-context.store';
+import {RouteEntity, RouteStatusEnum} from "../../../../../entities/route/model";
+import {RouteService} from '../../../../../entities/route/api';
 
 export interface DashboardState {
   // Data from all services
@@ -49,7 +57,7 @@ export const DashboardStore = signalStore(
 
       // Container metrics
       activeContainers: computed(() =>
-        state.containers().filter(container => container.status === 'ACTIVE')
+        state.containers().filter(container => container.status === ContainerStatusEnum.ACTIVE)
       ),
       containersNeedingCollection: computed(() =>
         state.containers().filter(container => container.currentFillLevel > 80)
@@ -72,15 +80,15 @@ export const DashboardStore = signalStore(
 
       // Driver metrics
       availableDrivers: computed(() =>
-        state.drivers().filter(driver => driver.status === 'AVAILABLE')
+        state.drivers().filter(driver => driver.status === DriverStatusEnum.AVAILABLE)
       ),
       driversOnRoute: computed(() =>
-        state.drivers().filter(driver => driver.status === 'ON_ROUTE')
+        state.drivers().filter(driver => driver.status === DriverStatusEnum.ON_ROUTE)
       ),
 
       // Route metrics
       activeRoutes: computed(() =>
-        state.routes().filter(route => route.status === 'IN_PROGRESS')
+        state.routes().filter(route => route.status === RouteStatusEnum.IN_PROGRESS)
       ),
       completedRoutesToday: computed(() => {
         const today = new Date();
@@ -133,7 +141,7 @@ export const DashboardStore = signalStore(
 
         // Driver availability (25%)
         if (drivers.length > 0) {
-          const availableDrivers = drivers.filter(d => d.status === 'AVAILABLE').length;
+          const availableDrivers = drivers.filter(d => d.status === DriverStatusEnum.AVAILABLE).length;
           score += (availableDrivers / drivers.length) * 25;
           total += 25;
         }
@@ -141,7 +149,7 @@ export const DashboardStore = signalStore(
         // Route completion (20%)
         const routes = state.routes();
         if (routes.length > 0) {
-          const completedRoutes = routes.filter(r => r.status === 'COMPLETED').length;
+          const completedRoutes = routes.filter(r => r.status === RouteStatusEnum.COMPLETED).length;
           score += (completedRoutes / routes.length) * 20;
           total += 20;
         }
@@ -157,7 +165,11 @@ export const DashboardStore = signalStore(
         state.routes().length > 0 ||
         state.citizens().length > 0
       ),
-      isEmpty: computed(() => !state.isLoading() && !state.hasData())
+      isEmpty: computed(() => !state.isLoading() && (state.containers().length > 0 ||
+        state.vehicles().length > 0 ||
+        state.drivers().length > 0 ||
+        state.routes().length > 0 ||
+        state.citizens().length > 0))
     };
   }),
 
@@ -221,7 +233,7 @@ export const DashboardStore = signalStore(
 
       // Refresh dashboard data
       async refreshDashboard(): Promise<void> {
-        await store.loadDashboardData();
+        await this.loadDashboardData();
       },
 
       // Utility methods

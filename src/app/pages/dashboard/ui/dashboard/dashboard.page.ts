@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardStore } from '../../model/store/dashboard';
-import { DistrictContextStore } from '../../../../shared/stores/district-context.store';
+import {DistrictContextStore} from '../../../../../shared/stores/district-context.store';
 
 @Component({
   selector: 'app-dashboard',
@@ -48,7 +48,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   readonly districtName = computed(() => this.store.districtName());
 
   ngOnInit(): void {
-    this.initializeDashboard();
+    this.initializeDashboard().then(() => {});
   }
 
   ngOnDestroy(): void {
