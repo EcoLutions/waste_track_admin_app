@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { RouteEntity } from '../../model';
 import { RouteResponse } from '../types/route-response.type';
 import { CreateRouteRequest } from '../types/create-route-request.type';
@@ -33,6 +33,13 @@ export class RouteService extends BaseService {
       catchError(this.handleError),
       retry(2)
     );
+  }
+
+  getAllActiveByDistrictId(districtId: string): Observable<RouteEntity[]> {
+    return this.http.get<RouteResponse[]>(`${this.resourcePath()}/district/${districtId}/active`, this.httpOptions).pipe(
+      map((responses: RouteResponse[]) => responses.map(r => RouteEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
   }
 
   create(entity: RouteEntity): Observable<RouteEntity> {
