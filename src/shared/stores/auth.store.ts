@@ -138,10 +138,8 @@ export const AuthStore = signalStore(
 
             storageService.setUser(completeUser);
 
-            console.log(completeUser);
-
             patchState(store, {
-              user,
+              user: completeUser,
               token: user.token,
               isAuthenticated: true,
               isLoading: false,
