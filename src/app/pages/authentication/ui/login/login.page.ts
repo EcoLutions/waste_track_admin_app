@@ -23,8 +23,8 @@ export class LoginPage implements OnInit{
   private router = inject(Router);
 
   credentials: SignInCredentials = {
-    username: '',
-    password: ''
+    email: '',
+    password: '',
   };
 
   ngOnInit() {
@@ -34,7 +34,7 @@ export class LoginPage implements OnInit{
   }
 
   onSignIn() {
-    if (this.credentials.username && this.credentials.password) {
+    if (this.credentials.email && this.credentials.password) {
       this.authStore.signIn(this.credentials);
     }
   }
@@ -46,6 +46,6 @@ export class LoginPage implements OnInit{
   }
 
   get isFormValid(): boolean {
-    return !!(this.credentials.username && this.credentials.password);
+    return !!(this.credentials.email && this.credentials.password);
   }
 }

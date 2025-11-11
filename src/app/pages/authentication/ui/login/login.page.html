@@ -66,26 +66,25 @@
 
           <!-- Username Input -->
           <div class="space-y-2">
-            <label
-              for="username"
-              class="block text-sm font-semibold text-gray-700 mb-2">
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
               <i class="pi pi-user text-gray-400"></i>
-              Usuario
+              Correo
             </label>
             <span class="p-input-icon-left block">
               <input
                 pInputText
-                id="username"
-                type="text"
-                [(ngModel)]="credentials.username"
-                name="username"
-                placeholder="Ingrese su usuario"
+                id="email"
+                type="email"
+                [(ngModel)]="credentials.email"
+                name="email"
+                placeholder="Ingrese su correo electrónico"
                 class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all duration-200 outline-none"
                 [class.border-red-500]="authStore.error()"
                 [class.bg-red-50]="authStore.error()"
                 (keydown)="onKeyPress($event)"
-                autocomplete="username"
-                required>
+                autocomplete="email"
+                required
+              />
             </span>
           </div>
 
