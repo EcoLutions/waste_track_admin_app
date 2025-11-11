@@ -7,15 +7,18 @@ export class AuthenticatedUserFromResponseMapper {
     return {
       id: dto.id ?? '',
       username: dto.username ?? '',
+      email: dto.email ?? '',
       password: '',
       accountStatus: UserStatusFromResponseMapper.mapStringToAccountStatus(dto.status ?? ''),
       failedLoginAttempts: dto.failedLoginAttempts ?? 0,
       lastLoginAt: dto.lastLoginAt ? new Date(dto.lastLoginAt) : null,
       passwordChangedAt: dto.passwordChangedAt ? new Date(dto.passwordChangedAt) : null,
-      roles: dto.roles ? dto.roles.map(role => ({
-        id: '',
-        name: role as any
-      })) : [],
+      roles: dto.roles
+        ? dto.roles.map((role) => ({
+          id: '',
+          name: role as any,
+        }))
+        : [],
       token: dto.token ?? '',
     };
   }
