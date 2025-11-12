@@ -1,130 +1,119 @@
-<div class="unauthorized-container" [class.visible]="isVisible()">
-  <!-- Background decorative elements -->
-  <div class="background-decoration">
-    <div class="circle circle-1"></div>
-    <div class="circle circle-2"></div>
-    <div class="circle circle-3"></div>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-4">
+
+  <!-- Animated Background -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-20 left-20 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl animate-float"></div>
+    <div class="absolute bottom-20 right-20 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl animate-float-delayed"></div>
   </div>
 
-  <!-- Main content card -->
-  <div class="unauthorized-card">
-    <!-- Icon with animation -->
-    <div class="icon-wrapper">
-      <div class="icon-background"></div>
-      <div class="unauthorized-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-        </svg>
+  <!-- Main Card -->
+  <div class="relative z-10 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl max-w-2xl w-full p-8 md:p-12 animate-fade-in-up">
+
+    <!-- Icon -->
+    <div class="flex justify-center">
+      <div class="relative">
+        <div class="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-50"></div>
+        <div class="relative bg-red-50 rounded-full">
+          <svg class="w-16 h-16 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="content">
-      <h1 class="title">Acceso Restringido</h1>
-
-      <p class="subtitle">
-        Hola <strong>{{ username() }}</strong>
+    <!-- Title -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        Acceso Denegado
+      </h1>
+      <p class="text-gray-600">
+        Hola <strong class="text-gray-900">{{ username() }}</strong>, no tienes permisos para acceder a esta sección
       </p>
+    </div>
 
-      <!-- User type specific message -->
-      <div class="message-box" [style.border-color]="userTypeMessage().color">
-        <div class="message-icon" [style.background]="userTypeMessage().color">
-          <i [class]="'pi ' + userTypeMessage().icon"></i>
-        </div>
-        <div class="message-content">
-          <h3 class="message-title">Tipo de cuenta: {{ userTypeMessage().type }}</h3>
-          <p class="message-text">{{ userTypeMessage().message }}</p>
+    <!-- User Type Message -->
+    <div class="mb-8 p-6 rounded-xl border-2" [style.border-color]="userTypeMessage().borderColor" [style.background-color]="userTypeMessage().bgColor">
+      <div class="flex items-start gap-4">
+        <div class="flex-1">
+          <h3 class="font-semibold text-gray-900 mb-1">
+            Tipo de cuenta: {{ userTypeMessage().type }}
+          </h3>
+          <p class="text-sm text-gray-700">
+            {{ userTypeMessage().message }}
+          </p>
         </div>
       </div>
+    </div>
 
-      @if (attemptedUrl()) {
-        <div class="info-box">
-          <i class="pi pi-info-circle"></i>
-          <div class="info-content">
-            <span class="info-label">Intentaste acceder a:</span>
-            <span class="info-value">{{ attemptedUrl() }}</span>
-          </div>
-        </div>
-      }
-
-      <!-- User roles display -->
-      <div class="user-info-card">
-        <div class="user-info-header">
-          <i class="pi pi-id-card"></i>
-          <span>Información de tu cuenta</span>
-        </div>
-        <div class="user-info-body">
-          <div class="info-row">
-            <span class="label">Usuario:</span>
-            <span class="value">{{ username() }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Rol(es) asignado(s):</span>
-            <div class="roles-container">
-              @for (role of userRoles(); track role.id) {
-                <span class="role-tag">
-                  {{ role.name === 'role_citizen' ? 'Ciudadano' :
-                  role.name === 'role_driver' ? 'Conductor' :
-                    role.name === 'role_municipal_administrator' ? 'Admin Municipal' :
-                      role.name === 'role_system_administrator' ? 'Admin Sistema' :
-                        role.name }}
-                </span>
-              }
-              @empty {
-                <span class="value text-muted">Sin roles asignados</span>
-              }
-            </div>
+    <!-- Attempted URL (if exists) -->
+    @if (attemptedUrl()) {
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="flex items-start gap-3">
+          <i class="pi pi-info-circle text-gray-400 mt-0.5"></i>
+          <div class="flex-1 min-w-0">
+            <span class="text-xs font-medium text-gray-600 block mb-1">Intentaste acceder a:</span>
+            <span class="text-sm text-gray-900 font-mono break-all">{{ attemptedUrl() }}</span>
           </div>
         </div>
       </div>
+    }
 
-      <!-- Help section based on user type -->
-      @if (userTypeMessage().type === 'Ciudadano' || userTypeMessage().type === 'Conductor') {
-        <div class="mobile-app-cta">
-          <div class="cta-icon">
-            <i class="pi pi-mobile"></i>
-          </div>
-          <div class="cta-content">
-            <h4 class="cta-title">Descarga la App Móvil</h4>
-            <p class="cta-text">
+    <!-- Mobile App CTA (for mobile users) -->
+    @if (userTypeMessage().type === 'Ciudadano' || userTypeMessage().type === 'Conductor') {
+      <div class="mb-8 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
+        <div class="flex items-start gap-4">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              Descarga nuestra aplicación móvil
+            </h4>
+            <p class="text-sm text-gray-700 mb-4">
               Accede a todos nuestros servicios desde tu dispositivo móvil
             </p>
-            <div class="app-badges">
-              <a href="#" class="app-badge" aria-label="Descargar en App Store">
-                <i class="pi pi-apple"></i>
-                <span>App Store</span>
+            <div class="flex flex-wrap gap-3">
+              <a
+              href="#"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+              >
+              <i class="pi pi-apple text-lg"></i>
+              <span>App Store</span>
               </a>
-              <a href="#" class="app-badge" aria-label="Descargar en Google Play">
-                <i class="pi pi-android"></i>
-                <span>Google Play</span>
+              <a
+              href="#"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+              >
+              <i class="pi pi-android text-lg"></i>
+              <span>Google Play</span>
               </a>
             </div>
           </div>
         </div>
-      }
+      </div>
+    }
 
-      @if (!isMunicipalAdmin() && userTypeMessage().type !== 'Ciudadano' && userTypeMessage().type !== 'Conductor') {
-        <div class="help-box">
-          <i class="pi pi-question-circle"></i>
-          <div class="help-content">
-            <h4 class="help-title">¿Necesitas acceso a esta sección?</h4>
-            <p class="help-text">
+    <!-- Help Box (for system admin or others) -->
+    @if (userTypeMessage().type === 'Administrador de Sistema' || (userTypeMessage().type !== 'Ciudadano' && userTypeMessage().type !== 'Conductor')) {
+      <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="flex items-start gap-3">
+          <i class="pi pi-question-circle text-blue-600 mt-0.5"></i>
+          <div>
+            <h4 class="font-semibold text-blue-900 mb-1 text-sm">
+              ¿Necesitas acceso a esta sección?
+            </h4>
+            <p class="text-sm text-blue-800">
               Si consideras que deberías tener acceso, contacta al administrador del sistema para solicitar los permisos necesarios.
             </p>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
 
-    <!-- Action buttons -->
-    <div class="actions">
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row gap-3">
       <button
-        class="btn btn-primary"
         (click)="handleSignOut()"
         [disabled]="isLoading()"
-        type="button"
-        aria-label="Cerrar sesión y volver al login">
+        class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+      >
         @if (isLoading()) {
           <i class="pi pi-spin pi-spinner"></i>
           <span>Cerrando sesión...</span>
@@ -136,11 +125,10 @@
 
       @if (userTypeMessage().type !== 'Ciudadano' && userTypeMessage().type !== 'Conductor') {
         <button
-          class="btn btn-secondary"
           (click)="contactSupport()"
           [disabled]="isLoading()"
-          type="button"
-          aria-label="Contactar soporte técnico">
+          class="flex-1 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-semibold py-3 px-6 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
           <i class="pi pi-envelope"></i>
           <span>Contactar Soporte</span>
         </button>
@@ -148,11 +136,12 @@
     </div>
 
     <!-- Footer -->
-    <div class="footer">
-      <p class="footer-text">
+    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+      <p class="text-sm text-gray-600 flex items-center justify-center gap-2">
         <i class="pi pi-shield"></i>
-        <span>Sistema de Gestión de Residuos - WasteTrack</span>
+        <span>Ecolutions - WasteTrack</span>
       </p>
     </div>
+
   </div>
 </div>
