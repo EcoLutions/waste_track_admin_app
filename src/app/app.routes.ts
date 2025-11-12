@@ -46,6 +46,7 @@ import {
 import {IntegrationsPage} from '../pages/integrations/ui/integrations/integrations.page';
 import {ResetPasswordPage} from '../pages/reset-password/ui';
 import {ActiveAccountPage} from '../pages/active-account/ui';
+import {NotFoundPage} from '../pages/authentication/ui/not-found/not-found.page';
 
 
 export const routes: Routes = [
@@ -210,5 +211,10 @@ export const routes: Routes = [
         ]
       }
     ]
+  },
+
+  // ==================== NOT FOUND PAGE ====================
+  { path: '**',
+    component: NotFoundPage
   }
 ];
