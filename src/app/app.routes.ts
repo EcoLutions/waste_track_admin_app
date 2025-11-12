@@ -1,5 +1,5 @@
-import { Routes } from '@angular/router';
-import { authGuard, roleGuard } from '../shared';
+import {Routes} from '@angular/router';
+import {authGuard, roleGuard} from '../shared';
 import {LoginPage} from '../pages/authentication/ui/login/login.page';
 import {UnauthorizedPage} from '../pages/authentication/ui/unauthorized/unauthorized.page';
 import {AdminLayoutComponent} from '../pages/admin-layout/ui/admin-layout/admin-layout.page';
@@ -44,6 +44,8 @@ import {
   NotificationSettingsPage
 } from '../pages/notification-settings/ui/notification-settings/notification-settings.page';
 import {IntegrationsPage} from '../pages/integrations/ui/integrations/integrations.page';
+import {ResetPasswordPage} from '../pages/reset-password/ui';
+import {ActiveAccountPage} from '../pages/active-account/ui';
 
 
 export const routes: Routes = [
@@ -56,7 +58,16 @@ export const routes: Routes = [
     path: 'unauthorized',
     component: UnauthorizedPage
   },
-
+  {
+    path: 'activate-account',
+    title: 'Activar Cuenta',
+    component: ActiveAccountPage
+  },
+  {
+    path: 'reset-password',
+    title: 'Restablecer Contraseña',
+    component: ResetPasswordPage
+  },
   // ==================== PÁGINAS PRINCIPALES ====================
   {
     path: '',
