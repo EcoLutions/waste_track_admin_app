@@ -5,7 +5,6 @@ export interface UpdateVehicleRequest {
   volumeCapacity: number | null; // BigDecimal as number
   weightCapacity: number | null; // BigDecimal as number
   districtId: string | null;
-  assignedDriverId: string | null;
   lastMaintenanceDate: string | null; // LocalDateTime → ISO string
   nextMaintenanceDate: string | null; // LocalDateTime → ISO string
   isActive: boolean | null;
