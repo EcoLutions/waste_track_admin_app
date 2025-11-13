@@ -89,7 +89,6 @@ export const CreateDriverStore = signalStore(
           driverLicense: form.licenseNumber,
           licenseExpiryDate: form.licenseExpiryDate ? new Date(form.licenseExpiryDate) : new Date(),
           status: form.status,
-          assignedVehicleId: form.assignedVehicleId || null,
           totalHoursWorked: 0,
           lastRouteCompletedAt: null,
           userId: 'preview', // This won't be sent to backend
@@ -178,7 +177,6 @@ export const CreateDriverStore = signalStore(
             driverLicense: formData.licenseNumber,
             licenseExpiryDate: new Date(formData.licenseExpiryDate),
             status: formData.status,
-            assignedVehicleId: formData.assignedVehicleId || null,
             totalHoursWorked: 0,
             lastRouteCompletedAt: null,
             // Generate random userId (backend should override this)

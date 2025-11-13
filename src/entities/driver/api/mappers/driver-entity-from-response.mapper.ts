@@ -18,7 +18,6 @@ export class DriverEntityFromResponseMapper {
       totalHoursWorked: dto.totalHoursWorked ?? 0,
       lastRouteCompletedAt: dto.lastRouteCompletedAt ? new Date(dto.lastRouteCompletedAt) : null,
       status: DriverEntityFromResponseMapper.mapStringToDriverStatus(dto.status ?? ''),
-      assignedVehicleId: dto.assignedVehicleId ?? null,
       createdAt: dto.createdAt ? new Date(dto.createdAt) : null,
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null
     };

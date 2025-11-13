@@ -98,11 +98,6 @@ export const DriversStore = signalStore(
           filtered = filtered.filter(driver => driver.status === state.selectedStatus());
         }
 
-        // Filter by assignment
-        if (state.showAssignedOnly()) {
-          filtered = filtered.filter(driver => driver.assignedVehicleId !== null);
-        }
-
         // Filter by search term
         if (state.searchTerm()) {
           const searchTerm = state.searchTerm().toLowerCase();
@@ -111,8 +106,7 @@ export const DriversStore = signalStore(
             driver.lastName.toLowerCase().includes(searchTerm) ||
             driver.documentNumber.toLowerCase().includes(searchTerm) ||
             driver.phoneNumber.toLowerCase().includes(searchTerm) ||
-            driver.emailAddress.toLowerCase().includes(searchTerm) ||
-            (driver.assignedVehicleId && driver.assignedVehicleId.toLowerCase().includes(searchTerm))
+            driver.emailAddress.toLowerCase().includes(searchTerm)
           );
         }
 
