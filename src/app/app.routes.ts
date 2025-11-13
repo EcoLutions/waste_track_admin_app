@@ -44,8 +44,6 @@ import {
   NotificationSettingsPage
 } from '../pages/notification-settings/ui/notification-settings/notification-settings.page';
 import {IntegrationsPage} from '../pages/integrations/ui/integrations/integrations.page';
-import {ResetPasswordPage} from '../pages/reset-password/ui';
-import {ActiveAccountPage} from '../pages/active-account/ui';
 import {NotFoundPage} from '../pages/authentication/ui/not-found/not-found.page';
 
 
@@ -58,16 +56,6 @@ export const routes: Routes = [
   {
     path: 'unauthorized',
     component: UnauthorizedPage
-  },
-  {
-    path: 'activate-account',
-    title: 'Activar Cuenta',
-    component: ActiveAccountPage
-  },
-  {
-    path: 'reset-password',
-    title: 'Restablecer Contraseña',
-    component: ResetPasswordPage
   },
   // ==================== PÁGINAS PRINCIPALES ====================
   {

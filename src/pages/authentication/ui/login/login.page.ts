@@ -40,9 +40,6 @@ export class LoginPage implements OnInit {
   readonly passwordControl = computed(() => this.loginForm.get('password')!);
   readonly forgotEmailControl = computed(() => this.forgotForm.get('email')!);
 
-  readonly isLoginFormValid = computed(() => this.loginForm.valid);
-  readonly isForgotFormValid = computed(() => this.forgotForm.valid);
-
   constructor() {
     effect(() => {
       if (this.loginForm.valueChanges) {
