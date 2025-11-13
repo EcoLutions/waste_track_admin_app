@@ -14,7 +14,6 @@ export class WaypointEntityFromResponseMapper {
       estimatedArrivalTime: dto.estimatedArrivalTime ? new Date(dto.estimatedArrivalTime) : null,
       actualArrivalTime: dto.actualArrivalTime ? new Date(dto.actualArrivalTime) : null,
       serviceTime: null,
-      driverNote: dto.driverNote,
       createdAt: dto.createdAt ? new Date(dto.createdAt) : null,
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null
     };
