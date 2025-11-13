@@ -248,8 +248,6 @@ export class ContainerMonitoringPage implements OnInit {
             </span>
           </p>
           <p><strong>Tipo:</strong> ${typeLabels[container.containerType]}</p>
-          <p><strong>Dirección:</strong> ${container.address}</p>
-          <p><strong>Distrito:</strong> ${container.districtCode}</p>
           <p><strong>Capacidad:</strong> ${container.volumeLiters}L / ${container.maxWeightKg}kg</p>
           <p><strong>Llenado:</strong> ${container.currentFillLevel}%</p>
           ${container.lastReadingTimestamp ?
@@ -292,7 +290,7 @@ export class ContainerMonitoringPage implements OnInit {
         className: 'custom-popup'
       })
       .bindTooltip(
-        `<b>Contenedor ${container.id.substring(0, 8)}</b><br>${container.address}`,
+        `<b>Contenedor ${container.id.substring(0, 8)}</b><br>${lat.toFixed(5)}, ${lng.toFixed(5)}`,
         {
           permanent: false,
           direction: 'top',

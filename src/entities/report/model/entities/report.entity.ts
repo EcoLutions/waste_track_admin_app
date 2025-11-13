@@ -7,8 +7,6 @@ export interface ReportEntity {
   citizenId: string;
   latitude: string;
   longitude: string;
-  address: string;
-  districtCode: string;
   containerId: string | null;
   reportType: ReportTypeEnum;
   description: string;

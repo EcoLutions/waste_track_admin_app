@@ -5,8 +5,6 @@ export interface ContainerEntity {
   id: string;
   latitude: string;
   longitude: string;
-  address: string;
-  districtCode: string;
   volumeLiters: number;
   maxWeightKg: number;
   containerType: ContainerTypeEnum;

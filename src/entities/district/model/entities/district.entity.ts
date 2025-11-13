@@ -12,4 +12,5 @@ export interface DistrictEntity {
   maxDrivers: number;
   maxContainers: number;
   primaryAdminEmail: string;
+
 }

@@ -149,16 +149,6 @@ export const ContainerMonitoringStore = signalStore(
           filtered = filtered.filter(c => c.containerType === typeFilter());
         }
 
-        // Filtrar por búsqueda (address o districtCode)
-        if (searchQuery().trim()) {
-          const query = searchQuery().toLowerCase().trim();
-          filtered = filtered.filter(c =>
-            c.address.toLowerCase().includes(query) ||
-            c.districtCode.toLowerCase().includes(query) ||
-            c.id.toLowerCase().includes(query)
-          );
-        }
-
         patchState(store, {
           filteredContainers: filtered
         });
