@@ -16,6 +16,9 @@ export interface RouteEntity {
   totalDistance: number | null;
   estimatedDuration: number | null; // Duration in minutes
   actualDuration: number | null; // Duration in minutes
+  currentLatitude: string | null;
+  currentLongitude: string | null;
+  lastLocationUpdate: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }

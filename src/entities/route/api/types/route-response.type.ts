@@ -11,6 +11,9 @@ export interface RouteResponse {
   totalDistance: DistanceResource | null;
   estimatedDuration: DurationResource | null;
   actualDuration: DurationResource | null;
+  currentLatitude: string | null;
+  currentLongitude: string | null;
+  lastLocationUpdate: string | null; // LocalDateTime → ISO string
   createdAt: string | null; // LocalDateTime → ISO string
   updatedAt: string | null; // LocalDateTime → ISO string
 }

@@ -19,6 +19,9 @@ export class RouteEntityFromResponseMapper {
       totalDistance: dto.totalDistance?.value ?? null,
       estimatedDuration: RouteEntityFromResponseMapper.mapDuration(dto.estimatedDuration),
       actualDuration: RouteEntityFromResponseMapper.mapDuration(dto.actualDuration),
+      currentLatitude: dto.currentLatitude ?? '',
+      currentLongitude:  dto.currentLongitude ?? '',
+      lastLocationUpdate:  dto.lastLocationUpdate ? new Date(dto.lastLocationUpdate) : null,
       createdAt: dto.createdAt ? new Date(dto.createdAt) : null,
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null
     };
