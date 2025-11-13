@@ -1,5 +1,5 @@
-import { Routes } from '@angular/router';
-import { authGuard, roleGuard } from '../shared';
+import {Routes} from '@angular/router';
+import {authGuard, roleGuard} from '../shared';
 import {LoginPage} from '../pages/authentication/ui/login/login.page';
 import {UnauthorizedPage} from '../pages/authentication/ui/unauthorized/unauthorized.page';
 import {AdminLayoutComponent} from '../pages/admin-layout/ui/admin-layout/admin-layout.page';
@@ -44,6 +44,7 @@ import {
   NotificationSettingsPage
 } from '../pages/notification-settings/ui/notification-settings/notification-settings.page';
 import {IntegrationsPage} from '../pages/integrations/ui/integrations/integrations.page';
+import {NotFoundPage} from '../pages/authentication/ui/not-found/not-found.page';
 
 
 export const routes: Routes = [
@@ -56,7 +57,6 @@ export const routes: Routes = [
     path: 'unauthorized',
     component: UnauthorizedPage
   },
-
   // ==================== PÁGINAS PRINCIPALES ====================
   {
     path: '',
@@ -199,5 +199,10 @@ export const routes: Routes = [
         ]
       }
     ]
+  },
+
+  // ==================== NOT FOUND PAGE ====================
+  { path: '**',
+    component: NotFoundPage
   }
 ];
