@@ -264,10 +264,6 @@
                         <span class="text-gray-600">ID Distrito:</span>
                         <span class="font-medium ml-2">{{ store.districtId() || 'No disponible' }}</span>
                       </div>
-                      <div>
-                        <span class="text-gray-600">Código Distrito:</span>
-                        <span class="font-medium ml-2">{{ store.districtCode() || 'No disponible' }}</span>
-                      </div>
                       <div class="col-span-2">
                         <span class="text-gray-600">Nombre Distrito:</span>
                         <span class="font-medium ml-2">{{ store.districtName() || 'No disponible' }}</span>
@@ -321,7 +317,7 @@
                       <div><span class="text-gray-600">Latitud:</span> <span class="font-medium">{{ containerForm.get('latitude')?.value }}</span></div>
                       <div><span class="text-gray-600">Longitud:</span> <span class="font-medium">{{ containerForm.get('longitude')?.value }}</span></div>
                       <div class="col-span-2"><span class="text-gray-600">Dirección:</span> <span class="font-medium">{{ containerForm.get('address')?.value }}</span></div>
-                      <div><span class="text-gray-600">Distrito:</span> <span class="font-medium">{{ store.districtCode() || 'No disponible' }}</span></div>
+                      <div><span class="text-gray-600">Distrito:</span> <span class="font-medium">{{ store.districtName() || 'No disponible' }}</span></div>
                     </div>
                   </div>
 

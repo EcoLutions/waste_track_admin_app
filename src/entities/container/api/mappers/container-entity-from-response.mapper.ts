@@ -8,8 +8,6 @@ export class ContainerEntityFromResponseMapper {
       id: dto.id ?? '',
       latitude: dto.latitude ?? '',
       longitude: dto.longitude ?? '',
-      address: dto.address ?? '',
-      districtCode: dto.districtCode ?? '',
       volumeLiters: dto.volumeLiters ?? 0,
       maxWeightKg: dto.maxWeightKg ?? 0,
       containerType: ContainerEntityFromResponseMapper.mapStringToContainerType(dto.containerType ?? ''),

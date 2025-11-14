@@ -12,13 +12,17 @@ export class RouteEntityFromResponseMapper {
       driverId: dto.driverId,
       routeType: RouteEntityFromResponseMapper.mapRouteType(dto.routeType),
       status: RouteEntityFromResponseMapper.mapRouteStatus(dto.status),
-      scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : new Date(),
+      scheduledStartAt: dto.scheduledStartAt ? new Date(dto.scheduledStartAt) : new Date(),
+      scheduledEndAt: dto.scheduledEndAt ? new Date(dto.scheduledEndAt) : new Date(),
       startedAt: dto.startedAt ? new Date(dto.startedAt) : null,
       completedAt: dto.completedAt ? new Date(dto.completedAt) : null,
       waypoints: [], // Will be populated separately if needed
       totalDistance: dto.totalDistance?.value ?? null,
       estimatedDuration: RouteEntityFromResponseMapper.mapDuration(dto.estimatedDuration),
       actualDuration: RouteEntityFromResponseMapper.mapDuration(dto.actualDuration),
+      currentLatitude: dto.currentLatitude ?? '',
+      currentLongitude:  dto.currentLongitude ?? '',
+      lastLocationUpdate:  dto.lastLocationUpdate ? new Date(dto.lastLocationUpdate) : null,
       createdAt: dto.createdAt ? new Date(dto.createdAt) : null,
       updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null
     };

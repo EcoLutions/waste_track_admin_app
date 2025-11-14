@@ -9,13 +9,17 @@ export interface RouteEntity {
   driverId: string | null;
   routeType: RouteTypeEnum;
   status: RouteStatusEnum;
-  scheduledDate: Date;
+  scheduledStartAt: Date;
+  scheduledEndAt: Date;
   startedAt: Date | null;
   completedAt: Date | null;
   waypoints: WaypointEntity[];
   totalDistance: number | null;
   estimatedDuration: number | null; // Duration in minutes
   actualDuration: number | null; // Duration in minutes
+  currentLatitude: string | null;
+  currentLongitude: string | null;
+  lastLocationUpdate: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }

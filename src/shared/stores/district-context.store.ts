@@ -27,7 +27,6 @@ export const DistrictContextStore = signalStore(
     return {
       districtId: computed(() => headerStore.profile()?.districtId || null),
       districtName: computed(() => state.district()?.name || null),
-      districtCode: computed(() => state.district()?.code || null),
       isDistrictLoaded: computed(() => !!state.district()),
       hasError: computed(() => !!state.error())
     };

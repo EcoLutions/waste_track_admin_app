@@ -10,7 +10,6 @@ export interface WaypointEntity {
   estimatedArrivalTime: Date | null;
   actualArrivalTime: Date | null;
   serviceTime: number | null; // Duration in minutes
-  driverNote: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }

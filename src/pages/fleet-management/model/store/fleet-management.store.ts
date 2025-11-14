@@ -99,16 +99,6 @@ export const FleetManagementStore = signalStore(
           filtered = filtered.filter(vehicle => vehicle.vehicleType === state.selectedVehicleType());
         }
 
-        // Filter by search term
-        if (state.searchTerm()) {
-          const searchTerm = state.searchTerm().toLowerCase();
-          filtered = filtered.filter(vehicle =>
-            vehicle.licensePlate.toLowerCase().includes(searchTerm) ||
-            vehicle.id.toLowerCase().includes(searchTerm) ||
-            (vehicle.assignedDriverId && vehicle.assignedDriverId.toLowerCase().includes(searchTerm))
-          );
-        }
-
         return filtered;
       }),
 

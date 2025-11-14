@@ -182,22 +182,13 @@ export const routes: Routes = [
         ]
       },
 
-      // ==================== CONFIGURACIÓN ====================
-      {
-        path: 'settings',
-        children: [
-          {
-            path: '',
-            component: SettingsPage,
-          },
-          { path: 'profile', component: ProfileSettingsPage },
-          { path: 'notifications', component: NotificationSettingsPage },
-          {
-            path: 'integrations',
-            component: IntegrationsPage,
-          }
-        ]
-      }
+      // ==================== DISTRICT ====================
+
+      { path: 'settings', component: SettingsPage },
+
+      // ==================== NOTIFICATIONS ====================
+
+      { path: 'notifications', component: NotificationSettingsPage },
     ]
   },
 

@@ -71,18 +71,6 @@ export class AdminLayoutComponent {
       ariaLabel: 'Gestión de rutas',
       items: [
         {
-          label: 'Optimización',
-          routerLink: '/routes',
-          icon: 'pi pi-sparkles',
-          ariaLabel: 'Optimizar rutas'
-        },
-        {
-          label: 'Optimizador',
-          routerLink: '/routes/optimize',
-          icon: 'pi pi-compass',
-          ariaLabel: 'Herramienta de optimización'
-        },
-        {
           label: 'Rutas Activas',
           routerLink: '/routes/active',
           icon: 'pi pi-directions',
@@ -94,12 +82,12 @@ export class AdminLayoutComponent {
           icon: 'pi pi-history',
           ariaLabel: 'Historial de rutas'
         },
-        {
+/*        {
           label: 'Reportes',
           routerLink: '/routes/reports',
           icon: 'pi pi-file-pdf',
           ariaLabel: 'Reportes de rutas'
-        },
+        },*/
         {
           label: 'Crear Ruta',
           routerLink: '/routes/create',
@@ -119,31 +107,6 @@ export class AdminLayoutComponent {
           icon: 'pi pi-car',
           ariaLabel: 'Administrar vehículos'
         },
-        {
-          label: 'Monitoreo',
-          routerLink: '/fleet/monitoring',
-          icon: 'pi pi-eye',
-          ariaLabel: 'Monitorear vehículos en tiempo real'
-        },
-        {
-          label: 'Mantenimiento',
-          routerLink: '/fleet/maintenance',
-          icon: 'pi pi-wrench',
-          badge: 2,
-          ariaLabel: 'Programar mantenimiento - 2 pendientes'
-        },
-        {
-          label: 'Costos Operacionales',
-          routerLink: '/fleet/costs',
-          icon: 'pi pi-dollar',
-          ariaLabel: 'Ver costos operacionales'
-        },
-        {
-          label: 'Asignación',
-          routerLink: '/fleet/assignment',
-          icon: 'pi pi-users',
-          ariaLabel: 'Asignar vehículos'
-        }
       ]
     },
     {
@@ -177,7 +140,7 @@ export class AdminLayoutComponent {
           ariaLabel: 'Crear nuevo reporte'
         }
       ]
-    },
+    },/*
     {
       label: 'Analytics',
       icon: 'pi pi-chart-bar',
@@ -208,43 +171,18 @@ export class AdminLayoutComponent {
           ariaLabel: 'Dashboard ejecutivo'
         }
       ]
-    },
-    {
-      label: 'Cumplimiento',
-      icon: 'pi pi-shield',
-      ariaLabel: 'Cumplimiento regulatorio',
-      items: [
-        {
-          label: 'Dashboard',
-          routerLink: '/compliance',
-          icon: 'pi pi-check-circle',
-          ariaLabel: 'Dashboard de cumplimiento'
-        },
-        {
-          label: 'Reportes MINAM',
-          routerLink: '/compliance/minam-reports',
-          icon: 'pi pi-file',
-          ariaLabel: 'Reportes para MINAM'
-        },
-        {
-          label: 'Residuos Peligrosos',
-          routerLink: '/compliance/hazardous-waste',
-          icon: 'pi pi-exclamation-triangle',
-          ariaLabel: 'Gestión de residuos peligrosos'
-        }
-      ]
-    },
+    },*/
     {
       label: 'Usuarios',
       icon: 'pi pi-users',
       ariaLabel: 'Gestión de usuarios',
       items: [
-        {
+/*        {
           label: 'Todos los Usuarios',
           routerLink: '/users',
           icon: 'pi pi-user',
           ariaLabel: 'Ver todos los usuarios'
-        },
+        },*/
         {
           label: 'Conductores',
           routerLink: '/users/drivers',
@@ -257,12 +195,6 @@ export class AdminLayoutComponent {
           icon: 'pi pi-user-plus',
           ariaLabel: 'Gestionar ciudadanos'
         },
-        {
-          label: 'Roles y Permisos',
-          routerLink: '/users/roles',
-          icon: 'pi pi-key',
-          ariaLabel: 'Administrar roles y permisos'
-        }
       ]
     },
     {
@@ -271,29 +203,17 @@ export class AdminLayoutComponent {
       ariaLabel: 'Configuración del sistema',
       items: [
         {
-          label: 'General',
+          label: 'Distrito',
           routerLink: '/settings',
           icon: 'pi pi-sliders-h',
           ariaLabel: 'Configuración general'
         },
         {
-          label: 'Mi Perfil',
-          routerLink: '/settings/profile',
-          icon: 'pi pi-user-edit',
-          ariaLabel: 'Editar mi perfil'
-        },
-        {
           label: 'Notificaciones',
-          routerLink: '/settings/notifications',
+          routerLink: '/notifications',
           icon: 'pi pi-bell',
           ariaLabel: 'Configurar notificaciones'
         },
-        {
-          label: 'Integraciones',
-          routerLink: '/settings/integrations',
-          icon: 'pi pi-link',
-          ariaLabel: 'Gestionar integraciones'
-        }
       ]
     }
   ];

@@ -76,7 +76,6 @@ export const CreateVehicleStore = signalStore(
           weightCapacity: form.weightCapacity,
           mileage: form.mileage,
           districtId: districtId || '',
-          assignedDriverId: form.assignedDriverId || null,
           lastMaintenanceDate: form.lastMaintenanceDate ? new Date(form.lastMaintenanceDate) : null,
           nextMaintenanceDate: form.nextMaintenanceDate ? new Date(form.nextMaintenanceDate) : null,
           isActive: form.isActive
@@ -158,7 +157,6 @@ export const CreateVehicleStore = signalStore(
             weightCapacity: formData.weightCapacity,
             mileage: formData.mileage,
             districtId: districtId,
-            assignedDriverId: formData.assignedDriverId || null,
             lastMaintenanceDate: formData.lastMaintenanceDate ? new Date(formData.lastMaintenanceDate) : null,
             nextMaintenanceDate: formData.nextMaintenanceDate ? new Date(formData.nextMaintenanceDate) : null,
             isActive: formData.isActive

@@ -12,7 +12,6 @@ export class VehicleEntityFromResponseMapper {
       weightCapacity: dto.weightCapacity ?? 0,
       mileage: dto.mileage ?? 0,
       districtId: dto.districtId ?? '',
-      assignedDriverId: dto.assignedDriverId ?? null,
       lastMaintenanceDate: dto.lastMaintenanceDate ? new Date(dto.lastMaintenanceDate) : null,
       nextMaintenanceDate: dto.nextMaintenanceDate ? new Date(dto.nextMaintenanceDate) : null,
       isActive: dto.isActive ?? true

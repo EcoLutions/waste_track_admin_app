@@ -8,14 +8,28 @@ export class DistrictEntityFromResponseMapper {
       id: dto.id ?? '',
       name: dto.name ?? '',
       code: dto.code ?? '',
-      boundaries: dto.boundaries ?? '',
+      depotLatitude: dto.depotLatitud ?? '',
+      depotLongitude: dto.depotLongitude ?? '',
+      disposalLongitude: dto.disposalLongitude ?? '',
+      disposalLatitude: dto.disposalLatitude ?? '',
       operationalStatus: DistrictEntityFromResponseMapper.mapStringToOperationalStatus(dto.operationalStatus ?? ''),
       serviceStartDate: dto.serviceStartDate ? new Date(dto.serviceStartDate) : null,
-      subscriptionId: dto.subscriptionId ?? '',
+      operationStartTime: dto.operationStartTime ?? '',
+      operationEndTime: dto.operationEndTime ?? '',
+      maxRouteDuration: dto.maxRouteDuration ?? '',
+      planId: dto.planId ?? '',
+      planName: dto.planName ?? '',
       maxVehicles: dto.maxVehicles ?? 0,
       maxDrivers: dto.maxDrivers ?? 0,
       maxContainers: dto.maxContainers ?? 0,
-      primaryAdminEmail: dto.primaryAdminEmail ?? ''
+      currency: dto.currency ?? '',
+      price: dto.price ?? '',
+      billingPeriod: dto.billingPeriod ?? '',
+      currentVehicleCount: dto.currentVehicleCount ?? 0,
+      currentDriverCount: dto.currentDriverCount ?? 0,
+      currentContainerCount: dto.currentContainerCount ?? 0,
+      primaryAdminEmail: null,
+      primaryAdminUsername: null
     };
   }
 

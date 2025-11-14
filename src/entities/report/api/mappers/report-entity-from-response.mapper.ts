@@ -10,8 +10,6 @@ export class ReportEntityFromResponseMapper {
       citizenId: dto.citizenId ?? '',
       latitude: dto.latitude ?? '',
       longitude: dto.longitude ?? '',
-      address: dto.address ?? '',
-      districtCode: dto.districtCode ?? '',
       containerId: dto.containerId,
       reportType: ReportEntityFromResponseMapper.mapStringToReportType(dto.reportType ?? ''),
       description: dto.description ?? '',

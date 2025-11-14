@@ -7,8 +7,6 @@ export class CreateReportRequestFromEntityMapper {
       citizenId: entity.citizenId,
       latitude: entity.latitude,
       longitude: entity.longitude,
-      address: entity.address,
-      districtCode: entity.districtCode,
       containerId: entity.containerId,
       reportType: entity.reportType,
       description: entity.description,

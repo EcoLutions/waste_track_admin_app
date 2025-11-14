@@ -6,7 +6,6 @@ export interface WaypointResponse {
   status: string | null;
   estimatedArrivalTime: string | null; // LocalDateTime → ISO string
   actualArrivalTime: string | null; // LocalDateTime → ISO string
-  driverNote: string | null;
   createdAt: string | null; // LocalDateTime → ISO string
   updatedAt: string | null; // LocalDateTime → ISO string
 }
