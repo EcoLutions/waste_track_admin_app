@@ -10,6 +10,8 @@ export class DistrictEntityFromResponseMapper {
       code: dto.code ?? '',
       depotLatitude: dto.depotLatitud ?? '',
       depotLongitude: dto.depotLongitude ?? '',
+      disposalLongitude: dto.disposalLongitude ?? '',
+      disposalLatitude: dto.disposalLatitude ?? '',
       operationalStatus: DistrictEntityFromResponseMapper.mapStringToOperationalStatus(dto.operationalStatus ?? ''),
       serviceStartDate: dto.serviceStartDate ? new Date(dto.serviceStartDate) : null,
       operationStartTime: dto.operationStartTime ?? '',

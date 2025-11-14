@@ -11,6 +11,8 @@ export interface DistrictEntity {
   maxRouteDuration: string;
   depotLatitude: string;
   depotLongitude: string;
+  disposalLatitude: string;
+  disposalLongitude: string;
   planId: string;
   planName: string;
   maxVehicles: number;

@@ -4,6 +4,8 @@ export interface DistrictResponse {
   code: string | null;
   depotLatitud: string | null;
   depotLongitude: string | null;
+  disposalLatitude: string | null;
+  disposalLongitude: string | null;
   operationalStatus: string | null;
   serviceStartDate: string | null; // LocalDate → ISO string
   operationStartTime: string | null; // 'HH:mm:ss'
