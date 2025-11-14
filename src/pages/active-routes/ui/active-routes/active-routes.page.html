@@ -373,7 +373,7 @@
                               </div>
                               <div>
                                 <p class="text-sm font-bold text-gray-900">Ruta #{{ route.id.substring(0, 8) }}</p>
-                                <p class="text-xs text-gray-500">{{ formatDate(route.scheduledDate) }}</p>
+                                <p class="text-xs text-gray-500">{{ formatDate(route.scheduledStartAt) }}</p>
                               </div>
                             </div>
                           </td>
@@ -701,7 +701,7 @@
                     <div class="flex items-start justify-between mb-2">
                       <div class="flex-1">
                         <p class="text-sm font-bold text-gray-900">Ruta #{{ route.id.substring(0, 8) }}</p>
-                        <p class="text-xs text-gray-500">{{ formatDate(route.scheduledDate) }}</p>
+                        <p class="text-xs text-gray-500">{{ formatDate(route.scheduledStartAt) }}</p>
                       </div>
                       <span [class]="getStatusClass(route.status)">
                         {{ getStatusLabel(route.status) }}
