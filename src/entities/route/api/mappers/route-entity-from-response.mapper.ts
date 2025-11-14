@@ -12,7 +12,8 @@ export class RouteEntityFromResponseMapper {
       driverId: dto.driverId,
       routeType: RouteEntityFromResponseMapper.mapRouteType(dto.routeType),
       status: RouteEntityFromResponseMapper.mapRouteStatus(dto.status),
-      scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : new Date(),
+      scheduledStartAt: dto.scheduledStartAt ? new Date(dto.scheduledStartAt) : new Date(),
+      scheduledEndAt: dto.scheduledEndAt ? new Date(dto.scheduledEndAt) : new Date(),
       startedAt: dto.startedAt ? new Date(dto.startedAt) : null,
       completedAt: dto.completedAt ? new Date(dto.completedAt) : null,
       waypoints: [], // Will be populated separately if needed

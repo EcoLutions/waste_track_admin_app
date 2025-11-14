@@ -5,7 +5,7 @@ export class UpdateRouteRequestFromEntityMapper {
   static fromEntityToDto(entity: RouteEntity): UpdateRouteRequest {
     return {
       routeId: entity.id,
-      scheduledDate: entity.scheduledDate.toISOString(),
+      scheduledDate: entity.scheduledStartAt.toISOString(),
     };
   }
 }

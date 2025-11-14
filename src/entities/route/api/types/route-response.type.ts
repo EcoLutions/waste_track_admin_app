@@ -5,7 +5,8 @@ export interface RouteResponse {
   driverId: string | null;
   routeType: string | null;
   status: string | null;
-  scheduledDate: string | null; // LocalDate → ISO string
+  scheduledStartAt: string | null; // LocalDate → ISO string
+  scheduledEndAt: string | null; // LocalDate → ISO string
   startedAt: string | null; // LocalDateTime → ISO string
   completedAt: string | null; // LocalDateTime → ISO string
   totalDistance: DistanceResource | null;

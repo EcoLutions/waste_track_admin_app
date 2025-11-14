@@ -8,7 +8,7 @@ export class CreateRouteRequestFromEntityMapper {
       vehicleId: entity.vehicleId,
       driverId: entity.driverId,
       routeType: entity.routeType,
-      scheduledDate: entity.scheduledDate.toISOString(),
+      scheduledDate: entity.scheduledStartAt.toISOString(),
     };
   }
 }

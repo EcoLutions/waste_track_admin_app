@@ -9,7 +9,8 @@ export interface RouteEntity {
   driverId: string | null;
   routeType: RouteTypeEnum;
   status: RouteStatusEnum;
-  scheduledDate: Date;
+  scheduledStartAt: Date;
+  scheduledEndAt: Date;
   startedAt: Date | null;
   completedAt: Date | null;
   waypoints: WaypointEntity[];
