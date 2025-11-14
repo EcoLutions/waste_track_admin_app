@@ -203,14 +203,14 @@ export class AdminLayoutComponent {
       ariaLabel: 'Configuración del sistema',
       items: [
         {
-          label: 'General',
+          label: 'Distrito',
           routerLink: '/settings',
           icon: 'pi pi-sliders-h',
           ariaLabel: 'Configuración general'
         },
         {
           label: 'Notificaciones',
-          routerLink: '/settings/notifications',
+          routerLink: '/notifications',
           icon: 'pi pi-bell',
           ariaLabel: 'Configurar notificaciones'
         },
