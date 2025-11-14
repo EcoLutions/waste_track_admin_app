@@ -22,6 +22,6 @@ export interface DistrictEntity {
   currentVehicleCount: number;
   currentDriverCount: number;
   currentContainerCount: number;
-  primaryAdminEmail?: string;
-  primaryAdminUsername?: string;
+  primaryAdminEmail: string | null;
+  primaryAdminUsername: string | null;
 }

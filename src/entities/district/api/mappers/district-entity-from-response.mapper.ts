@@ -26,7 +26,8 @@ export class DistrictEntityFromResponseMapper {
       currentVehicleCount: dto.currentVehicleCount ?? 0,
       currentDriverCount: dto.currentDriverCount ?? 0,
       currentContainerCount: dto.currentContainerCount ?? 0,
-
+      primaryAdminEmail: null,
+      primaryAdminUsername: null
     };
   }
 
