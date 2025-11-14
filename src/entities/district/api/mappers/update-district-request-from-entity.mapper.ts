@@ -7,8 +7,11 @@ export class UpdateDistrictRequestFromEntityMapper {
       districtId: entity.id,
       name: entity.name ?? null,
       code: entity.code ?? null,
-      boundaries: entity.boundaries ?? null,
-      primaryAdminEmail: entity.primaryAdminEmail ?? null
+      depotLatitud: entity.depotLatitude ?? null,
+      depotLongitude: entity.depotLongitude ?? null,
+      operationStartTime: entity.operationStartTime ?? null,
+      operationEndTime: entity.operationEndTime ?? null,
+      maxRouteDuration: entity.maxRouteDuration ?? null,
     };
   }
 }

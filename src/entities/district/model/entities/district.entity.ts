@@ -4,13 +4,24 @@ export interface DistrictEntity {
   id: string;
   name: string;
   code: string;
-  boundaries: string;
   operationalStatus: OperationalStatusEnum;
   serviceStartDate: Date | null;
-  subscriptionId: string;
+  operationStartTime: string;
+  operationEndTime: string;
+  maxRouteDuration: string;
+  depotLatitude: string;
+  depotLongitude: string;
+  planId: string;
+  planName: string;
   maxVehicles: number;
   maxDrivers: number;
   maxContainers: number;
-  primaryAdminEmail: string;
-
+  currency: string;
+  price: string;
+  billingPeriod: string;
+  currentVehicleCount: number;
+  currentDriverCount: number;
+  currentContainerCount: number;
+  primaryAdminEmail?: string;
+  primaryAdminUsername?: string;
 }

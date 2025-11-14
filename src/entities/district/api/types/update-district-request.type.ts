@@ -2,6 +2,9 @@ export interface UpdateDistrictRequest {
   districtId: string | null;
   name: string | null;
   code: string | null;
-  boundaries: string | null;
-  primaryAdminEmail: string | null;
+  depotLatitud: string | null;
+  depotLongitude: string | null;
+  operationStartTime: string | null;
+  operationEndTime: string | null;
+  maxRouteDuration: string | null;
 }
