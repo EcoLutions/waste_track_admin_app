@@ -26,4 +26,6 @@ export interface DistrictEntity {
   currentContainerCount: number;
   primaryAdminEmail: string | null;
   primaryAdminUsername: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
