@@ -8,6 +8,7 @@ import {InputTextModule} from 'primeng/inputtext';
 import {DurationUtils} from '../../../../shared/libs/utils/duration.utils';
 import {GoogleMapsLoaderService} from '../../../../shared/api/services/google-maps-loader.service';
 import {environment} from '../../../../environments/environment';
+import {GoogleMap, GoogleMapsModule} from '@angular/google-maps';
 
 @Component({
   selector: 'app-district-detail',
@@ -15,7 +16,8 @@ import {environment} from '../../../../environments/environment';
   imports: [
     CommonModule,
     FormsModule,
-    InputTextModule
+    InputTextModule,
+    GoogleMapsModule
   ],
   templateUrl: './district-detail.page.html',
   styleUrl: './district-detail.page.css'
@@ -25,16 +27,38 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
   readonly districtContextStore = inject(DistrictContextStore);
   private readonly googleMapsLoader = inject(GoogleMapsLoaderService);
 
-  @ViewChild('depotMapContainer', { read: ElementRef }) depotMapContainer?: ElementRef;
-  @ViewChild('disposalMapContainer', { read: ElementRef }) disposalMapContainer?: ElementRef;
+  @ViewChild('depotMapComp', { read: GoogleMap }) depotMapComp?: GoogleMap;
+  @ViewChild('disposalMapComp', { read: GoogleMap }) disposalMapComp?: GoogleMap;
   @ViewChild('depotSearchInput', { read: ElementRef }) depotSearchInput?: ElementRef;
   @ViewChild('disposalSearchInput', { read: ElementRef }) disposalSearchInput?: ElementRef;
 
   // Loader signals
   depotMapLoaded = signal(false);
   disposalMapLoaded = signal(false);
-  depotSearchLoading = signal(false);  // ✅ AGREGAR
-  disposalSearchLoading = signal(false);  // ✅ AGREGAR
+  depotSearchLoading = signal(false);
+  disposalSearchLoading = signal(false);
+
+  // Map bindings
+  depotCenter: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
+  disposalCenter: google.maps.LatLngLiteral = { lat: 0, lng: 0 };
+  depotZoom = 15;
+  disposalZoom = 15;
+  depotMapOptions: google.maps.MapOptions = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: true,
+    mapId: environment.googleMaps.mapIds.depot
+  };
+  disposalMapOptions: google.maps.MapOptions = {
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: true,
+    mapId: environment.googleMaps.mapIds.disposal
+  };
 
   // Computed from store
   readonly district = computed(() => this.store.district());
@@ -56,9 +80,7 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
   readonly showDepotMap = computed(() => this.store.showDepotMap());
   readonly showDisposalMap = computed(() => this.store.showDisposalMap());
 
-  private depotMap: any = null;
   private depotMarker: any = null;
-  private disposalMap: any = null;
   private disposalMarker: any = null;
   private depotAutocomplete: any = null;
   private disposalAutocomplete: any = null;
@@ -167,10 +189,9 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
     this.store.toggleDepotMap();
 
     if (this.showDepotMap()) {
-      // ✅ Cargar Google Maps API dinámicamente
       try {
         await this.googleMapsLoader.load();
-        setTimeout(() => this.initializeDepotMap(), 100);
+        setTimeout(() => this.initializeDepotMap(), 50);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         this.store.setError('Error al cargar el mapa. Verifique su conexión.');
@@ -184,10 +205,9 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
     this.store.toggleDisposalMap();
 
     if (this.showDisposalMap()) {
-      // ✅ Cargar Google Maps API dinámicamente
       try {
         await this.googleMapsLoader.load();
-        setTimeout(() => this.initializeDisposalMap(), 100);
+        setTimeout(() => this.initializeDisposalMap(), 50);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         this.store.setError('Error al cargar el mapa. Verifique su conexión.');
@@ -198,33 +218,19 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
   }
 
   private async initializeDepotMap(): Promise<void> {
-    if (!this.depotMapContainer) return;
+    if (!this.depotMapComp) return;
 
-    // ✅ Mostrar loader
     this.depotMapLoaded.set(false);
 
     try {
       const coords = this.store.depotCoordinates();
+      this.depotCenter = { lat: coords.lat, lng: coords.lng };
 
-      // Dynamic import
-      const { Map } = await this.googleMapsLoader.importLibrary('maps');
       const { AdvancedMarkerElement } = await this.googleMapsLoader.importLibrary('marker');
       const { Autocomplete } = await this.googleMapsLoader.importLibrary('places');
       const { Geocoder } = await this.googleMapsLoader.importLibrary('geocoding');
 
-      // Crear mapa con mapId válido
-      this.depotMap = new Map(this.depotMapContainer.nativeElement, {
-        center: { lat: coords.lat, lng: coords.lng },
-        zoom: 15,
-        mapId: environment.googleMaps.mapIds.depot, // ✅ Usar mapId de Google o de environment
-        disableDefaultUI: false,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true
-      });
-
-      // Crear marcador
+      // Crear marcador avanzado sobre el mapa del componente
       const markerContent = document.createElement('div');
       markerContent.innerHTML = `
       <div style="
@@ -247,7 +253,7 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
     `;
 
       this.depotMarker = new AdvancedMarkerElement({
-        map: this.depotMap,
+        map: this.depotMapComp.googleMap,
         position: { lat: coords.lat, lng: coords.lng },
         content: markerContent,
         gmpDraggable: true,
@@ -274,42 +280,54 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
           const place = this.depotAutocomplete.getPlace();
 
           if (place.geometry && place.geometry.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
+            const lat = typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat;
+            const lng = typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng;
 
             this.store.updateDepotCoordinates(lat, lng);
-            this.depotMarker!.position = { lat, lng };
-            this.depotMap!.setCenter({ lat, lng });
-            this.depotMap!.setZoom(17);
+            this.depotMarker!.position = { lat, lng } as any;
+            this.depotMapComp!.googleMap?.setCenter({ lat, lng });
+            this.depotMapComp!.googleMap?.setZoom(17);
           }
 
           this.depotSearchLoading.set(false);
         });
       }
 
-      // Evento drag
-      this.depotMarker.addListener('dragend', () => {
-        const position = this.depotMarker!.position as any;
-        this.updateDepotLocationFromLatLng(position.lat, position.lng, Geocoder);
-      });
-
-      // Evento click
-      this.depotMap.addListener('click', (e: any) => {
-        if (e.latLng) {
-          this.depotMarker!.position = e.latLng;
-          this.updateDepotLocationFromLatLng(e.latLng.lat(), e.latLng.lng(), Geocoder);
+      // Evento drag del marcador
+      this.depotMarker.addListener('dragend', (e: any) => {
+        const pos: any = e?.latLng ?? this.depotMarker?.position;
+        const lat = typeof pos?.lat === 'function' ? pos.lat() : pos?.lat;
+        const lng = typeof pos?.lng === 'function' ? pos.lng() : pos?.lng;
+        if (lat != null && lng != null) {
+          this.updateDepotLocationFromLatLng(lat, lng, Geocoder);
         }
       });
 
-      this.depotMap.addListener('idle', () => {
-        setTimeout(() => this.depotMapLoaded.set(true), 300);
-      }, { once: true }); // Solo se ejecuta una vez
+      // ✅ Marcar como cargado si ya se inicializó
+      setTimeout(() => this.depotMapLoaded.set(true), 200);
 
     } catch (error) {
       console.error('Error initializing depot map:', error);
       this.store.setError('Error al cargar el mapa del depósito');
-      this.depotMapLoaded.set(true); // Ocultar loader aunque haya error
+      this.depotMapLoaded.set(true);
     }
+  }
+
+  onDepotMapClick(e: any): void {
+    if (!e?.latLng) return;
+    const lat = typeof e.latLng.lat === 'function' ? e.latLng.lat() : e.latLng.lat;
+    const lng = typeof e.latLng.lng === 'function' ? e.latLng.lng() : e.latLng.lng;
+    if (this.depotMarker) {
+      this.depotMarker.position = { lat, lng } as any;
+    }
+    // Geocodificar y actualizar store
+    this.googleMapsLoader.importLibrary('geocoding').then(({ Geocoder }) => {
+      this.updateDepotLocationFromLatLng(lat, lng, Geocoder);
+    });
+  }
+
+  onDepotMapInitialized(_: google.maps.Map): void {
+    setTimeout(() => this.depotMapLoaded.set(true), 200);
   }
 
   private updateDepotLocationFromLatLng(lat: number, lng: number, GeocoderClass: any): void {
@@ -324,28 +342,17 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
   }
 
   private async initializeDisposalMap(): Promise<void> {
-    if (!this.disposalMapContainer) return;
+    if (!this.disposalMapComp) return;
 
     this.disposalMapLoaded.set(false);
 
     try {
       const coords = this.store.disposalCoordinates();
+      this.disposalCenter = { lat: coords.lat, lng: coords.lng };
 
-      const { Map } = await this.googleMapsLoader.importLibrary('maps');
       const { AdvancedMarkerElement } = await this.googleMapsLoader.importLibrary('marker');
       const { Autocomplete } = await this.googleMapsLoader.importLibrary('places');
       const { Geocoder } = await this.googleMapsLoader.importLibrary('geocoding');
-
-      this.disposalMap = new Map(this.disposalMapContainer.nativeElement, {
-        center: { lat: coords.lat, lng: coords.lng },
-        zoom: 15,
-        mapId: environment.googleMaps.mapIds.disposal, // ✅ Usar mapId válido
-        disableDefaultUI: false,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true
-      });
 
       const markerContent = document.createElement('div');
       markerContent.innerHTML = `
@@ -369,7 +376,7 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
     `;
 
       this.disposalMarker = new AdvancedMarkerElement({
-        map: this.disposalMap,
+        map: this.disposalMapComp.googleMap,
         position: { lat: coords.lat, lng: coords.lng },
         content: markerContent,
         gmpDraggable: true,
@@ -386,45 +393,57 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
         );
 
         this.disposalAutocomplete.addListener('place_changed', () => {
-          this.disposalSearchLoading.set(false);
+          this.disposalSearchLoading.set(true);
 
           const place = this.disposalAutocomplete.getPlace();
 
           if (place.geometry && place.geometry.location) {
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
+            const lat = typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat;
+            const lng = typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng;
 
             this.store.updateDisposalCoordinates(lat, lng);
-            this.disposalMarker!.position = { lat, lng };
-            this.disposalMap!.setCenter({ lat, lng });
-            this.disposalMap!.setZoom(17);
+            this.disposalMarker!.position = { lat, lng } as any;
+            this.disposalMapComp!.googleMap?.setCenter({ lat, lng });
+            this.disposalMapComp!.googleMap?.setZoom(17);
           }
 
           this.disposalSearchLoading.set(false);
         });
       }
 
-      this.disposalMarker.addListener('dragend', () => {
-        const position = this.disposalMarker!.position as any;
-        this.updateDisposalLocationFromLatLng(position.lat, position.lng, Geocoder);
-      });
-
-      this.disposalMap.addListener('click', (e: any) => {
-        if (e.latLng) {
-          this.disposalMarker!.position = e.latLng;
-          this.updateDisposalLocationFromLatLng(e.latLng.lat(), e.latLng.lng(), Geocoder);
+      this.disposalMarker.addListener('dragend', (e: any) => {
+        const pos: any = e?.latLng ?? this.disposalMarker?.position;
+        const lat = typeof pos?.lat === 'function' ? pos.lat() : pos?.lat;
+        const lng = typeof pos?.lng === 'function' ? pos.lng() : pos?.lng;
+        if (lat != null && lng != null) {
+          this.updateDisposalLocationFromLatLng(lat, lng, Geocoder);
         }
       });
 
-      this.disposalMap.addListener('idle', () => {
-        setTimeout(() => this.disposalMapLoaded.set(true), 300);
-      }, { once: true });
+      // ✅ Marcar como cargado
+      setTimeout(() => this.disposalMapLoaded.set(true), 200);
 
     } catch (error) {
       console.error('Error initializing disposal map:', error);
       this.store.setError('Error al cargar el mapa de disposición');
       this.disposalMapLoaded.set(true);
     }
+  }
+
+  onDisposalMapClick(e: any): void {
+    if (!e?.latLng) return;
+    const lat = typeof e.latLng.lat === 'function' ? e.latLng.lat() : e.latLng.lat;
+    const lng = typeof e.latLng.lng === 'function' ? e.latLng.lng() : e.latLng.lng;
+    if (this.disposalMarker) {
+      this.disposalMarker.position = { lat, lng } as any;
+    }
+    this.googleMapsLoader.importLibrary('geocoding').then(({ Geocoder }) => {
+      this.updateDisposalLocationFromLatLng(lat, lng, Geocoder);
+    });
+  }
+
+  onDisposalMapInitialized(_: google.maps.Map): void {
+    setTimeout(() => this.disposalMapLoaded.set(true), 200);
   }
 
   private updateDisposalLocationFromLatLng(lat: number, lng: number, GeocoderClass: any): void {
@@ -443,7 +462,6 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
       this.depotMarker.map = null;
       this.depotMarker = null;
     }
-    this.depotMap = null;
   }
 
   private destroyDisposalMap(): void {
@@ -451,7 +469,6 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
       this.disposalMarker.map = null;
       this.disposalMarker = null;
     }
-    this.disposalMap = null;
   }
 
   private destroyMaps(): void {
@@ -465,7 +482,7 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
       [OperationalStatusEnum.ACTIVE]: 'Activo',
       [OperationalStatusEnum.SUSPENDED]: 'Suspendido',
       [OperationalStatusEnum.TRIAL]: 'Prueba'
-    };
+    } as any;
     return labels[status] || status;
   }
 

@@ -1,5 +1,4 @@
 <!-- features/district/ui/pages/district-detail.page.html -->
-<script src="district-detail.page.ts"></script>
 <div class="h-full flex flex-col gap-4">
 
   <!-- ========== HEADER ========== -->
@@ -504,9 +503,8 @@
             </div>
 
             <div class="p-4">
-              <!-- AUTOCOMPLETE SEARCH con LOADER -->
-              <div class="mb-4">
-                <label for="depotSearch" class="block text-sm font-semibold text-gray-700 mb-2">
+0              <div class="mb-4">
+                <label for="depotSearch" class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   Buscar Ubicación <span class="text-red-600">*</span>
                 </label>
                 <div class="relative">
@@ -519,18 +517,16 @@
                     [disabled]="depotSearchLoading()"
                     class="w-full pl-10 pr-10">
                   <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                  <!-- ✅ LOADER en el input -->
                   @if (depotSearchLoading()) {
                     <i class="pi pi-spin pi-spinner absolute right-3 top-1/2 -translate-y-1/2 text-amber-600"></i>
                   }
                 </div>
-                <small class="text-gray-500 block mt-1.5 flex items-center gap-1.5">
+                <small class="text-gray-500 mt-1.5 flex items-center gap-1.5">
                   <i class="pi pi-info-circle"></i>
                   Busque una dirección o haga clic en el mapa
                 </small>
               </div>
 
-              <!-- COORDENADAS (READONLY - PEQUEÑAS) -->
               <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="p-2 bg-gray-50 rounded border border-gray-200">
                   <label class="text-xs font-medium text-gray-500 block mb-1">Latitud</label>
@@ -542,10 +538,8 @@
                 </div>
               </div>
 
-              <!-- Depot Map con LOADER -->
               @if (showDepotMap()) {
                 <div class="relative h-80 rounded-lg overflow-hidden border-2 border-amber-300 shadow-md animate-slide-down">
-                  <!-- ✅ LOADER -->
                   @if (!depotMapLoaded()) {
                     <div class="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">
                       <div class="text-center">
@@ -554,7 +548,14 @@
                       </div>
                     </div>
                   }
-                  <div #depotMapContainer class="w-full h-full"></div>
+                  <google-map
+                    #depotMapComp
+                    class="w-full h-full"
+                    [center]="depotCenter"
+                    [zoom]="depotZoom"
+                    [options]="depotMapOptions"
+                    (mapClick)="onDepotMapClick($event)"
+                  ></google-map>
                 </div>
                 <small class="text-gray-500 flex items-center gap-1.5 mt-3">
                   <i class="pi pi-info-circle"></i>
@@ -581,9 +582,8 @@
             </div>
 
             <div class="p-4">
-              <!-- AUTOCOMPLETE SEARCH con LOADER -->
               <div class="mb-4">
-                <label for="disposalSearch" class="block text-sm font-semibold text-gray-700 mb-2">
+                <label for="disposalSearch" class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                   Buscar Ubicación <span class="text-red-600">*</span>
                 </label>
                 <div class="relative">
@@ -596,19 +596,16 @@
                     [disabled]="disposalSearchLoading()"
                     class="w-full pl-10 pr-10">
                   <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                  <!-- ✅ LOADER en el input -->
                   @if (disposalSearchLoading()) {
                     <i class="pi pi-spin pi-spinner absolute right-3 top-1/2 -translate-y-1/2 text-purple-600"></i>
                   }
                 </div>
-                <small class="text-gray-500 block mt-1.5 flex items-center gap-1.5">
+                <small class="text-gray-500 mt-1.5 flex items-center gap-1.5">
                   <i class="pi pi-info-circle"></i>
                   Busque una dirección o haga clic en el mapa
                 </small>
               </div>
 
-
-              <!-- COORDENADAS (READONLY - PEQUEÑAS) -->
               <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="p-2 bg-gray-50 rounded border border-gray-200">
                   <label class="text-xs font-medium text-gray-500 block mb-1">Latitud</label>
@@ -620,10 +617,8 @@
                 </div>
               </div>
 
-              <!-- Disposal Map con LOADER -->
               @if (showDisposalMap()) {
                 <div class="relative h-80 rounded-lg overflow-hidden border-2 border-violet-300 shadow-md animate-slide-down">
-                  <!-- ✅ LOADER -->
                   @if (!disposalMapLoaded()) {
                     <div class="absolute inset-0 bg-white bg-opacity-90 z-10 flex items-center justify-center">
                       <div class="text-center">
@@ -632,7 +627,14 @@
                       </div>
                     </div>
                   }
-                  <div #disposalMapContainer class="w-full h-full"></div>
+                  <google-map
+                    #disposalMapComp
+                    class="w-full h-full"
+                    [center]="disposalCenter"
+                    [zoom]="disposalZoom"
+                    [options]="disposalMapOptions"
+                    (mapClick)="onDisposalMapClick($event)"
+                  ></google-map>
                 </div>
                 <small class="text-gray-500 flex items-center gap-1.5 mt-3">
                   <i class="pi pi-info-circle"></i>
