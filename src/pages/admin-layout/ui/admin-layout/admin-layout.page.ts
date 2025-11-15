@@ -204,7 +204,7 @@ export class AdminLayoutComponent {
       items: [
         {
           label: 'Distrito',
-          routerLink: '/settings',
+          routerLink: '/district',
           icon: 'pi pi-sliders-h',
           ariaLabel: 'Configuración general'
         },
