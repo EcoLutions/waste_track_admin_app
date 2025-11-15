@@ -7,6 +7,7 @@ import {OperationalStatusEnum} from '../../../../entities';
 import {InputTextModule} from 'primeng/inputtext';
 import {DurationUtils} from '../../../../shared/libs/utils/duration.utils';
 import {GoogleMapsLoaderService} from '../../../../shared/api/services/google-maps-loader.service';
+import {environment} from '../../../../environments/environment';
 
 @Component({
   selector: 'app-district-detail',
@@ -26,6 +27,14 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
 
   @ViewChild('depotMapContainer', { read: ElementRef }) depotMapContainer?: ElementRef;
   @ViewChild('disposalMapContainer', { read: ElementRef }) disposalMapContainer?: ElementRef;
+  @ViewChild('depotSearchInput', { read: ElementRef }) depotSearchInput?: ElementRef;
+  @ViewChild('disposalSearchInput', { read: ElementRef }) disposalSearchInput?: ElementRef;
+
+  // Loader signals
+  depotMapLoaded = signal(false);
+  disposalMapLoaded = signal(false);
+  depotSearchLoading = signal(false);  // ✅ AGREGAR
+  disposalSearchLoading = signal(false);  // ✅ AGREGAR
 
   // Computed from store
   readonly district = computed(() => this.store.district());
@@ -51,6 +60,8 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
   private depotMarker: any = null;
   private disposalMap: any = null;
   private disposalMarker: any = null;
+  private depotAutocomplete: any = null;
+  private disposalAutocomplete: any = null;
 
   // Duration signals
   maxRouteDurationHours = signal(8);
@@ -186,27 +197,36 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
     }
   }
 
-  private initializeDepotMap(): void {
+  private async initializeDepotMap(): Promise<void> {
     if (!this.depotMapContainer) return;
 
-    const coords = this.store.depotCoordinates();
-    const google = this.googleMapsLoader.getGoogle();
+    // ✅ Mostrar loader
+    this.depotMapLoaded.set(false);
 
-    // ✅ Crear mapa de Google Maps
-    this.depotMap = new google.maps.Map(this.depotMapContainer.nativeElement, {
-      center: { lat: coords.lat, lng: coords.lng },
-      zoom: 15,
-      mapId: 'DEPOT_MAP', // Required for Advanced Markers
-      disableDefaultUI: false,
-      zoomControl: true,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true
-    });
+    try {
+      const coords = this.store.depotCoordinates();
 
-    // ✅ Crear marcador avanzado (draggable)
-    const markerContent = document.createElement('div');
-    markerContent.innerHTML = `
+      // Dynamic import
+      const { Map } = await this.googleMapsLoader.importLibrary('maps');
+      const { AdvancedMarkerElement } = await this.googleMapsLoader.importLibrary('marker');
+      const { Autocomplete } = await this.googleMapsLoader.importLibrary('places');
+      const { Geocoder } = await this.googleMapsLoader.importLibrary('geocoding');
+
+      // Crear mapa con mapId válido
+      this.depotMap = new Map(this.depotMapContainer.nativeElement, {
+        center: { lat: coords.lat, lng: coords.lng },
+        zoom: 15,
+        mapId: environment.googleMaps.mapIds.depot, // ✅ Usar mapId de Google o de environment
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true
+      });
+
+      // Crear marcador
+      const markerContent = document.createElement('div');
+      markerContent.innerHTML = `
       <div style="
         background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
         width: 40px;
@@ -226,48 +246,109 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
       </div>
     `;
 
-    this.depotMarker = new google.maps.marker.AdvancedMarkerElement({
-      map: this.depotMap,
-      position: { lat: coords.lat, lng: coords.lng },
-      content: markerContent,
-      gmpDraggable: true,
-      title: '📦 Depósito'
-    });
+      this.depotMarker = new AdvancedMarkerElement({
+        map: this.depotMap,
+        position: { lat: coords.lat, lng: coords.lng },
+        content: markerContent,
+        gmpDraggable: true,
+        title: '📦 Depósito'
+      });
 
-    this.depotMarker.addListener('dragend', () => {
-      const position = this.depotMarker!.position as any;
-      this.store.updateDepotCoordinates(position.lat, position.lng);
-    });
+      if (this.depotSearchInput) {
+        this.depotAutocomplete = new Autocomplete(
+          this.depotSearchInput.nativeElement,
+          {
+            fields: ['formatted_address', 'geometry', 'name'],
+            componentRestrictions: { country: 'pe' }
+          }
+        );
 
-    this.depotMap.addListener('click', (e: any) => {
-      if (e.latLng) {
-        this.depotMarker!.position = e.latLng;
-        this.store.updateDepotCoordinates(e.latLng.lat(), e.latLng.lng());
+        const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+        if (pacContainer) {
+          pacContainer.style.zIndex = '10000';
+        }
+
+        this.depotAutocomplete.addListener('place_changed', () => {
+          this.depotSearchLoading.set(true);
+
+          const place = this.depotAutocomplete.getPlace();
+
+          if (place.geometry && place.geometry.location) {
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+
+            this.store.updateDepotCoordinates(lat, lng);
+            this.depotMarker!.position = { lat, lng };
+            this.depotMap!.setCenter({ lat, lng });
+            this.depotMap!.setZoom(17);
+          }
+
+          this.depotSearchLoading.set(false);
+        });
+      }
+
+      // Evento drag
+      this.depotMarker.addListener('dragend', () => {
+        const position = this.depotMarker!.position as any;
+        this.updateDepotLocationFromLatLng(position.lat, position.lng, Geocoder);
+      });
+
+      // Evento click
+      this.depotMap.addListener('click', (e: any) => {
+        if (e.latLng) {
+          this.depotMarker!.position = e.latLng;
+          this.updateDepotLocationFromLatLng(e.latLng.lat(), e.latLng.lng(), Geocoder);
+        }
+      });
+
+      this.depotMap.addListener('idle', () => {
+        setTimeout(() => this.depotMapLoaded.set(true), 300);
+      }, { once: true }); // Solo se ejecuta una vez
+
+    } catch (error) {
+      console.error('Error initializing depot map:', error);
+      this.store.setError('Error al cargar el mapa del depósito');
+      this.depotMapLoaded.set(true); // Ocultar loader aunque haya error
+    }
+  }
+
+  private updateDepotLocationFromLatLng(lat: number, lng: number, GeocoderClass: any): void {
+    this.store.updateDepotCoordinates(lat, lng);
+
+    const geocoder = new GeocoderClass();
+    geocoder.geocode({ location: { lat, lng } }, (results: any, status: any) => {
+      if (status === 'OK' && results[0] && this.depotSearchInput) {
+        this.depotSearchInput.nativeElement.value = results[0].formatted_address;
       }
     });
   }
 
-  private initializeDisposalMap(): void {
+  private async initializeDisposalMap(): Promise<void> {
     if (!this.disposalMapContainer) return;
 
-    const coords = this.store.disposalCoordinates();
-    const google = this.googleMapsLoader.getGoogle();
+    this.disposalMapLoaded.set(false);
 
-    // ✅ Crear mapa de Google Maps
-    this.disposalMap = new google.maps.Map(this.disposalMapContainer.nativeElement, {
-      center: { lat: coords.lat, lng: coords.lng },
-      zoom: 15,
-      mapId: 'DISPOSAL_MAP',
-      disableDefaultUI: false,
-      zoomControl: true,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true
-    });
+    try {
+      const coords = this.store.disposalCoordinates();
 
-    // ✅ Crear marcador avanzado (draggable)
-    const markerContent = document.createElement('div');
-    markerContent.innerHTML = `
+      const { Map } = await this.googleMapsLoader.importLibrary('maps');
+      const { AdvancedMarkerElement } = await this.googleMapsLoader.importLibrary('marker');
+      const { Autocomplete } = await this.googleMapsLoader.importLibrary('places');
+      const { Geocoder } = await this.googleMapsLoader.importLibrary('geocoding');
+
+      this.disposalMap = new Map(this.disposalMapContainer.nativeElement, {
+        center: { lat: coords.lat, lng: coords.lng },
+        zoom: 15,
+        mapId: environment.googleMaps.mapIds.disposal, // ✅ Usar mapId válido
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true
+      });
+
+      const markerContent = document.createElement('div');
+      markerContent.innerHTML = `
       <div style="
         background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
         width: 40px;
@@ -287,23 +368,72 @@ export class DistrictDetailPage implements OnInit, OnDestroy {
       </div>
     `;
 
-    this.disposalMarker = new google.maps.marker.AdvancedMarkerElement({
-      map: this.disposalMap,
-      position: { lat: coords.lat, lng: coords.lng },
-      content: markerContent,
-      gmpDraggable: true,
-      title: '🗑️ Disposición Final'
-    });
+      this.disposalMarker = new AdvancedMarkerElement({
+        map: this.disposalMap,
+        position: { lat: coords.lat, lng: coords.lng },
+        content: markerContent,
+        gmpDraggable: true,
+        title: '🗑️ Disposición Final'
+      });
 
-    this.disposalMarker.addListener('dragend', () => {
-      const position = this.disposalMarker!.position as any;
-      this.store.updateDisposalCoordinates(position.lat, position.lng);
-    });
+      if (this.disposalSearchInput) {
+        this.disposalAutocomplete = new Autocomplete(
+          this.disposalSearchInput.nativeElement,
+          {
+            fields: ['formatted_address', 'geometry', 'name'],
+            componentRestrictions: { country: 'pe' }
+          }
+        );
 
-    this.disposalMap.addListener('click', (e: any) => {
-      if (e.latLng) {
-        this.disposalMarker!.position = e.latLng;
-        this.store.updateDisposalCoordinates(e.latLng.lat(), e.latLng.lng());
+        this.disposalAutocomplete.addListener('place_changed', () => {
+          this.disposalSearchLoading.set(false);
+
+          const place = this.disposalAutocomplete.getPlace();
+
+          if (place.geometry && place.geometry.location) {
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+
+            this.store.updateDisposalCoordinates(lat, lng);
+            this.disposalMarker!.position = { lat, lng };
+            this.disposalMap!.setCenter({ lat, lng });
+            this.disposalMap!.setZoom(17);
+          }
+
+          this.disposalSearchLoading.set(false);
+        });
+      }
+
+      this.disposalMarker.addListener('dragend', () => {
+        const position = this.disposalMarker!.position as any;
+        this.updateDisposalLocationFromLatLng(position.lat, position.lng, Geocoder);
+      });
+
+      this.disposalMap.addListener('click', (e: any) => {
+        if (e.latLng) {
+          this.disposalMarker!.position = e.latLng;
+          this.updateDisposalLocationFromLatLng(e.latLng.lat(), e.latLng.lng(), Geocoder);
+        }
+      });
+
+      this.disposalMap.addListener('idle', () => {
+        setTimeout(() => this.disposalMapLoaded.set(true), 300);
+      }, { once: true });
+
+    } catch (error) {
+      console.error('Error initializing disposal map:', error);
+      this.store.setError('Error al cargar el mapa de disposición');
+      this.disposalMapLoaded.set(true);
+    }
+  }
+
+  private updateDisposalLocationFromLatLng(lat: number, lng: number, GeocoderClass: any): void {
+    this.store.updateDisposalCoordinates(lat, lng);
+
+    const geocoder = new GeocoderClass();
+    geocoder.geocode({ location: { lat, lng } }, (results: any, status: any) => {
+      if (status === 'OK' && results[0] && this.disposalSearchInput) {
+        this.disposalSearchInput.nativeElement.value = results[0].formatted_address;
       }
     });
   }
