@@ -1,6 +1,6 @@
-import {UserEntity} from '../../model';
+import {AccountStatusEnum, UserEntity} from '../../model';
 import {AuthenticatedUserResponse} from '../types/authenticated-user-response.type';
-import {UserStatusFromResponseMapper} from './user-status-from-response.mapper';
+import {EnumMapper} from '../../../../shared/api/mappers/enum.mapper';
 
 export class AuthenticatedUserFromResponseMapper {
   static fromDtoToEntity(dto: AuthenticatedUserResponse): UserEntity {
@@ -9,7 +9,7 @@ export class AuthenticatedUserFromResponseMapper {
       username: dto.username ?? '',
       email: dto.email ?? '',
       password: '',
-      accountStatus: UserStatusFromResponseMapper.mapStringToAccountStatus(dto.status ?? ''),
+      accountStatus: EnumMapper.mapStringToEnum(dto.status, AccountStatusEnum, AccountStatusEnum.ACTIVE),
       failedLoginAttempts: dto.failedLoginAttempts ?? 0,
       lastLoginAt: dto.lastLoginAt ? new Date(dto.lastLoginAt) : null,
       passwordChangedAt: dto.passwordChangedAt ? new Date(dto.passwordChangedAt) : null,
