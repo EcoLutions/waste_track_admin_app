@@ -4,6 +4,8 @@ export interface UpdateDistrictRequest {
   code: string | null;
   depotLatitud: string | null;
   depotLongitude: string | null;
+  disposalLatitude: string | null;
+  disposalLongitude: string | null;
   operationStartTime: string | null;
   operationEndTime: string | null;
   maxRouteDuration: string | null;

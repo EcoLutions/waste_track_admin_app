@@ -4,6 +4,8 @@ import { UpdateDistrictRequest } from '../types/update-district-request.type';
 export class UpdateDistrictRequestFromEntityMapper {
   static fromEntityToDto(entity: DistrictEntity): UpdateDistrictRequest {
     return {
+      disposalLatitude: entity.disposalLatitude ?? null,
+      disposalLongitude: entity.disposalLongitude ?? null,
       districtId: entity.id,
       name: entity.name ?? null,
       code: entity.code ?? null,
@@ -11,7 +13,7 @@ export class UpdateDistrictRequestFromEntityMapper {
       depotLongitude: entity.depotLongitude ?? null,
       operationStartTime: entity.operationStartTime ?? null,
       operationEndTime: entity.operationEndTime ?? null,
-      maxRouteDuration: entity.maxRouteDuration ?? null,
+      maxRouteDuration: entity.maxRouteDuration ?? null
     };
   }
 }
