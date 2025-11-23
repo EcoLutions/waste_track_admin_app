@@ -27,6 +27,14 @@ export class ReportService extends BaseService {
     );
   }
 
+  getAllByDistrictId(districtId: string): Observable<ReportEntity[]> {
+    return this.http.get<ReportResponse[]>(`${this.resourcePath()}?districtId=${districtId}`, this.httpOptions).pipe(
+      map((responses: ReportResponse[]) => responses.map(r => ReportEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+      retry(2)
+    );
+  }
+
   getById(id: string): Observable<ReportEntity> {
     return this.http.get<ReportResponse>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
       map((response: ReportResponse) => ReportEntityFromResponseMapper.fromDtoToEntity(response)),
