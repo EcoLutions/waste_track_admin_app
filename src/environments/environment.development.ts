@@ -4,7 +4,11 @@ export const environment = {
   googleMaps: {
     apiKey: '',
     version: 'weekly',
-    libraries: ['places', 'marker'] as const
+    libraries: ['places', 'marker'] as const,
+    mapIds: {
+      depot: '',
+      disposal: ''
+    }
   },
   enableDebugTools: true,
   logLevel: 'debug'
