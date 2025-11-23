@@ -1,3 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
 @import "primeicons/primeicons.css";
 @import "tailwindcss";
+
+.pac-container {
+  z-index: 10000 !important;
+}
+
+.pac-container, .pac-item {
+  font-size: 14px;
+}

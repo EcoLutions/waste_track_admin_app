@@ -1,12 +1,10 @@
-import { UserTypeEnum } from '../enums/user-type.enum';
-import { LanguageEnum } from '../enums/language.enum';
+import {LanguageEnum} from '../enums/language.enum';
 
 export interface UserProfileEntity {
   id: string;
   userId: string;
   photoPath: string | null;
   photoUrl: string | null;
-  userType: UserTypeEnum;
   districtId: string;
   email: string;
   phoneNumber: string;
