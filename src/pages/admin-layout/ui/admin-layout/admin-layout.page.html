@@ -14,8 +14,9 @@
       (closeSidebar)="closeSidebar()"
       (itemClick)="handleNavigation($event)">
     </app-sidebar>
-    <main class="flex-1 overflow-y-auto">
-      <div class="p-4 lg:p-6">
+
+    <main class="flex-1 overflow-hidden flex flex-col">
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
         <router-outlet></router-outlet>
       </div>
     </main>

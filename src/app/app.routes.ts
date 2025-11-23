@@ -38,13 +38,11 @@ import {DriversPage} from '../pages/drivers/ui/drivers/drivers.page';
 import {CreateDriverPage} from '../pages/create-driver/ui/create-driver/create-driver.page';
 import {CitizensPage} from '../pages/citizens/ui/citizens/citizens.page';
 import {RolesPage} from '../pages/roles/ui/roles/roles.page';
-import {SettingsPage} from '../pages/settings/ui/settings/settings.page';
-import {ProfileSettingsPage} from '../pages/profile-settings/ui/profile-settings/profile-settings.page';
 import {
   NotificationSettingsPage
 } from '../pages/notification-settings/ui/notification-settings/notification-settings.page';
-import {IntegrationsPage} from '../pages/integrations/ui/integrations/integrations.page';
 import {NotFoundPage} from '../pages/authentication/ui/not-found/not-found.page';
+import {DistrictDetailPage} from '../pages/district/ui/district/district-detail.page';
 
 
 export const routes: Routes = [
@@ -184,7 +182,7 @@ export const routes: Routes = [
 
       // ==================== DISTRICT ====================
 
-      { path: 'settings', component: SettingsPage },
+      { path: 'district', component: DistrictDetailPage },
 
       // ==================== NOTIFICATIONS ====================
 
