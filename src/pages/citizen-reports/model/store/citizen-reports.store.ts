@@ -1,7 +1,7 @@
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ReportEntity, ReportService, ReportStatusEnum, ReportTypeEnum } from '../../../../entities'; // Ajusta ruta si es necesario
+import { ReportEntity, ReportService, ReportStatusEnum, ReportTypeEnum } from '../../../../entities';
 import { DistrictContextStore } from '../../../../shared/stores/district-context.store';
 
 export interface CitizenReportsState {

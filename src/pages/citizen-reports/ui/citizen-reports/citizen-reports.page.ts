@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CitizenReportsStore } from '../../model/store/citizen-reports.store';
 import { DistrictContextStore } from '../../../../shared/stores/district-context.store';
 import { ReportEntity, ReportStatusEnum, ReportTypeEnum } from '../../../../entities';
+import {ActivatedRoute, Router} from '@angular/router';
 
 
 @Component({
@@ -16,6 +17,8 @@ import { ReportEntity, ReportStatusEnum, ReportTypeEnum } from '../../../../enti
 export class CitizenReportsPage implements OnInit, OnDestroy {
   readonly store = inject(CitizenReportsStore);
   readonly districtContextStore = inject(DistrictContextStore);
+  private router = inject(Router);
+  private  route = inject(ActivatedRoute);
 
   // Estado local de UI (Selección)
   selectedReport = signal<ReportEntity | null>(null);
@@ -51,15 +54,15 @@ export class CitizenReportsPage implements OnInit, OnDestroy {
   }
 
   private async initializePage(): Promise<void> {
-    // Asegurar contexto
     if (!this.districtContextStore.isDistrictLoaded()) {
       await this.districtContextStore.initializeDistrictContext().catch(console.error);
     }
-    // Cargar datos
     await this.store.loadReports();
   }
 
-  // --- Métodos de UI ---
+  onManageReport(report: ReportEntity): void {
+    this.router.navigate(['manage', report.id], { relativeTo: this.route });
+  }
 
   onSearchTermChange(term: string): void {
     this.searchTerm.set(term);
