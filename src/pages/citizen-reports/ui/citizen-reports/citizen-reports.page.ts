@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { CitizenReportsStore } from '../../model/store/citizen-reports.store';
 import { DistrictContextStore } from '../../../../shared/stores/district-context.store';
 import { ReportEntity, ReportStatusEnum, ReportTypeEnum } from '../../../../entities';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 
 
 @Component({
   selector: 'app-citizen-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './citizen-reports.page.html',
   styleUrl: './citizen-reports.page.css'
 })
