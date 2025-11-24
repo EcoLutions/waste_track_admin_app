@@ -9,6 +9,8 @@ import {CreateReportRequest} from '../types/create-report-request.type';
 import {CreateReportRequestFromEntityMapper} from '../mappers/create-report-request-from-entity.mapper';
 import {UpdateReportRequest} from '../types/update-report-request.type';
 import {UpdateReportRequestFromEntityMapper} from '../mappers/update-report-request-from-entity.mapper';
+import {EvidenceEntity} from '../../../evidence/model';
+import {EvidenceEntityFromResponseMapper, EvidenceResponse} from '../../../evidence/api';
 
 @Injectable({
   providedIn: 'root'
@@ -68,4 +70,13 @@ export class ReportService extends BaseService {
       retry(2)
     );
   }
+
+  getAllEvidencesByReportId(reportId: string): Observable<EvidenceEntity[]> {
+    return this.http.get<any[]>(`${this.resourcePath()}/${reportId}/evidences`, this.httpOptions).pipe(
+      map((responses: EvidenceResponse[]) => responses.map(r => EvidenceEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+      retry(2)
+    );
+  }
+
 }
