@@ -9,6 +9,7 @@ import {CreateEvidenceRequest} from '../types/create-evidence-request.type';
 import {CreateEvidenceRequestFromEntityMapper} from '../mappers/create-evidence-request-from-entity.mapper';
 import {UpdateEvidenceRequest} from '../types/update-evidence-request.type';
 import {UpdateEvidenceRequestFromEntityMapper} from '../mappers/update-evidence-request-from-entity.mapper';
+import {HttpHeaders} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -35,9 +36,23 @@ export class EvidenceService extends BaseService {
     );
   }
 
-  create(entity: EvidenceEntity): Observable<EvidenceEntity> {
-    const request: CreateEvidenceRequest = CreateEvidenceRequestFromEntityMapper.fromEntityToDto(entity);
-    return this.http.post<EvidenceResponse>(this.resourcePath(), request, this.httpOptions).pipe(
+
+
+  uploadFile(file: File, description?: string): Observable<EvidenceEntity> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    if (description) {
+      form.append('description', description);
+    }
+
+     let headers = this.httpOptions?.headers ?? new HttpHeaders();
+     if (headers.has('Content-Type')) {
+       headers = headers.delete('Content-Type');
+     }
+
+     const options = { ...this.httpOptions, headers };
+
+    return this.http.post<EvidenceResponse>(this.resourcePath(), form, options).pipe(
       map((response: EvidenceResponse) => EvidenceEntityFromResponseMapper.fromDtoToEntity(response)),
       catchError(this.handleError),
       retry(2)

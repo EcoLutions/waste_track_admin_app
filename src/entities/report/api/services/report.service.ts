@@ -45,8 +45,7 @@ export class ReportService extends BaseService {
     );
   }
 
-  create(entity: ReportEntity): Observable<ReportEntity> {
-    const request: CreateReportRequest = CreateReportRequestFromEntityMapper.fromEntityToDto(entity);
+  create(request: CreateReportRequest): Observable<ReportEntity> {
     return this.http.post<ReportResponse>(this.resourcePath(), request, this.httpOptions).pipe(
       map((response: ReportResponse) => ReportEntityFromResponseMapper.fromDtoToEntity(response)),
       catchError(this.handleError),
