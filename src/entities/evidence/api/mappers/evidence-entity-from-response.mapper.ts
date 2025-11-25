@@ -7,7 +7,7 @@ export class EvidenceEntityFromResponseMapper {
     return {
       id: dto.id ?? '',
       type: EvidenceEntityFromResponseMapper.mapStringToEvidenceType(dto.type ?? ''),
-      filePath: dto.filePath ?? '',
+      fileUrl: dto.fileUrl ?? '',
       originalFileName: dto.originalFileName ?? '',
       description: dto.description,
       fileSize: Number(dto.fileSize) || 0,
@@ -19,12 +19,23 @@ export class EvidenceEntityFromResponseMapper {
   }
 
   private static mapStringToEvidenceType(type: string): EvidenceTypeEnum {
-    const typeKey = Object.keys(EvidenceTypeEnum).find(
-      key => EvidenceTypeEnum[key as keyof typeof EvidenceTypeEnum] === type
-    );
+    const raw = String(type ?? '').trim();
+    if (!raw) return EvidenceTypeEnum.PHOTO;
 
-    if (typeKey) {
-      return EvidenceTypeEnum[typeKey as keyof typeof EvidenceTypeEnum];
+    const normalized = raw.toLowerCase();
+
+    //value match
+    const enumValues = Object.values(EvidenceTypeEnum).filter(v => true) as string[];
+    const valueMatch = enumValues.find(v => v.toLowerCase() === normalized);
+    if (valueMatch) {
+      return valueMatch as unknown as EvidenceTypeEnum;
+    }
+
+    //key match
+    const enumKeys = Object.keys(EvidenceTypeEnum).filter(k => isNaN(Number(k)));
+    const keyMatch = enumKeys.find(k => k.toLowerCase() === normalized);
+    if (keyMatch) {
+      return EvidenceTypeEnum[keyMatch as keyof typeof EvidenceTypeEnum];
     }
 
     console.warn(`Invalid evidence type received: ${type}, defaulting to PHOTO`);
