@@ -19,6 +19,9 @@ export class ContainerMonitoringPage implements OnInit {
   // Referencia al InfoWindow
   @ViewChild(MapInfoWindow) infoWindow!: MapInfoWindow;
 
+  // Cache para los contenidos de los markers
+  private markerContentCache = new Map<string, HTMLElement>();
+
   // Estado UI
   infoWindowContent = signal<ContainerEntity | null>(null);
   filtersPanelOpen = false;
@@ -58,8 +61,13 @@ export class ContainerMonitoringPage implements OnInit {
   }
 
   getMarkerContent(container: ContainerEntity): HTMLElement {
+    const existing = this.markerContentCache.get(container.id);
+    if (existing) return existing;
+
+    console.log('render marker for', container.id);
     const div = document.createElement('div');
     div.innerHTML = this.generateMarkerHtml(container);
+    this.markerContentCache.set(container.id, div);
     return div;
   }
 
@@ -84,6 +92,8 @@ export class ContainerMonitoringPage implements OnInit {
     }
 
     this.store.updateContainer(random.id, updates);
+
+    this.markerContentCache.delete(random.id);
   }
 
   private generateMarkerHtml(container: ContainerEntity): string {
