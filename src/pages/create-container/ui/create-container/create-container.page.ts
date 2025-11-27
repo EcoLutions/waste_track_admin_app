@@ -1,17 +1,16 @@
-import {Component, computed, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {CreateContainerStore} from '../../model/store/create-container.store';
-import {LeafletDirective} from '@bluehalo/ngx-leaflet';
-import * as L from 'leaflet';
-import {GeoSearchControl, OpenStreetMapProvider} from 'leaflet-geosearch';
 import {StepsModule} from 'primeng/steps';
 import {MenuItem} from 'primeng/api';
-import {ContainerStatusEnum, ContainerTypeEnum} from '../../../../entities';
+import {ContainerTypeEnum} from '../../../../entities';
+import {GoogleMap, MapAdvancedMarker} from '@angular/google-maps';
+import {environment} from '../../../../environments/environment.development';
 
 @Component({
   selector: 'app-create-container',
-  imports: [CommonModule, ReactiveFormsModule, LeafletDirective, StepsModule],
+  imports: [CommonModule, ReactiveFormsModule, StepsModule, GoogleMap, MapAdvancedMarker],
   templateUrl: './create-container.page.html',
   styleUrl: './create-container.page.css'
 })
@@ -19,23 +18,27 @@ export class CreateContainerPage implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   readonly store = inject(CreateContainerStore);
 
+  // Google Maps
+  @ViewChild(GoogleMap) mapComponent!: GoogleMap;
+
+  // Posición del marcador
+  markerPosition = signal<google.maps.LatLngLiteral | null>(null);
+
+  readonly defaultCenter: google.maps.LatLngLiteral = {
+    lat: -12.0464,
+    lng: -77.0428
+  };
+
   // Form
   containerForm!: FormGroup;
 
-  // LeaFlet map
-  map!: L.Map;
-  marker!: L.Marker;
-  searchControl: any;
-
-  mapOptions: L.MapOptions = {
-    layers: [
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-      })
-    ],
+  mapOptions: google.maps.MapOptions = {
+    mapId: environment.googleMaps.mapIds.depot,
+    center: this.defaultCenter,
     zoom: 13,
-    center: L.latLng(-12.0464, -77.0428) // Lima, Perú
+    clickableIcons: false,
+    streetViewControl: false,
+    mapTypeControl: false
   };
 
   // Step
@@ -69,12 +72,19 @@ export class CreateContainerPage implements OnInit, OnDestroy {
   // Container type options
   readonly containerTypes = Object.values(ContainerTypeEnum);
 
-  // Status options (default to ACTIVE for new containers)
-  readonly statusOptions = [ContainerStatusEnum.ACTIVE];
-
   ngOnInit(): void {
     this.initializeForm();
     this.syncFormWithStore();
+
+    // Posición inicial: Lima
+    this.markerPosition.set(this.defaultCenter);
+
+    // Sincronizar formulario con esa posición inicial
+    this.containerForm.patchValue({
+      latitude: this.defaultCenter.lat.toFixed(6),
+      longitude: this.defaultCenter.lng.toFixed(6)
+    }, { emitEvent: false });
+
     this.watchCoordinateChanges();
   }
 
@@ -162,133 +172,56 @@ export class CreateContainerPage implements OnInit, OnDestroy {
     return labels[type] || type;
   }
 
-
-  onMapReady(map: L.Map): void {
-    this.map = map;
-    this.initializeSearchControl();
-    this.initializeMarker();
-    this.setupMapClickListener();
-  }
-
-  private initializeSearchControl(): void {
-    const provider = new OpenStreetMapProvider();
-
-    this.searchControl = new (GeoSearchControl as any)({
-      provider: provider,
-      style: 'bar',
-      showMarker: false,
-      autoClose: true,
-      retainZoomLevel: false,
-      animateZoom: true,
-      keepResult: true,
-      searchLabel: 'Buscar dirección...'
-    });
-
-    this.map.addControl(this.searchControl);
-
-    // Escuchar resultados de búsqueda
-    this.map.on('geosearch/showlocation', (result: any) => {
-      const { x, y, label } = result.location;
-      this.updateLocationFromMap(y, x, label);
-    });
-  }
-
-  private initializeMarker(): void {
-    const icon = L.divIcon({
-      html: `
-      <div class="custom-map-marker">
-        <div class="marker-pin"></div>
-        <div class="marker-pulse"></div>
-      </div>
-    `,
-      className: 'custom-marker-container',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40]
-    });
-
-    // Posición inicial en Lima
-    this.marker = L.marker([-12.0464, -77.0428], {
-      icon: icon,
-      draggable: true
-    }).addTo(this.map);
-
-    // Evento cuando se arrastra el marcador
-    this.marker.on('dragend', () => {
-      const position = this.marker.getLatLng();
-      this.updateLocationFromMap(position.lat, position.lng);
-    });
-  }
-
-  private setupMapClickListener(): void {
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
-      this.marker.setLatLng([lat, lng]);
-      this.updateLocationFromMap(lat, lng);
-    });
-  }
-
   private updateLocationFromMap(lat: number, lng: number, address?: string): void {
+    // Actualizar formulario (sin disparar los valueChanges otra vez)
     this.containerForm.patchValue({
       latitude: lat.toFixed(6),
       longitude: lng.toFixed(6)
-    });
+    }, { emitEvent: false });
 
     if (address) {
-      this.containerForm.patchValue({ address });
+      this.containerForm.patchValue({ address }, { emitEvent: false });
     } else {
       this.reverseGeocode(lat, lng).then(() => {});
     }
 
-    this.marker.setLatLng([lat, lng]);
-    this.map.setView([lat, lng], this.map.getZoom());
-  }
+    // Actualizar marcador
+    this.markerPosition.set({ lat, lng });
 
-  private async reverseGeocode(lat: number, lng: number): Promise<void> {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
-      );
-      const data = await response.json();
-
-      if (data && data.display_name) {
-        this.containerForm.patchValue({
-          address: data.display_name
-        });
-      }
-    } catch (error) {
-      console.error('Error en reverse geocoding:', error);
+    // Centrar mapa
+    if (this.mapComponent) {
+      this.mapComponent.panTo({ lat, lng });
     }
   }
 
   private watchCoordinateChanges(): void {
-    // Sincronizar cambios manuales de coordenadas con el mapa
-    this.containerForm.get('latitude')?.valueChanges.subscribe(lat => {
-      if (lat && this.marker) {
-        const lng = this.containerForm.get('longitude')?.value;
-        if (lng) {
-          const latNum = parseFloat(lat);
-          const lngNum = parseFloat(lng);
-          if (!isNaN(latNum) && !isNaN(lngNum)) {
-            this.marker.setLatLng([latNum, lngNum]);
-            this.map.setView([latNum, lngNum], this.map.getZoom());
-          }
-        }
-      }
+    const latCtrl = this.containerForm.get('latitude');
+    const lngCtrl = this.containerForm.get('longitude');
+
+    latCtrl?.valueChanges.subscribe(lat => {
+      const lng = lngCtrl?.value;
+      this.updateFromManualCoords(lat, lng);
     });
 
-    this.containerForm.get('longitude')?.valueChanges.subscribe(lng => {
-      if (lng && this.marker) {
-        const lat = this.containerForm.get('latitude')?.value;
-        if (lat) {
-          const latNum = parseFloat(lat);
-          const lngNum = parseFloat(lng);
-          if (!isNaN(latNum) && !isNaN(lngNum)) {
-            this.marker.setLatLng([latNum, lngNum]);
-            this.map.setView([latNum, lngNum], this.map.getZoom());
-          }
-        }
-      }
+    lngCtrl?.valueChanges.subscribe(lng => {
+      const lat = latCtrl?.value;
+      this.updateFromManualCoords(lat, lng);
     });
+  }
+
+  private updateFromManualCoords(lat: string | null, lng: string | null): void {
+    if (!lat || !lng) return;
+
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+
+    if (isNaN(latNum) || isNaN(lngNum)) return;
+
+    this.markerPosition.set({ lat: latNum, lng: lngNum });
+
+    if (this.mapComponent) {
+      this.mapComponent.panTo({ lat: latNum, lng: lngNum });
+    }
   }
 
   nextStep(): void {
@@ -325,6 +258,39 @@ export class CreateContainerPage implements OnInit, OnDestroy {
         return !!(this.containerForm.get('collectionFrequencyDays')?.valid);
       default:
         return true;
+    }
+  }
+
+  // Click en el mapa
+  onMapClick(event: google.maps.MapMouseEvent): void {
+    if (!event.latLng) return;
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    this.updateLocationFromMap(lat, lng);
+  }
+
+  // Drag del marcador
+  onMarkerDragEnd(event: google.maps.MapMouseEvent): void {
+    if (!event.latLng) return;
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    this.updateLocationFromMap(lat, lng);
+  }
+
+  private async reverseGeocode(lat: number, lng: number): Promise<void> {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data && data.display_name) {
+        this.containerForm.patchValue({
+          address: data.display_name
+        }, { emitEvent: false });
+      }
+    } catch (error) {
+      console.error('Error en reverse geocoding:', error);
     }
   }
 }
