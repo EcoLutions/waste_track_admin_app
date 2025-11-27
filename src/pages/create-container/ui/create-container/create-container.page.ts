@@ -278,19 +278,26 @@ export class CreateContainerPage implements OnInit, OnDestroy {
   }
 
   private async reverseGeocode(lat: number, lng: number): Promise<void> {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
-      );
-      const data = await response.json();
+    if (!google || !google.maps) {
+      console.warn('Google Maps API no está cargada aún');
+      return;
+    }
+    const geocoder = new google.maps.Geocoder();
 
-      if (data && data.display_name) {
+    try {
+      const response = await geocoder.geocode({ location: { lat, lng } });
+      if (response.results && response.results[0]) {
+
         this.containerForm.patchValue({
-          address: data.display_name
+          address: response.results[0].formatted_address
         }, { emitEvent: false });
+
+      } else {
+        console.warn('No se encontraron resultados de dirección para estas coordenadas.');
       }
+
     } catch (error) {
-      console.error('Error en reverse geocoding:', error);
+      console.error('Error en Google Reverse Geocoding:', error);
     }
   }
 }
