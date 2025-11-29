@@ -1,7 +1,7 @@
 export interface EvidenceResponse {
   id: string | null;
   type: string | null;
-  filePath: string | null;
+  fileUrl: string | null;
   originalFileName: string | null;
   description: string | null;
   fileSize: number | null;

@@ -9,6 +9,8 @@ import {CreateReportRequest} from '../types/create-report-request.type';
 import {CreateReportRequestFromEntityMapper} from '../mappers/create-report-request-from-entity.mapper';
 import {UpdateReportRequest} from '../types/update-report-request.type';
 import {UpdateReportRequestFromEntityMapper} from '../mappers/update-report-request-from-entity.mapper';
+import {EvidenceEntity} from '../../../evidence/model';
+import {EvidenceEntityFromResponseMapper, EvidenceResponse} from '../../../evidence/api';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +29,14 @@ export class ReportService extends BaseService {
     );
   }
 
+  getAllByDistrictId(districtId: string): Observable<ReportEntity[]> {
+    return this.http.get<ReportResponse[]>(`${this.resourcePath()}?districtId=${districtId}`, this.httpOptions).pipe(
+      map((responses: ReportResponse[]) => responses.map(r => ReportEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+      retry(2)
+    );
+  }
+
   getById(id: string): Observable<ReportEntity> {
     return this.http.get<ReportResponse>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
       map((response: ReportResponse) => ReportEntityFromResponseMapper.fromDtoToEntity(response)),
@@ -35,8 +45,7 @@ export class ReportService extends BaseService {
     );
   }
 
-  create(entity: ReportEntity): Observable<ReportEntity> {
-    const request: CreateReportRequest = CreateReportRequestFromEntityMapper.fromEntityToDto(entity);
+  create(request: CreateReportRequest): Observable<ReportEntity> {
     return this.http.post<ReportResponse>(this.resourcePath(), request, this.httpOptions).pipe(
       map((response: ReportResponse) => ReportEntityFromResponseMapper.fromDtoToEntity(response)),
       catchError(this.handleError),
@@ -60,4 +69,13 @@ export class ReportService extends BaseService {
       retry(2)
     );
   }
+
+  getAllEvidencesByReportId(reportId: string): Observable<EvidenceEntity[]> {
+    return this.http.get<any[]>(`${this.resourcePath()}/${reportId}/evidences`, this.httpOptions).pipe(
+      map((responses: EvidenceResponse[]) => responses.map(r => EvidenceEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+      retry(2)
+    );
+  }
+
 }

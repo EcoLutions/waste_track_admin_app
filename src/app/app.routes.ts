@@ -127,7 +127,7 @@ export const routes: Routes = [
             component: CreateReportPage,
           },
           {
-            path: 'manage',
+            path: 'manage/:id',
             component: ManageReportsPage,
           },
           { path: 'analytics', component: ReportsAnalyticsPage }
