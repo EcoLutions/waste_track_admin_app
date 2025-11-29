@@ -44,5 +44,13 @@ export * from './container/api';
 export * from './sensor-reading/model';
 export * from './sensor-reading/api';
 
+// Waypoint Entity exports
+export * from './waypoint/model';
+export * from './waypoint/api';
+
+// Route Entity exports
+export * from './route/model';
+export * from './route/api';
+
 // Shared exports
 export * from '../shared/api';
