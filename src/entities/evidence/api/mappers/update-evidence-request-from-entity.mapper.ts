@@ -6,7 +6,7 @@ export class UpdateEvidenceRequestFromEntityMapper {
     return {
       evidenceId: entity.id,
       type: entity.type,
-      filePath: entity.filePath,
+      filePath: entity.fileUrl,
       originalFileName: entity.originalFileName,
       description: entity.description,
       fileSize: entity.fileSize,
