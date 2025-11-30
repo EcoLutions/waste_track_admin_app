@@ -154,12 +154,21 @@
                         </div>
                       </div>
                     </div>
-
-                    <div class="flex-1"
-                         leaflet
-                         [leafletOptions]="mapOptions"
-                         (leafletMapReady)="onMapReady($event)">
-                    </div>
+                    <google-map
+                      class="w-full"
+                      [height]="'380px'"
+                      [width]="'100%'"
+                      [options]="mapOptions"
+                      (mapClick)="onMapClick($event)"
+                    >
+                      @if (markerPosition(); as pos) {
+                        <map-advanced-marker
+                          [position]="pos"
+                          [options]="{ gmpDraggable: true }"
+                          (mapDragend)="onMarkerDragEnd($event)"
+                        ></map-advanced-marker>
+                      }
+                    </google-map>
                   </div>
                 </div>
               </div>

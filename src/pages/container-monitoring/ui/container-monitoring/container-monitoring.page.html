@@ -52,12 +52,12 @@
     </div>
   </div>
 
-  <!-- Mapa principal con panel de filtros integrado -->
   <div class="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden relative min-h-[600px]">
     @if (isLoading()) {
-      <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm z-[2000]">
-        <div class="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 text-gray-600 font-medium">Cargando contenedores...</p>
+      <div class="absolute inset-0 flex flex-col items-center justify-center bg-white/95 z-50">
+        <div class="spinner"></div>
+        <!--Integrar i18n-->
+        <p>Cargando contenedores...</p>
       </div>
     } @else if (error()) {
       <div class="absolute inset-0 flex flex-col items-center justify-center bg-white z-[2000] p-6">
@@ -71,14 +71,68 @@
       </div>
     } @else {
       <div class="z-0 h-full relative">
-        <!-- Mapa -->
-        <div class="absolute inset-0"
-             leaflet
-             [leafletOptions]="options()"
-             (leafletMapReady)="onMapReady($event)">
-        </div>
+        <!-- Mapa principal -->
+        <google-map
+          class="absolute inset-0"
+          [height]="'100%'"
+          [width]="'100%'"
+          [options]="mapOptions"
+          [center]="center()"
+          [zoom]="zoom()"
+        >
+          @for (container of containers(); track container.id) {
+            <map-advanced-marker
+              #marker="mapAdvancedMarker"
+              [position]="{
+              lat: $any(container.latitude) * 1,
+              lng: $any(container.longitude) * 1
+            }"
+              [content]="getMarkerContent(container)"
+              (mapClick)="onMarkerClick(marker, container)"
+            />
+          }
 
-        <!-- Botón de Filtros (arriba derecha) -->
+          <map-info-window>
+            @if (infoWindowContent(); as selected) {
+              <div class="p-2 min-w-[200px]">
+                <h3 class="font-bold text-gray-800">
+                  Contenedor {{ selected.id.substring(0,8) }}
+                </h3>
+                <div class="mt-2 text-sm space-y-1">
+                  <div class="flex justify-between">
+                    <span>Estado:</span>
+                    <span class="font-medium">{{ selected.status }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Tipo:</span>
+                    <span class="font-medium">{{ selected.containerType }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Capacidad:</span>
+                    <span class="font-medium">{{ selected.volumeLiters }}L/{{ selected.maxWeightKg }}kg</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Llenado:</span>
+                    <span
+                      class="font-bold"
+                      [class.text-red-600]="selected.currentFillLevel > 80"
+                    >
+                    {{ selected.currentFillLevel }}%
+                  </span>
+                  </div>
+                </div>
+                <button
+                  class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white py-1.5 px-3 rounded text-xs transition-colors"
+                  (click)="store.selectContainer(selected)"
+                >
+                  Ver Detalles
+                </button>
+              </div>
+            }
+          </map-info-window>
+        </google-map>
+
+        <!-- Botón de Filtros + Tiempo real + Seleccionado (arriba derecha) -->
         <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
           <button
             (click)="filtersPanelOpen = !filtersPanelOpen"
@@ -87,8 +141,10 @@
             <span>Filtros</span>
             @if (store.statusFilter() !== 'ALL' || store.typeFilter() !== 'ALL' || store.searchQuery()) {
               <span class="ml-1 px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded-full">
-                {{ (store.statusFilter() !== 'ALL' ? 1 : 0) + (store.typeFilter() !== 'ALL' ? 1 : 0) + (store.searchQuery() ? 1 : 0) }}
-              </span>
+                  {{ (store.statusFilter() !== 'ALL' ? 1 : 0) +
+              (store.typeFilter() !== 'ALL' ? 1 : 0) +
+              (store.searchQuery() ? 1 : 0) }}
+                </span>
             }
           </button>
 
@@ -177,11 +233,13 @@
             <div class="pt-4 border-t border-gray-200">
               <div class="bg-gray-50 rounded-lg p-3">
                 <p class="text-sm text-gray-600">
-                  Mostrando <span class="font-bold text-gray-900">{{ containers().length }}</span> contenedores
+                  Mostrando
+                  <span class="font-bold text-gray-900">{{ containers().length }}</span>
+                  contenedores
                   @if (hasValidContainers()) {
                     <span class="block text-xs text-gray-500 mt-1">
-                      {{ store.getMapContainers().length }} con ubicación válida
-                    </span>
+                        {{ store.getMapContainers().length }} con ubicación válida
+                      </span>
                   }
                 </p>
               </div>
@@ -212,7 +270,6 @@
             class="absolute inset-0 bg-black/30 backdrop-blur-sm z-[1400] transition-opacity duration-300">
           </div>
         }
-
         <!-- Leyenda del mapa -->
         <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-md rounded-lg shadow-lg p-4 border border-gray-200">
           <h4 class="text-sm font-semibold text-gray-900 mb-3">Leyenda</h4>

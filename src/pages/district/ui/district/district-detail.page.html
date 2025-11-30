@@ -1,5 +1,5 @@
 <!-- features/district/ui/pages/district-detail.page.html -->
-<div class="h-full flex flex-col gap-4">
+<div class="h-full flex flex-col gap-4 overflow-y-auto">
 
   <!-- ========== HEADER ========== -->
   <div class="bg-white rounded-lg px-4 py-3 border border-gray-200 shadow-sm">
@@ -111,10 +111,10 @@
 
   <!-- ========== MAIN CONTENT ========== -->
   @if (!isLoading() && district()) {
-    <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+    <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-y-auto">
 
       <!-- ========== LEFT COLUMN: MAIN INFO ========== -->
-      <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-y-auto">
+      <div class="flex-1 flex flex-col gap-4 min-h-max">
 
         <!-- ========== READ-ONLY MODE ========== -->
         @if (!isEditMode()) {
@@ -515,7 +515,7 @@
                     type="text"
                     placeholder="Buscar dirección, lugar o coordenadas..."
                     [disabled]="depotSearchLoading()"
-                    class="w-full pl-10 pr-10">
+                    class="w-full !pl-10 !pr-10">
                   <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   @if (depotSearchLoading()) {
                     <i class="pi pi-spin pi-spinner absolute right-3 top-1/2 -translate-y-1/2 text-amber-600"></i>
@@ -551,6 +551,8 @@
                   <google-map
                     #depotMapComp
                     class="w-full h-full"
+                    [width]="'100%'"
+                    [height]="'100%'"
                     [center]="depotCenter"
                     [zoom]="depotZoom"
                     [options]="depotMapOptions"
@@ -594,7 +596,7 @@
                     type="text"
                     placeholder="Buscar dirección, lugar o coordenadas..."
                     [disabled]="disposalSearchLoading()"
-                    class="w-full pl-10 pr-10">
+                    class="w-full !pl-10 !pr-10">
                   <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   @if (disposalSearchLoading()) {
                     <i class="pi pi-spin pi-spinner absolute right-3 top-1/2 -translate-y-1/2 text-purple-600"></i>
@@ -630,6 +632,8 @@
                   <google-map
                     #disposalMapComp
                     class="w-full h-full"
+                    [width]="'100%'"
+                    [height]="'100%'"
                     [center]="disposalCenter"
                     [zoom]="disposalZoom"
                     [options]="disposalMapOptions"
@@ -649,7 +653,7 @@
       </div>
 
       <!-- ========== RIGHT COLUMN: STATISTICS & READ-ONLY INFO ========== -->
-      <div class="w-full lg:w-96 flex flex-col gap-4">
+      <div class="w-full lg:w-96 flex flex-col gap-4 min-h-max">
 
         <!-- Capacity Usage Card -->
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
