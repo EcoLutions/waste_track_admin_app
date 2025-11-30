@@ -1,5 +1,5 @@
 export enum VehicleTypeEnum {
-  COMPACTOR = 'compactor',
-  TRUCK = 'truck',
-  MINI_TRUCK = 'mini_truck'
+  COMPACTOR = 'COMPACTOR',
+  TRUCK = 'TRUCK',
+  MINI_TRUCK = 'MINI_TRUCK'
 }

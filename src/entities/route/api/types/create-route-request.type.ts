@@ -1,8 +1,6 @@
 export interface CreateRouteRequest {
-  districtId: string | null;
+  districtId: string;
   vehicleId: string | null;
   driverId: string | null;
-  routeType: string | null;
-  scheduledDate: string | null; // LocalDate → ISO string
+  scheduledDate: string;
 }
-

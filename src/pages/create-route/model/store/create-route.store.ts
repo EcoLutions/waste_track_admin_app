@@ -1,8 +1,15 @@
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { RouteEntity, RouteService, RouteStatusEnum, RouteTypeEnum, DriverService, VehicleService } from '../../../../entities';
-import { DistrictContextStore } from '../../../../shared/stores/district-context.store';
+import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
+import {computed, inject} from '@angular/core';
+import {Router} from '@angular/router';
+import {
+  DriverService,
+  RouteEntity,
+  RouteService,
+  RouteStatusEnum,
+  VehicleService
+} from '../../../../entities';
+import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
+import {DateTimeUtils} from '../../../../shared/libs/utils/date-time.utils';
 
 export interface CreateRouteState {
   // Form data
@@ -10,13 +17,11 @@ export interface CreateRouteState {
     districtId: string;
     driverId: string;
     vehicleId: string;
-    routeType: RouteTypeEnum;
     scheduledDate: string; // YYYY-MM-DD
     scheduledStartTime: string; // HH:MM
-    
   };
 
-  // Available options from backend
+  // Available options from the backend
   availableDrivers: any[]; // Will be typed as DriverEntity[]
   availableVehicles: any[]; // Will be typed as VehicleEntity[]
   isLoadingOptions: boolean;
@@ -32,10 +37,8 @@ const initialState: CreateRouteState = {
     districtId: '',
     driverId: '',
     vehicleId: '',
-    routeType: RouteTypeEnum.REGULAR,
     scheduledDate: '',
     scheduledStartTime: '',
-    
   },
   availableDrivers: [],
   availableVehicles: [],
@@ -45,9 +48,17 @@ const initialState: CreateRouteState = {
   isSuccess: false
 };
 
-export const CreateRouteStore = signalStore(
-  { providedIn: 'root' },
+function getVehicleTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    'TRUCK': 'Camión',
+    'VAN': 'Furgoneta',
+    'COMPACTOR': 'Compactador',
+    'PICKUP': 'Camioneta'
+  };
+  return labels[type] || type;
+}
 
+export const CreateRouteStore = signalStore(
   // State
   withState(initialState),
 
@@ -60,10 +71,8 @@ export const CreateRouteStore = signalStore(
         const form = state.formData();
         return form.driverId.trim() !== '' &&
           form.vehicleId.trim() !== '' &&
-          form.routeType.trim() !== '' &&
           form.scheduledDate.trim() !== '' &&
           form.scheduledStartTime.trim() !== '';
-          // scheduledEndTime removed - backend calculates it
       }),
 
       // District context
@@ -74,22 +83,30 @@ export const CreateRouteStore = signalStore(
         const form = state.formData();
         const districtId = districtContextStore.districtId();
 
+        // Combine date and time for preview
+        let scheduledStartAt: Date;
+        if (form.scheduledDate && form.scheduledStartTime) {
+          const dateTimeString = `${form.scheduledDate}T${form.scheduledStartTime}:00`;
+          scheduledStartAt = DateTimeUtils.stringToLocalDateTime(dateTimeString) ?? new Date();
+        } else {
+          scheduledStartAt = new Date();
+        }
+
         return {
           id: 'preview',
           districtId: districtId || '',
           driverId: form.driverId || null,
           vehicleId: form.vehicleId || null,
-          routeType: form.routeType,
           status: RouteStatusEnum.DRAFT,
-          scheduledStartAt: form.scheduledDate && form.scheduledStartTime
-            ? new Date(`${form.scheduledDate}T${form.scheduledStartTime}`)
-            : new Date(),
-          scheduledEndAt: new Date(), // Backend calculates this
+          scheduledStartAt,
+          scheduledEndAt: null, // Backend calculates this
           startedAt: null,
           completedAt: null,
           waypoints: [],
           totalDistance: null,
           estimatedDuration: null,
+          collectionDuration: null,
+          returnDuration: null,
           actualDuration: null,
           currentLatitude: null,
           currentLongitude: null,
@@ -138,25 +155,27 @@ export const CreateRouteStore = signalStore(
             })
           ]);
 
-          console.log('🚗 All vehicles from backend:', vehicles);
-          console.log('📍 Current districtId:', districtId);
-          console.log('🔍 Vehicles in this district:', vehicles.filter((v: any) => v.districtId === districtId));
+          // Filter and MAP drivers with fullName
+          const availableDrivers = drivers
+            .filter((d: any) =>
+              d.districtId === districtId &&
+              (d.status === 'AVAILABLE' || d.status === 'available')
+            )
+            .map((d: any) => ({
+              ...d,
+              fullName: `${d.firstName} ${d.lastName}`
+            }));
 
-          // Filter only available/active items for the current district
-          const availableDrivers = drivers.filter((d: any) =>
-            d.districtId === districtId &&
-            (d.status === 'available' || d.status === 'AVAILABLE')
-          );
-
-          // Vehicles use isActive (boolean) instead of status
-          const availableVehicles = vehicles.filter((v: any) =>
-            v.districtId === districtId &&
-            v.isActive === true
-          );
-
-          console.log('✅ Available drivers:', availableDrivers);
-          console.log('✅ Available vehicles:', availableVehicles);
-          console.log('🔍 Vehicle isActive flags:', vehicles.map((v: any) => ({ id: v.id, isActive: v.isActive, district: v.districtId })));
+          // Filter and MAP vehicles with display (using licensePlate + vehicleType)
+          const availableVehicles = vehicles
+            .filter((v: any) =>
+              v.districtId === districtId &&
+              v.isActive === true
+            )
+            .map((v: any) => ({
+              ...v,
+              display: `${v.licensePlate} - ${getVehicleTypeLabel(v.vehicleType)}`
+            }));
 
           patchState(store, {
             availableDrivers,
@@ -172,6 +191,7 @@ export const CreateRouteStore = signalStore(
           });
         }
       },
+
       // Form actions
       updateFormField<K extends keyof CreateRouteState['formData']>(
         field: K,
@@ -241,11 +261,15 @@ export const CreateRouteStore = signalStore(
         });
 
         try {
-          // Combine date and time into valid Date object
-          const scheduledStartAt = new Date(`${formData.scheduledDate}T${formData.scheduledStartTime}`);
+          // Combine date and time into valid LocalDateTime string
+          // Format: "YYYY-MM-DDHH:MM:SS"
+          const dateTimeString = `${formData.scheduledDate}T${formData.scheduledStartTime}:00`;
+
+          // Parse to Date object for validation
+          const scheduledStartAt = DateTimeUtils.stringToLocalDateTime(dateTimeString);
 
           // Validate that date is valid
-          if (isNaN(scheduledStartAt.getTime())) {
+          if (!scheduledStartAt || isNaN(scheduledStartAt.getTime())) {
             patchState(store, {
               isLoading: false,
               error: 'La fecha u hora programada no es válida'
@@ -253,22 +277,32 @@ export const CreateRouteStore = signalStore(
             return;
           }
 
-          // Create route entity from form data
-          // Note: scheduledEndAt will be calculated by backend
+          // Validate that date is not in the past (optional)
+          const now = new Date();
+          if (scheduledStartAt < now) {
+            patchState(store, {
+              isLoading: false,
+              error: 'La fecha programada no puede ser anterior a la fecha actual'
+            });
+            return;
+          }
+
+          // Create a route entity from form data
           const routeEntity: RouteEntity = {
-            id: '', // Will be generated by backend
+            id: '', // Will be generated by the backend
             districtId: districtId,
             driverId: formData.driverId || null,
             vehicleId: formData.vehicleId || null,
-            routeType: formData.routeType,
             status: RouteStatusEnum.DRAFT,
             scheduledStartAt,
-            scheduledEndAt: new Date(), // Placeholder, backend will calculate actual value
+            scheduledEndAt: null, // Backend will calculate this
             startedAt: null,
             completedAt: null,
             waypoints: [],
             totalDistance: null,
             estimatedDuration: null,
+            collectionDuration: null,
+            returnDuration: null,
             actualDuration: null,
             currentLatitude: null,
             currentLongitude: null,
@@ -278,11 +312,13 @@ export const CreateRouteStore = signalStore(
           };
 
           console.log('🚀 Creating route with entity:', routeEntity);
-          console.log('📅 scheduledStartAt:', scheduledStartAt);
-          console.log('📅 scheduledStartAt ISO (sent to backend):', scheduledStartAt.toISOString());
+          console.log('📅 scheduledStartAt (Date):', scheduledStartAt);
+          console.log('📅 scheduledStartAt (LocalDateTime string sent to backend):', DateTimeUtils.localDateTimeToString(scheduledStartAt));
 
           routeService.create(routeEntity).subscribe({
-            next: () => {
+            next: (createdRoute) => {
+              console.log('✅ Route created successfully:', createdRoute);
+
               patchState(store, {
                 isLoading: false,
                 isSuccess: true,
@@ -295,15 +331,25 @@ export const CreateRouteStore = signalStore(
               }, 1500);
             },
             error: (error) => {
-              console.error('Error creating route:', error);
+              console.error('❌ Error creating route:', error);
+
+              // Extract error message from backend response
+              let errorMessage = 'Error al crear la ruta. Por favor intente nuevamente.';
+
+              if (error?.error?.message) {
+                errorMessage = error.error.message;
+              } else if (error?.message) {
+                errorMessage = error.message;
+              }
+
               patchState(store, {
                 isLoading: false,
-                error: error?.error?.message || 'Error al crear la ruta. Por favor intente nuevamente.'
+                error: errorMessage
               });
             }
           });
         } catch (error) {
-          console.error('Unexpected error:', error);
+          console.error('❌ Unexpected error:', error);
           patchState(store, {
             isLoading: false,
             error: 'Error inesperado al crear la ruta'
@@ -313,4 +359,3 @@ export const CreateRouteStore = signalStore(
     };
   })
 );
-
