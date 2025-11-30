@@ -10,6 +10,7 @@ import {
 } from '../../../../entities';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
 import {DateTimeUtils} from '../../../../shared/libs/utils/date-time.utils';
+import {ToastService} from '../../../../shared/api/services/toast.service';
 
 export interface CreateRouteState {
   // Form data
@@ -22,13 +23,12 @@ export interface CreateRouteState {
   };
 
   // Available options from the backend
-  availableDrivers: any[]; // Will be typed as DriverEntity[]
-  availableVehicles: any[]; // Will be typed as VehicleEntity[]
+  availableDrivers: any[];
+  availableVehicles: any[];
   isLoadingOptions: boolean;
 
   // UI state
   isLoading: boolean;
-  error: string | null;
   isSuccess: boolean;
 }
 
@@ -44,7 +44,6 @@ const initialState: CreateRouteState = {
   availableVehicles: [],
   isLoadingOptions: false,
   isLoading: false,
-  error: null,
   isSuccess: false
 };
 
@@ -59,6 +58,8 @@ function getVehicleTypeLabel(type: string): string {
 }
 
 export const CreateRouteStore = signalStore(
+  { providedIn: 'root' },
+
   // State
   withState(initialState),
 
@@ -99,7 +100,7 @@ export const CreateRouteStore = signalStore(
           vehicleId: form.vehicleId || null,
           status: RouteStatusEnum.DRAFT,
           scheduledStartAt,
-          scheduledEndAt: null, // Backend calculates this
+          scheduledEndAt: null,
           startedAt: null,
           completedAt: null,
           waypoints: [],
@@ -125,6 +126,7 @@ export const CreateRouteStore = signalStore(
     const vehicleService = inject(VehicleService);
     const router = inject(Router);
     const districtContextStore = inject(DistrictContextStore);
+    const toastService = inject(ToastService);
 
     return {
       // Load available drivers and vehicles
@@ -166,7 +168,7 @@ export const CreateRouteStore = signalStore(
               fullName: `${d.firstName} ${d.lastName}`
             }));
 
-          // Filter and MAP vehicles with display (using licensePlate + vehicleType)
+          // Filter and MAP vehicles with display
           const availableVehicles = vehicles
             .filter((v: any) =>
               v.districtId === districtId &&
@@ -185,9 +187,9 @@ export const CreateRouteStore = signalStore(
 
         } catch (error) {
           console.error('Error loading options:', error);
+          toastService.error('Error al cargar conductores y vehículos disponibles');
           patchState(store, {
-            isLoadingOptions: false,
-            error: 'Error al cargar conductores y vehículos disponibles'
+            isLoadingOptions: false
           });
         }
       },
@@ -217,21 +219,14 @@ export const CreateRouteStore = signalStore(
       resetForm(): void {
         patchState(store, {
           formData: initialState.formData,
-          error: null,
           isSuccess: false
         });
-      },
-
-      setError(error: string | null): void {
-        patchState(store, { error });
       },
 
       // Route creation
       async createRoute(): Promise<void> {
         if (!store.isFormValid()) {
-          patchState(store, {
-            error: 'Por favor complete todos los campos requeridos'
-          });
+          toastService.warn('Por favor complete todos los campos requeridos');
           return;
         }
 
@@ -239,9 +234,7 @@ export const CreateRouteStore = signalStore(
         const districtId = districtContextStore.districtId();
 
         if (!districtId) {
-          patchState(store, {
-            error: 'No se pudo obtener la información del distrito. Por favor recargue la página.'
-          });
+          toastService.error('No se pudo obtener la información del distrito. Por favor recargue la página.');
           return;
         }
 
@@ -249,53 +242,41 @@ export const CreateRouteStore = signalStore(
 
         // Validate that we have all required date/time data
         if (!formData.scheduledDate || !formData.scheduledStartTime) {
-          patchState(store, {
-            error: 'Por favor complete la fecha y hora de inicio'
-          });
+          toastService.warn('Por favor complete la fecha y hora de inicio');
           return;
         }
 
         patchState(store, {
-          isLoading: true,
-          error: null
+          isLoading: true
         });
 
         try {
-          // Combine date and time into valid LocalDateTime string
-          // Format: "YYYY-MM-DDHH:MM:SS"
           const dateTimeString = `${formData.scheduledDate}T${formData.scheduledStartTime}:00`;
 
           // Parse to Date object for validation
           const scheduledStartAt = DateTimeUtils.stringToLocalDateTime(dateTimeString);
 
-          // Validate that date is valid
           if (!scheduledStartAt || isNaN(scheduledStartAt.getTime())) {
-            patchState(store, {
-              isLoading: false,
-              error: 'La fecha u hora programada no es válida'
-            });
+            patchState(store, { isLoading: false });
+            toastService.error('La fecha u hora programada no es válida');
             return;
           }
 
-          // Validate that date is not in the past (optional)
           const now = new Date();
           if (scheduledStartAt < now) {
-            patchState(store, {
-              isLoading: false,
-              error: 'La fecha programada no puede ser anterior a la fecha actual'
-            });
+            patchState(store, { isLoading: false });
+            toastService.error('La fecha programada no puede ser anterior a la fecha actual');
             return;
           }
 
-          // Create a route entity from form data
           const routeEntity: RouteEntity = {
-            id: '', // Will be generated by the backend
+            id: '',
             districtId: districtId,
             driverId: formData.driverId || null,
             vehicleId: formData.vehicleId || null,
             status: RouteStatusEnum.DRAFT,
             scheduledStartAt,
-            scheduledEndAt: null, // Backend will calculate this
+            scheduledEndAt: null,
             startedAt: null,
             completedAt: null,
             waypoints: [],
@@ -312,8 +293,6 @@ export const CreateRouteStore = signalStore(
           };
 
           console.log('🚀 Creating route with entity:', routeEntity);
-          console.log('📅 scheduledStartAt (Date):', scheduledStartAt);
-          console.log('📅 scheduledStartAt (LocalDateTime string sent to backend):', DateTimeUtils.localDateTimeToString(scheduledStartAt));
 
           routeService.create(routeEntity).subscribe({
             next: (createdRoute) => {
@@ -321,9 +300,10 @@ export const CreateRouteStore = signalStore(
 
               patchState(store, {
                 isLoading: false,
-                isSuccess: true,
-                error: null
+                isSuccess: true
               });
+
+              toastService.success('Ruta creada exitosamente');
 
               // Navigate to routes management after successful creation
               setTimeout(() => {
@@ -334,26 +314,21 @@ export const CreateRouteStore = signalStore(
               console.error('❌ Error creating route:', error);
 
               // Extract error message from backend response
-              let errorMessage = 'Error al crear la ruta. Por favor intente nuevamente.';
-
-              if (error?.error?.message) {
-                errorMessage = error.error.message;
-              } else if (error?.message) {
-                errorMessage = error.message;
-              }
+              const errorMessage = error?.error?.message || 'Error al crear la ruta. Por favor intente nuevamente.';
 
               patchState(store, {
-                isLoading: false,
-                error: errorMessage
+                isLoading: false
               });
+
+              toastService.error(errorMessage);
             }
           });
         } catch (error) {
           console.error('❌ Unexpected error:', error);
           patchState(store, {
-            isLoading: false,
-            error: 'Error inesperado al crear la ruta'
+            isLoading: false
           });
+          toastService.error('Error inesperado al crear la ruta');
         }
       }
     };
