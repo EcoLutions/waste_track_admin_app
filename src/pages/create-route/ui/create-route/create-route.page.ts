@@ -29,7 +29,7 @@ export class CreateRoutePage implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   routeForm!: FormGroup;
-  today = new Date().toISOString().split('T')[0];
+  today = new Date().toLocaleDateString('en-CA');
 
   ngOnInit(): void {
     this.initForm();
