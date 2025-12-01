@@ -23,42 +23,52 @@
   <div class="flex-1 flex h-full">
 
     <!-- LEFT PANEL: MAP (Interactive Area) -->
-    <div class="flex-1 bg-gray-100 relative group">
-      <!-- Placeholder for Google Maps Component -->
-      <!-- Replace this div with your <google-map> implementation -->
-      <div class="w-full h-full flex flex-col items-center justify-center text-gray-400"
-           (click)="onMapClick($event)"> <!-- Simulated Click -->
+    <div class="flex-1 bg-gray-100 relative">
 
-        <i class="pi pi-map text-4xl mb-2"></i>
-        <p class="text-sm font-medium">Mapa Interactivo del Distrito</p>
-        <p class="text-xs mt-1">(Haz clic aquí para simular selección)</p>
+      <!-- Google Maps -->
+      <google-map
+        class="absolute inset-0"
+        [height]="'100%'"
+        [width]="'100%'"
+        [options]="mapOptions"
+        [center]="center()"
+        [zoom]="zoom()"
+        (mapClick)="onMapClick($event)"
+      >
 
-        <!-- Simulation Buttons (For dev purposes until Map is integrated) -->
-        <div class="mt-4 flex gap-2">
-          <button (click)="onMapClick($event); $event.stopPropagation()" class="px-3 py-1 bg-white border rounded text-xs shadow-sm hover:bg-gray-50">
-            Simular Clic Calle
-          </button>
-          <button (click)="onContainerClick('CONT-123'); $event.stopPropagation()" class="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded text-xs shadow-sm hover:bg-blue-100">
-            Simular Clic Contenedor
-          </button>
-        </div>
-
-        <!-- Marker Feedback (Visual Only) -->
-        @if (latitude()) {
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-red-500 drop-shadow-md animate-bounce">
-            <i class="pi pi-map-marker text-4xl"></i>
-          </div>
+        <!-- Markers de contenedores registrados -->
+        @for (container of containers(); track container.id) {
+          <map-advanced-marker
+            #marker="mapAdvancedMarker"
+            [position]="{
+              lat: $any(container.latitude) * 1,
+              lng: $any(container.longitude) * 1
+            }"
+            [content]="getMarkerContent(container)"
+            (mapClick)="onContainerMarkerClick(container)"
+          />
         }
-      </div>
+
+        <!-- Marcador de ubicación seleccionada (calle o contenedor) -->
+        @if (!selectedContainer() && selectedPosition(); as pos) {
+          <map-advanced-marker
+            [position]="pos"
+            [options]="{ gmpDraggable: true }"
+            (mapDragend)="onMarkerDragEnd($event)"
+          >
+          </map-advanced-marker>
+        }
+      </google-map>
 
       <!-- Map Overlay Instructions -->
       <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-gray-200 pointer-events-none">
         <p class="text-xs font-bold text-gray-700 flex items-center gap-2">
           <i class="pi pi-info-circle text-blue-500"></i>
-          <span>Haz clic en el mapa para ubicar el incidente</span>
+          <span>Haz clic en el mapa para ubicar el incidente o selecciona un contenedor.</span>
         </p>
       </div>
     </div>
+
 
     <!-- RIGHT PANEL: FORM (Sidebar) -->
     <div class="w-[400px] bg-white border-l border-gray-200 flex flex-col shadow-xl z-10">
