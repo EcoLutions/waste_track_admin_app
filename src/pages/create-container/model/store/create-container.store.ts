@@ -11,9 +11,9 @@ export interface CreateContainerState {
     longitude: string;
     address: string;
     volumeLiters: number;
-    maxWeightKg: number;
+    maxFillLevel: number;
     containerType: ContainerTypeEnum;
-    sensorId: string;
+    deviceId: string;
     collectionFrequencyDays: number;
   };
 
@@ -29,9 +29,9 @@ const initialState: CreateContainerState = {
     longitude: '',
     address: '',
     volumeLiters: 240,
-    maxWeightKg: 100,
+    maxFillLevel: 90,
     containerType: ContainerTypeEnum.GENERAL,
-    sensorId: '',
+    deviceId: '',
     collectionFrequencyDays: 7
   },
   isLoading: false,
@@ -55,7 +55,7 @@ export const CreateContainerStore = signalStore(
         return form.latitude.trim() !== '' &&
           form.longitude.trim() !== '' &&
           form.volumeLiters > 0 &&
-          form.maxWeightKg > 0 &&
+          form.maxFillLevel > 0 &&
           form.collectionFrequencyDays > 0;
       }),
 
@@ -71,11 +71,11 @@ export const CreateContainerStore = signalStore(
           latitude: form.latitude,
           longitude: form.longitude,
           volumeLiters: form.volumeLiters,
-          maxWeightKg: form.maxWeightKg,
+          maxFillLevel: form.maxFillLevel,
           containerType: form.containerType,
           status: ContainerStatusEnum.ACTIVE,
           currentFillLevel: 0,
-          sensorId: form.sensorId || null,
+          deviceId: form.deviceId || null,
           districtId: districtId || '',
           collectionFrequencyDays: form.collectionFrequencyDays,
           lastReadingTimestamp: null,
@@ -159,11 +159,11 @@ export const CreateContainerStore = signalStore(
             latitude: formData.latitude,
             longitude: formData.longitude,
             volumeLiters: formData.volumeLiters,
-            maxWeightKg: formData.maxWeightKg,
+            maxFillLevel: formData.maxFillLevel,
             containerType: formData.containerType,
             status: ContainerStatusEnum.ACTIVE,
             currentFillLevel: 0,
-            sensorId: formData.sensorId || null,
+            deviceId: formData.deviceId || null,
             lastReadingTimestamp: null,
             districtId: districtId,
             lastCollectionDate: null,

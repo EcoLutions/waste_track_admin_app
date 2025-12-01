@@ -6,11 +6,11 @@ export interface ContainerEntity {
   latitude: string;
   longitude: string;
   volumeLiters: number;
-  maxWeightKg: number;
+  maxFillLevel: number;
   containerType: ContainerTypeEnum;
   status: ContainerStatusEnum;
   currentFillLevel: number;
-  sensorId: string | null;
+  deviceId: string | null;
   lastReadingTimestamp: Date | null;
   districtId: string;
   lastCollectionDate: Date | null;

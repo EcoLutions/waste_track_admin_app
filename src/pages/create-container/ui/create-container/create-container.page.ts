@@ -99,9 +99,9 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       longitude: ['', [Validators.required, Validators.pattern(/^-?([1-8]?[1-9]|[1-9]0)\.{1}\d{1,6}$/)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
       volumeLiters: [240, [Validators.required, Validators.min(50), Validators.max(5000)]],
-      maxWeightKg: [100, [Validators.required, Validators.min(10), Validators.max(1000)]],
+      maxFillLevel: [90, [Validators.required, Validators.min(1), Validators.max(99)]],
       containerType: [ContainerTypeEnum.GENERAL, Validators.required],
-      sensorId: [''],
+      deviceId: [''],
       collectionFrequencyDays: [7, [Validators.required, Validators.min(1), Validators.max(30)]]
     });
   }
@@ -137,9 +137,9 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       longitude: '',
       address: '',
       volumeLiters: 240,
-      maxWeightKg: 100,
+      maxFillLevel: 90,
       containerType: ContainerTypeEnum.GENERAL,
-      sensorId: '',
+      deviceId: '',
       collectionFrequencyDays: 7
     });
     this.store.resetForm();
@@ -251,7 +251,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       case 1: // Características
         return !!(
           this.containerForm.get('volumeLiters')?.valid &&
-          this.containerForm.get('maxWeightKg')?.valid &&
+          this.containerForm.get('maxFillLevel')?.valid &&
           this.containerForm.get('containerType')?.valid
         );
       case 2: // Configuración
