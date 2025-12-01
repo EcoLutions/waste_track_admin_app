@@ -6,6 +6,7 @@ export interface UpdateContainerRequest {
   maxFillLevel: number | null;
   deviceId: string | null;
   containerType: string | null;
+  status: string | null;
   districtId: string | null;
   collectionFrequencyDays: number | null;
 }

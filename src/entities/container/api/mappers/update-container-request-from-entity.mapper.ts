@@ -11,6 +11,7 @@ export class UpdateContainerRequestFromEntityMapper {
       maxFillLevel: entity.maxFillLevel,
       deviceId: entity.deviceId,
       containerType: entity.containerType,
+      status: entity.status,
       districtId: entity.districtId,
       collectionFrequencyDays: entity.collectionFrequencyDays
     };
