@@ -4,7 +4,7 @@ export interface UpdateContainerRequest {
   longitude: string | null;
   volumeLiters: number | null;
   maxFillLevel: number | null;
-  sensorId: string | null;
+  deviceId: string | null;
   containerType: string | null;
   districtId: string | null;
   collectionFrequencyDays: number | null;
