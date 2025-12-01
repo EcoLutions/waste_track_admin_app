@@ -4,20 +4,22 @@ import {ContainerEntity, ContainerStatusEnum, ContainerTypeEnum} from '../../../
 import {GoogleMap, MapAdvancedMarker, MapInfoWindow} from '@angular/google-maps';
 import {environment} from '../../../../environments/environment.development';
 import {CommonModule} from '@angular/common';
-
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-container-monitoring',
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapAdvancedMarker, MapInfoWindow],
+  imports: [CommonModule, GoogleMap, MapAdvancedMarker, MapInfoWindow, ReactiveFormsModule],
   templateUrl: './container-monitoring.page.html',
   styleUrl: './container-monitoring.page.css'
 })
 export class ContainerMonitoringPage implements OnInit {
   readonly store = inject(ContainerMonitoringStore);
+  private fb = inject(FormBuilder);
 
   // Referencia al InfoWindow
   @ViewChild(MapInfoWindow) infoWindow!: MapInfoWindow;
+  @ViewChild(GoogleMap) map!: GoogleMap;
 
   // Cache para los contenidos de los markers
   private markerContentCache = new Map<string, HTMLElement>();
@@ -25,6 +27,29 @@ export class ContainerMonitoringPage implements OnInit {
   // Estado UI
   infoWindowContent = signal<ContainerEntity | null>(null);
   filtersPanelOpen = false;
+  isEditModalOpen = false;
+  isSaving = false;
+
+  isSelectingLocation = false;
+  tempLocation = signal<google.maps.LatLngLiteral | null>(null);
+
+  // Formulario de edición
+  editForm: FormGroup = this.fb.group({
+    id: [''], // Readonly
+    status: ['', Validators.required],
+    containerType: ['', Validators.required],
+    currentFillLevel: [0, [Validators.min(0), Validators.max(100)]],
+    volumeLiters: [0, [Validators.required, Validators.min(1)]],
+    maxFillLevel: [0, [Validators.required, Validators.min(1)]],
+    collectionFrequencyDays: [1, [Validators.required, Validators.min(1)]],
+    deviceId: [''],
+    latitude: ['', Validators.required],
+    longitude: ['', Validators.required]
+  });
+
+  // Enums para el template
+  statusEnum = Object.values(ContainerStatusEnum);
+  typeEnum = Object.values(ContainerTypeEnum);
 
   // Opciones del mapa
   mapOptions: google.maps.MapOptions = {
@@ -32,7 +57,8 @@ export class ContainerMonitoringPage implements OnInit {
     disableDefaultUI: false,
     clickableIcons: false,
     streetViewControl: false,
-    fullscreenControl: false
+    fullscreenControl: false,
+    gestureHandling: 'greedy'
   };
 
   // Datos reactivos del store para el mapa
@@ -58,6 +84,130 @@ export class ContainerMonitoringPage implements OnInit {
 
   async loadContainers(): Promise<void> {
     await this.store.loadContainers();
+  }
+
+  // --- Lógica del Modal ---
+
+  openDetailModal(container: ContainerEntity) {
+    this.store.selectContainer(container);
+
+    console.log('Opening detail modal for container', container);
+
+    this.editForm.patchValue({
+      id: container.id,
+      status: container.status,
+      containerType: container.containerType,
+      currentFillLevel: container.currentFillLevel,
+      volumeLiters: container.volumeLiters,
+      maxFillLevel: container.maxFillLevel,
+      collectionFrequencyDays: container.collectionFrequencyDays,
+      deviceId: container.deviceId,
+      latitude: container.latitude,
+      longitude: container.longitude
+    });
+
+    this.infoWindow.close();
+    this.isEditModalOpen = true;
+  }
+
+  closeDetailModal() {
+    if (this.isSelectingLocation) {
+      this.cancelLocationSelection();
+      return;
+    }
+    this.isEditModalOpen = false;
+    this.store.selectContainer(null);
+  }
+
+  enableLocationPicker() {
+    const currentLat = parseFloat(this.editForm.get('latitude')?.value);
+    const currentLng = parseFloat(this.editForm.get('longitude')?.value);
+
+    // Establecer posición temporal inicial
+    if (!isNaN(currentLat) && !isNaN(currentLng)) {
+      this.tempLocation.set({ lat: currentLat, lng: currentLng });
+    }
+
+    this.isEditModalOpen = false; // Ocultar modal temporalmente
+    this.isSelectingLocation = true; // Activar modo selección
+  }
+
+  confirmLocationSelection() {
+    const loc = this.tempLocation();
+    if (loc) {
+      this.editForm.patchValue({
+        latitude: loc.lat.toFixed(6),
+        longitude: loc.lng.toFixed(6)
+      });
+    }
+    this.isSelectingLocation = false;
+    this.isEditModalOpen = true;
+  }
+
+  cancelLocationSelection() {
+    this.isSelectingLocation = false;
+    this.isEditModalOpen = true;
+  }
+
+  onMapDrag(event: google.maps.MapMouseEvent) {
+    if (this.isSelectingLocation && event.latLng) {
+      this.tempLocation.set(event.latLng.toJSON());
+    }
+  }
+
+  onMarkerDragEnd(event: google.maps.MapMouseEvent) {
+    if (this.isSelectingLocation && event.latLng) {
+      this.tempLocation.set(event.latLng.toJSON());
+    }
+  }
+
+  async saveContainerChanges() {
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving = true;
+    const form = this.editForm.value;
+
+    // Mapeo manual para asegurar coincidencia con tu Backend Java y CURL
+    // El CURL usa: containerId, latitude, longitude, volumeLiters, maxFillLevel, deviceId, containerType, collectionFrequencyDays
+    const updates: any = {
+      containerId: form.id,
+      latitude: String(form.latitude),
+      longitude: String(form.longitude),
+      volumeLiters: Number(form.volumeLiters),
+      maxFillLevel: Number(form.maxFillLevel), // En backend Java es maxWeightKg, aquí lo mandamos como maxFillLevel según tu CURL
+      deviceId: form.deviceId,
+      containerType: form.containerType,
+      status: form.status, // Agregamos status aunque no esté en el CURL de ejemplo, suele ser necesario
+      collectionFrequencyDays: Number(form.collectionFrequencyDays),
+      currentFillLevel: Number(form.currentFillLevel)
+    };
+
+    try {
+      // Usamos updateContainer del store que llama al servicio PUT
+      await this.store.updateContainer(form.id, updates);
+      this.isEditModalOpen = false;
+      this.store.selectContainer(null);
+      // Aquí podrías agregar un Toast de éxito
+    } catch (err) {
+      console.error('Error updating container', err);
+    } finally {
+      this.isSaving = false;
+    }
+  }
+  // --- Helpers de UI para el Modal ---
+
+  get fillPercentage() {
+    return this.editForm.get('currentFillLevel')?.value || 0;
+  }
+
+  get fillLevelColor() {
+    const level = this.fillPercentage;
+    if (level > 80) return 'bg-red-500';
+    if (level > 50) return 'bg-orange-500';
+    return 'bg-green-500';
   }
 
   getMarkerContent(container: ContainerEntity): HTMLElement {
@@ -94,6 +244,39 @@ export class ContainerMonitoringPage implements OnInit {
     this.store.updateContainer(random.id, updates);
 
     this.markerContentCache.delete(random.id);
+  }
+
+  protected formatContainerType(type: string[]): string {
+    const typeLabels = type.map(t => {
+      switch (t) {
+        case ContainerTypeEnum.ORGANIC:
+          return 'Orgánico';
+        case ContainerTypeEnum.RECYCLABLE:
+          return 'Reciclable';
+        case ContainerTypeEnum.GENERAL:
+          return 'General';
+        default:
+          return 'Desconocido';
+      }
+    });
+    return typeLabels.join(', ');
+  }
+
+  protected formatContainerStatus(status: string[]): string {
+    const statusLabels = status.map(s => {
+      switch (s) {
+        case ContainerStatusEnum.ACTIVE:
+          return 'Activo';
+        case ContainerStatusEnum.MAINTENANCE:
+          return 'Mantenimiento';
+        case ContainerStatusEnum.DECOMMISSIONED:
+          return 'Fuera de Servicio';
+        default:
+          return 'Desconocido';
+      }
+    }
+    );
+    return statusLabels.join(', ');
   }
 
   private generateMarkerHtml(container: ContainerEntity): string {

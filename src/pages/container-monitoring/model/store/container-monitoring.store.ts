@@ -204,19 +204,34 @@ export const ContainerMonitoringStore = signalStore(
       /**
        * Actualizar datos de un container específico
        */
-      updateContainer(id: string, updates: Partial<ContainerEntity>): void {
+      async updateContainer(id: string, updates: Partial<ContainerEntity>): Promise<void> {
         const containers = store.containers();
         const index = containers.findIndex(c => c.id === id);
+        if (index === -1) return;
 
-        if (index !== -1) {
+        try {
+          const currentContainer = containers[index];
+          const updatedEntity: ContainerEntity = { ...currentContainer, ...updates };
+
+          const result = await firstValueFrom(containerService.update(id, updatedEntity));
+
           const updatedContainers = [...containers];
-          updatedContainers[index] = { ...updatedContainers[index], ...updates };
+          updatedContainers[index] = result;
 
           patchState(store, {
-            containers: updatedContainers
+            containers: updatedContainers,
+            isLoading: false,
+            error: null
           });
-
           this.applyFilters();
+
+        } catch (error: any) {
+          console.error('Error updating container:', error);
+          patchState(store, {
+            isLoading: false,
+            error: error.message || 'Error al actualizar el contenedor'
+          });
+          throw error;
         }
       },
 
