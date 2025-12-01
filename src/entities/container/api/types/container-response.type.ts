@@ -5,7 +5,7 @@ export interface ContainerResponse {
   address: string | null;
   districtCode: string | null;
   volumeLiters: number | null;
-  maxWeightKg: number | null;
+  maxFillLevel: number | null;
   containerType: string | null;
   status: string | null;
   currentFillLevel: number | null;

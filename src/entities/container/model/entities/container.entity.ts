@@ -6,7 +6,7 @@ export interface ContainerEntity {
   latitude: string;
   longitude: string;
   volumeLiters: number;
-  maxWeightKg: number;
+  maxFillLevel: number;
   containerType: ContainerTypeEnum;
   status: ContainerStatusEnum;
   currentFillLevel: number;
