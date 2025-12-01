@@ -248,7 +248,7 @@ export class ContainerMonitoringPage implements OnInit {
             </span>
           </p>
           <p><strong>Tipo:</strong> ${typeLabels[container.containerType]}</p>
-          <p><strong>Capacidad:</strong> ${container.volumeLiters}L / ${container.maxWeightKg}kg</p>
+          <p><strong>Capacidad:</strong> ${container.volumeLiters}L / ${container.maxFillLevel}kg</p>
           <p><strong>Llenado:</strong> ${container.currentFillLevel}%</p>
           ${container.lastReadingTimestamp ?
             `<p><strong>Última lectura:</strong> ${formatDate(container.lastReadingTimestamp)}</p>` : ''}
