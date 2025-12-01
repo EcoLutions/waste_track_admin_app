@@ -9,7 +9,7 @@ export interface ContainerResponse {
   containerType: string | null;
   status: string | null;
   currentFillLevel: number | null;
-  sensorId: string | null;
+  deviceId: string | null;
   lastReadingTimestamp: string | null; // LocalDateTime → ISO string
   districtId: string | null;
   lastCollectionDate: string | null; // LocalDateTime → ISO string

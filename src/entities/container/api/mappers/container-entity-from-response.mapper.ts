@@ -13,7 +13,7 @@ export class ContainerEntityFromResponseMapper {
       containerType: ContainerEntityFromResponseMapper.mapStringToContainerType(dto.containerType ?? ''),
       status: ContainerEntityFromResponseMapper.mapStringToContainerStatus(dto.status ?? ''),
       currentFillLevel: dto.currentFillLevel ?? 0,
-      sensorId: dto.sensorId,
+      deviceId: dto.deviceId,
       lastReadingTimestamp: dto.lastReadingTimestamp ? new Date(dto.lastReadingTimestamp) : null,
       districtId: dto.districtId ?? '',
       lastCollectionDate: dto.lastCollectionDate ? new Date(dto.lastCollectionDate) : null,
