@@ -10,7 +10,7 @@ export interface ContainerEntity {
   containerType: ContainerTypeEnum;
   status: ContainerStatusEnum;
   currentFillLevel: number;
-  sensorId: string | null;
+  deviceId: string | null;
   lastReadingTimestamp: Date | null;
   districtId: string;
   lastCollectionDate: Date | null;
