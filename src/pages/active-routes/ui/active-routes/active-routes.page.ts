@@ -2,10 +2,20 @@ import {Component, computed, inject, OnDestroy, OnInit, signal, ViewChild} from 
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {GoogleMap, MapAdvancedMarker, MapPolyline} from '@angular/google-maps';
+import {Subscription} from 'rxjs';
 import {ActiveRoutesStore} from '../../model/store/active-routes';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
 import {ContainerEntity, RouteEntity, RouteStatusEnum, WaypointStatusEnum} from '../../../../entities';
 import {environment} from '../../../../environments/environment.development';
+import {WebSocketConnectionStatus, WebSocketService} from '../../../../shared/services/websocket.service';
+import {EventBusService} from '../../../../shared/services/event-bus.service';
+import {
+  RouteLocationUpdatedEvent,
+  WebSocketConnectedEvent,
+  WebSocketDisconnectedEvent
+} from '../../../../shared/models/websocket-events';
+import {TruckMarker} from '../../../../shared/helpers/truck-marker.helper';
+import {ToastService} from '../../../../shared/api/services/toast.service';
 
 @Component({
   selector: 'app-active-routes',
@@ -17,6 +27,9 @@ import {environment} from '../../../../environments/environment.development';
 export class ActiveRoutesPage implements OnInit, OnDestroy {
   readonly store = inject(ActiveRoutesStore);
   readonly districtContextStore = inject(DistrictContextStore);
+  private readonly webSocketService = inject(WebSocketService);
+  private readonly eventBus = inject(EventBusService);
+  private readonly toastService = inject(ToastService);
 
   @ViewChild(GoogleMap) map!: GoogleMap;
 
@@ -38,6 +51,11 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   });
 
   private markerContentCache = new Map<string, HTMLElement>();
+  private truckMarkers = new Map<string, TruckMarker>();
+  private subscriptions: Subscription[] = [];
+
+  readonly wsStatus = signal<WebSocketConnectionStatus>(WebSocketConnectionStatus.DISCONNECTED);
+  readonly WebSocketConnectionStatus = WebSocketConnectionStatus;
 
   readonly routes = computed(() => this.store.filteredRoutes());
   readonly containers = computed(() => this.store.containers());
@@ -62,17 +80,28 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
-    // Debug: verificar que Google Maps esté disponible
     console.log('🔍 ActiveRoutesPage inicializado');
     console.log('  typeof google:', typeof google);
 
     this.initializePage().then(() => {});
+    this.setupWebSocketListeners();
   }
 
   ngOnDestroy(): void {
+    console.log('🧹 ActiveRoutesPage cleaning up');
+
+    this.disconnectWebSocket();
+
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions = [];
+
+    this.truckMarkers.forEach(marker => marker.remove());
+    this.truckMarkers.clear();
+
     this.store.resetState();
     this.markerContentCache.clear();
   }
+
 
   private async initializePage(): Promise<void> {
     await this.waitForGoogleMaps();
@@ -82,8 +111,9 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
     }
 
     this.autoCenterMap();
-  }
 
+    this.connectWebSocket();
+  }
 
   private async waitForGoogleMaps(): Promise<void> {
     const maxAttempts = 20;
@@ -91,16 +121,151 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (typeof google !== 'undefined' && google.maps) {
-        console.log(`✅ Google Maps disponible en la página (intento ${attempt}/${maxAttempts})`);
+        console.log(`Google Maps disponible (intento ${attempt}/${maxAttempts})`);
         return;
       }
 
-      console.log(`⏳ Esperando Google Maps en la página... (intento ${attempt}/${maxAttempts})`);
+      console.log(`Esperando Google Maps... (intento ${attempt}/${maxAttempts})`);
       await new Promise(resolve => setTimeout(resolve, delayMs));
     }
 
-    console.error('❌ Google Maps no se cargó después de 10 segundos');
+    console.error('Google Maps no se cargó después de 10 segundos');
   }
+
+
+  private connectWebSocket(): void {
+    //console.log('Conectando WebSocket...');
+
+    const wsUrl = environment.websocketUrl;
+    this.webSocketService.connect(wsUrl);
+
+    const statusSub = this.webSocketService.status$.subscribe(status => {
+      this.wsStatus.set(status);
+      //console.log('WebSocket status:', status);
+    });
+
+    this.subscriptions.push(statusSub);
+  }
+
+  private disconnectWebSocket(): void {
+    const routes = this.routes();
+    routes.forEach(route => {
+      this.webSocketService.unsubscribeFromRouteLocation(route.id);
+    });
+
+    this.webSocketService.disconnect();
+  }
+
+  private setupWebSocketListeners(): void {
+    const connectedSub = this.eventBus.on(WebSocketConnectedEvent).subscribe(() => {
+      //console.log('WebSocket conectado');
+      this.toastService.success('Conectado al sistema de seguimiento en tiempo real');
+      this.subscribeToAllActiveRoutes();
+    });
+
+    const disconnectedSub = this.eventBus.on(WebSocketDisconnectedEvent).subscribe(() => {
+      //console.log('WebSocket desconectado');
+      this.toastService.warn('Desconectado del sistema de seguimiento');
+    });
+
+    const locationSub = this.eventBus.on(RouteLocationUpdatedEvent).subscribe(event => {
+      //console.log('Route location updated:', event.payload);
+      this.handleRouteLocationUpdate(event);
+    });
+
+    this.subscriptions.push(connectedSub, disconnectedSub, locationSub);
+  }
+
+  private subscribeToAllActiveRoutes(): void {
+    const routes = this.routes();
+    //console.log(`Suscribiendo a ${routes.length} rutas activas...`);
+
+    routes.forEach(route => {
+      this.webSocketService.subscribeToRouteLocation(route.id);
+
+      if (route.currentLatitude && route.currentLongitude) {
+        this.createTruckMarkerForRoute(route);
+      }
+    });
+  }
+
+  private handleRouteLocationUpdate(event: RouteLocationUpdatedEvent): void {
+    const { payload } = event;
+
+    this.store.updateRouteLocation(
+      payload.routeId,
+      payload.latitude,
+      payload.longitude,
+      new Date(payload.timestamp)
+    );
+
+    const route = this.store.getRouteById(payload.routeId);
+    if (!route) return;
+
+    this.updateTruckMarker(route, {
+      lat: parseFloat(payload.latitude),
+      lng: parseFloat(payload.longitude)
+    });
+
+    if (this.selectedRoute()?.id === payload.routeId) {
+      const remaining = payload.remainingWaypoints;
+      this.toastService.success(
+        `Ruta actualizada: ${remaining} punto${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}`
+      );
+    }
+  }
+
+
+  private createTruckMarkerForRoute(route: RouteEntity): void {
+    if (!route.currentLatitude || !route.currentLongitude) {
+      console.warn('Ruta sin ubicación actual:', route.id);
+      return;
+    }
+
+    if (this.truckMarkers.has(route.id)) {
+      console.log('Truck marker ya existe para ruta:', route.id);
+      return;
+    }
+
+    if (!this.map || !this.map.googleMap) {
+      console.warn('Mapa no disponible todavía');
+      setTimeout(() => this.createTruckMarkerForRoute(route), 500);
+      return;
+    }
+
+    const position = {
+      lat: parseFloat(route.currentLatitude),
+      lng: parseFloat(route.currentLongitude)
+    };
+
+    const truckMarker = new TruckMarker({
+      position,
+      map: this.map.googleMap
+    });
+
+    this.truckMarkers.set(route.id, truckMarker);
+  }
+
+  private updateTruckMarker(
+    route: RouteEntity,
+    newPosition: google.maps.LatLngLiteral
+  ): void {
+    let truckMarker = this.truckMarkers.get(route.id);
+
+    if (!truckMarker) {
+      if (!this.map || !this.map.googleMap) return;
+
+      truckMarker = new TruckMarker({
+        position: newPosition,
+        map: this.map.googleMap
+      });
+      this.truckMarkers.set(route.id, truckMarker);
+      return;
+    }
+
+    truckMarker.animateToPosition(newPosition, { duration: 2000 }).then(() => {});
+  }
+
 
   private autoCenterMap(): void {
     const containers = this.containers();
@@ -240,7 +405,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
     if (directions && this.map && this.map.googleMap) {
       this.map.googleMap.fitBounds(directions.bounds, 50);
     } else {
-      // Fallback: centrar en waypoints
       const path = this.getRouteWaypointsPath(route);
       if (path.length > 0 && this.map && this.map.googleMap) {
         const bounds = new google.maps.LatLngBounds();
@@ -253,6 +417,10 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   async refreshRoutes(): Promise<void> {
     await this.store.refreshRoutes();
     this.autoCenterMap();
+
+    if (this.wsStatus() === WebSocketConnectionStatus.CONNECTED) {
+      this.subscribeToAllActiveRoutes();
+    }
   }
 
   selectRoute(route: RouteEntity): void {

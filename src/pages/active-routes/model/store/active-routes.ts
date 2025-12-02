@@ -367,6 +367,28 @@ export const ActiveRoutesStore = signalStore(
         return [...store.routes()]
           .sort((a, b) => b.waypoints.length - a.waypoints.length)
           .slice(0, limit);
+      },
+
+      updateRouteLocation(
+        routeId: string,
+        latitude: string,
+        longitude: string,
+        timestamp: Date
+      ): void {
+        patchState(store, (state) => ({
+          routes: state.routes.map(route =>
+            route.id === routeId
+              ? {
+                ...route,
+                currentLatitude: latitude,
+                currentLongitude: longitude,
+                lastLocationUpdate: timestamp
+              }
+              : route
+          )
+        }));
+
+        console.log(`📍 Ubicación actualizada para ruta ${routeId.substring(0, 8)}`);
       }
     };
   })
