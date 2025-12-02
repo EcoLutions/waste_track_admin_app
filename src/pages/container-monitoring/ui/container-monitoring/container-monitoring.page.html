@@ -126,7 +126,7 @@
                     <span>Llenado:</span>
                     <span
                       class="font-bold"
-                      [class.text-red-600]="selected.currentFillLevel > 80"
+                      [class.text-red-600]="selected.currentFillLevel >= selected.maxFillLevel"
                     >
                     {{ selected.currentFillLevel }}%
                   </span>
