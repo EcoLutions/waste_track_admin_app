@@ -62,6 +62,10 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    // Debug: verificar que Google Maps esté disponible
+    console.log('🔍 ActiveRoutesPage inicializado');
+    console.log('  typeof google:', typeof google);
+
     this.initializePage().then(() => {});
   }
 
@@ -71,11 +75,31 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   }
 
   private async initializePage(): Promise<void> {
+    await this.waitForGoogleMaps();
+
     if (this.districtContextStore.districtId()) {
       await this.store.loadActiveRoutes();
     }
 
     this.autoCenterMap();
+  }
+
+
+  private async waitForGoogleMaps(): Promise<void> {
+    const maxAttempts = 20;
+    const delayMs = 500;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (typeof google !== 'undefined' && google.maps) {
+        console.log(`✅ Google Maps disponible en la página (intento ${attempt}/${maxAttempts})`);
+        return;
+      }
+
+      console.log(`⏳ Esperando Google Maps en la página... (intento ${attempt}/${maxAttempts})`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+
+    console.error('❌ Google Maps no se cargó después de 10 segundos');
   }
 
   private autoCenterMap(): void {
@@ -92,7 +116,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       }
     });
 
-    // Esperar a que el mapa esté listo
     setTimeout(() => {
       if (this.map && this.map.googleMap) {
         this.map.googleMap.fitBounds(bounds, 50);

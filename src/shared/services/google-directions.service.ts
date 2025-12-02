@@ -33,21 +33,41 @@ export class GoogleDirectionsService {
   constructor() {
   }
 
-  private ensureDirectionsService(): void {
+  private async ensureDirectionsService(): Promise<void> {
     if (this.directionsService) {
       return;
     }
 
-    if (typeof google === 'undefined' || !google.maps) {
-      throw new Error('Google Maps SDK no está cargado. Asegúrate de tener el script en index.html');
-    }
+    await this.waitForGoogleMaps();
 
     this.directionsService = new google.maps.DirectionsService();
   }
 
+  private async waitForGoogleMaps(): Promise<void> {
+    const maxAttempts = 20;
+    const delayMs = 500;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (typeof google !== 'undefined' && google.maps && google.maps.DirectionsService) {
+        console.log(`✅ Google Maps SDK cargado (intento ${attempt}/${maxAttempts})`);
+        return;
+      }
+
+      console.log(`⏳ Esperando Google Maps SDK... (intento ${attempt}/${maxAttempts})`);
+      await this.delay(delayMs);
+    }
+
+    throw new Error('⏰ Timeout: Google Maps SDK no se cargó después de 10 segundos. Verifica tu index.html y API key.');
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+
   async getDirections(origin: LatLng, destination: LatLng, waypoints: LatLng[] = []): Promise<RouteDirections | null> {
     try {
-      this.ensureDirectionsService();
+      await this.ensureDirectionsService();
 
       const googleWaypoints: google.maps.DirectionsWaypoint[] = waypoints.map(wp => ({
         location: new google.maps.LatLng(wp.lat, wp.lng),

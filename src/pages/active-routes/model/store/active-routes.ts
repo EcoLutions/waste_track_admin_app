@@ -6,7 +6,8 @@ import {
   RouteEntity,
   RouteService,
   RouteStatusEnum,
-  WaypointService, WaypointStatusEnum
+  WaypointService,
+  WaypointStatusEnum
 } from '../../../../entities';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
 import {firstValueFrom} from 'rxjs';
@@ -37,6 +38,7 @@ const initialState: ActiveRoutesState = {
 };
 
 export const ActiveRoutesStore = signalStore(
+
   withState(initialState),
 
   withComputed((state) => {
@@ -159,6 +161,8 @@ export const ActiveRoutesStore = signalStore(
 
           await this.loadWaypointsForRoutes(routes);
 
+          console.log('✅ Waypoints cargados para todas las rutas');
+
           patchState(store, {
             routes: routes,
             containers: containers || [],
@@ -183,6 +187,8 @@ export const ActiveRoutesStore = signalStore(
           console.log('⚠️ No hay rutas para cargar waypoints');
           return;
         }
+
+        console.log(`🔍 Cargando waypoints para ${routes.length} rutas...`);
 
         await Promise.all(
           routes.map(async (route) => {
@@ -217,7 +223,6 @@ export const ActiveRoutesStore = signalStore(
         patchState(store, { isLoadingDirections: true });
 
         try {
-          // Cargar direcciones en lotes de 5 para no saturar
           const batchSize = 5;
           for (let i = 0; i < routes.length; i += batchSize) {
             const batch = routes.slice(i, i + batchSize);
