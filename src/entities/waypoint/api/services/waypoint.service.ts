@@ -27,6 +27,13 @@ export class WaypointService extends BaseService {
     );
   }
 
+  getAllByRouteId(routeId: string): Observable<WaypointEntity[]> {
+    return this.http.get<WaypointResponse[]>(`${this.resourcePath()}?routeId=${routeId}`, this.httpOptions).pipe(
+      map((responses: WaypointResponse[]) => responses.map(r => WaypointEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
+  }
+
   getById(id: string): Observable<WaypointEntity> {
     return this.http.get<WaypointResponse>(`${this.resourcePath()}/${id}`, this.httpOptions).pipe(
       map((response: WaypointResponse) => WaypointEntityFromResponseMapper.fromDtoToEntity(response)),
