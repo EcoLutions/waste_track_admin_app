@@ -101,7 +101,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       volumeLiters: [240, [Validators.required, Validators.min(50), Validators.max(5000)]],
       maxFillLevel: [90, [Validators.required, Validators.min(1), Validators.max(99)]],
       containerType: [ContainerTypeEnum.GENERAL, Validators.required],
-      deviceId: [''],
+      deviceIdentifier: [''],
       collectionFrequencyDays: [7, [Validators.required, Validators.min(1), Validators.max(30)]]
     });
   }
@@ -139,7 +139,7 @@ export class CreateContainerPage implements OnInit, OnDestroy {
       volumeLiters: 240,
       maxFillLevel: 90,
       containerType: ContainerTypeEnum.GENERAL,
-      deviceId: '',
+      deviceIdentifier: '',
       collectionFrequencyDays: 7
     });
     this.store.resetForm();

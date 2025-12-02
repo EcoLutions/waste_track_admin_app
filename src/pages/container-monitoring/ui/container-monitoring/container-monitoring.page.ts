@@ -322,7 +322,7 @@ export class ContainerMonitoringPage implements OnInit {
     const status = statusConfig[container.status];
     const type = typeConfig[container.containerType];
     const fillLevel = container.currentFillLevel;
-    const isHigh = fillLevel > 80;
+    const isHigh = fillLevel > container.maxFillLevel;
 
     return `
       <div class="custom-marker-wrapper" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">

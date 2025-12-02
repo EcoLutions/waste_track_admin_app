@@ -65,10 +65,10 @@ export const DashboardStore = signalStore(
         state.containers().filter(container => container.status === ContainerStatusEnum.ACTIVE)
       ),
       containersNeedingCollection: computed(() =>
-        state.containers().filter(container => container.currentFillLevel > 80)
+        state.containers().filter(container => container.currentFillLevel > container.maxFillLevel*0.9)
       ),
       containersWithAlerts: computed(() =>
-        state.containers().filter(container => container.currentFillLevel > 90)
+        state.containers().filter(container => container.currentFillLevel >= container.maxFillLevel)
       ),
 
       // Vehicle metrics
@@ -132,7 +132,7 @@ export const DashboardStore = signalStore(
 
         // Container health (30%)
         if (containers.length > 0) {
-          const healthyContainers = containers.filter(c => c.currentFillLevel < 80).length;
+          const healthyContainers = containers.filter(c => c.currentFillLevel < c.maxFillLevel*0.9).length;
           score += (healthyContainers / containers.length) * 30;
           total += 30;
         }

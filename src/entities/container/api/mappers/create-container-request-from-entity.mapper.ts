@@ -8,7 +8,7 @@ export class CreateContainerRequestFromEntityMapper {
       longitude: entity.longitude,
       volumeLiters: entity.volumeLiters,
       maxFillLevel: entity.maxFillLevel,
-      deviceId: entity.deviceId, //deviceId can be null
+      deviceIdentifier: entity.deviceId, //deviceId can be null
       containerType: entity.containerType,
       districtId: entity.districtId,
       collectionFrequencyDays: entity.collectionFrequencyDays

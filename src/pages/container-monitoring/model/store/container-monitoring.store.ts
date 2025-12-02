@@ -60,7 +60,7 @@ export const ContainerMonitoringStore = signalStore(
 
     // Containers con nivel alto de llenado (>80%)
     highFillLevelContainers: computed(() =>
-      state.containers().filter(c => c.currentFillLevel > 80).length
+      state.containers().filter(c => c.currentFillLevel > c.currentFillLevel*0.9).length
     ),
 
     // Containers que necesitan mantenimiento (última lectura > 7 días)
@@ -272,7 +272,7 @@ export const ContainerMonitoringStore = signalStore(
           total: containers.length,
           active: containers.filter(c => c.status === ContainerStatusEnum.ACTIVE).length,
           maintenance: containers.filter(c => c.status === ContainerStatusEnum.MAINTENANCE).length,
-          highFillLevel: containers.filter(c => c.currentFillLevel > 80).length,
+          highFillLevel: containers.filter(c => c.currentFillLevel > c.currentFillLevel*0.9).length,
           needingMaintenance: containers.filter(c =>
             c.lastReadingTimestamp && c.lastReadingTimestamp < sevenDaysAgo
           ).length

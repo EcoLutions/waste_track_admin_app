@@ -13,7 +13,7 @@ export interface CreateContainerState {
     volumeLiters: number;
     maxFillLevel: number;
     containerType: ContainerTypeEnum;
-    deviceId: string;
+    deviceIdentifier: string;
     collectionFrequencyDays: number;
   };
 
@@ -31,7 +31,7 @@ const initialState: CreateContainerState = {
     volumeLiters: 240,
     maxFillLevel: 90,
     containerType: ContainerTypeEnum.GENERAL,
-    deviceId: '',
+    deviceIdentifier: '',
     collectionFrequencyDays: 7
   },
   isLoading: false,
@@ -75,7 +75,7 @@ export const CreateContainerStore = signalStore(
           containerType: form.containerType,
           status: ContainerStatusEnum.ACTIVE,
           currentFillLevel: 0,
-          deviceId: form.deviceId || null,
+          deviceId: form.deviceIdentifier || null,
           districtId: districtId || '',
           collectionFrequencyDays: form.collectionFrequencyDays,
           lastReadingTimestamp: null,
@@ -163,7 +163,7 @@ export const CreateContainerStore = signalStore(
             containerType: formData.containerType,
             status: ContainerStatusEnum.ACTIVE,
             currentFillLevel: 0,
-            deviceId: formData.deviceId || null,
+            deviceId: formData.deviceIdentifier || null,
             lastReadingTimestamp: null,
             districtId: districtId,
             lastCollectionDate: null,
