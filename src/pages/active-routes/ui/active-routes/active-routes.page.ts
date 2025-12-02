@@ -1,139 +1,446 @@
-import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {GoogleMap, MapAdvancedMarker, MapPolyline} from '@angular/google-maps';
+import {Subscription} from 'rxjs';
 import {ActiveRoutesStore} from '../../model/store/active-routes';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
-import {RouteEntity, RouteStatusEnum} from '../../../../entities';
-import {PriorityEnum, WaypointStatusEnum} from '../../../../entities/waypoint/model';
-
-type ViewMode = 'map' | 'list' | 'split';
+import {ContainerEntity, RouteEntity, RouteStatusEnum, WaypointStatusEnum} from '../../../../entities';
+import {environment} from '../../../../environments/environment.development';
+import {WebSocketConnectionStatus, WebSocketService} from '../../../../shared/services/websocket.service';
+import {EventBusService} from '../../../../shared/services/event-bus.service';
+import {
+  RouteLocationUpdatedEvent,
+  WebSocketConnectedEvent,
+  WebSocketDisconnectedEvent
+} from '../../../../shared/models/websocket-events';
+import {TruckMarker} from '../../../../shared/helpers/truck-marker.helper';
+import {ToastService} from '../../../../shared/api/services/toast.service';
 
 @Component({
   selector: 'app-active-routes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GoogleMap, MapAdvancedMarker, MapPolyline],
+  providers: [ActiveRoutesStore],
   templateUrl: './active-routes.page.html',
   styleUrl: './active-routes.page.css'
 })
 export class ActiveRoutesPage implements OnInit, OnDestroy {
   readonly store = inject(ActiveRoutesStore);
   readonly districtContextStore = inject(DistrictContextStore);
+  private readonly webSocketService = inject(WebSocketService);
+  private readonly eventBus = inject(EventBusService);
+  private readonly toastService = inject(ToastService);
 
-  // View mode
-  viewMode = signal<ViewMode>('list');
+  @ViewChild(GoogleMap) map!: GoogleMap;
 
-  // Selected route for detail panel
   selectedRoute = signal<RouteEntity | null>(null);
 
-  // Search and filter signals
-  searchTerm = signal('');
-  selectedStatus = signal<RouteStatusEnum | null>(null);
-  showInProgressOnly = signal(true);
+  mapOptions: google.maps.MapOptions = {
+    mapId: environment.googleMaps.mapIds.depot,
+    disableDefaultUI: false,
+    clickableIcons: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    gestureHandling: 'greedy',
+    zoom: 13
+  };
 
-  // Computed signals for template
+  mapCenter = signal<google.maps.LatLngLiteral>({
+    lat: -12.0464,
+    lng: -77.0428
+  });
+
+  private markerContentCache = new Map<string, HTMLElement>();
+  private truckMarkers = new Map<string, TruckMarker>();
+  private subscriptions: Subscription[] = [];
+
+  readonly wsStatus = signal<WebSocketConnectionStatus>(WebSocketConnectionStatus.DISCONNECTED);
+  readonly WebSocketConnectionStatus = WebSocketConnectionStatus;
+
   readonly routes = computed(() => this.store.filteredRoutes());
+  readonly containers = computed(() => this.store.containers());
   readonly isLoading = computed(() => this.store.isLoading());
+  readonly isLoadingDirections = computed(() => this.store.isLoadingDirections());
   readonly error = computed(() => this.store.error());
   readonly totalRoutes = computed(() => this.store.totalRoutes());
   readonly inProgressRoutes = computed(() => this.store.inProgressRoutes());
-  readonly routesByStatus = computed(() => this.store.routesByStatus());
   readonly totalDistance = computed(() => this.store.totalDistance());
   readonly totalEstimatedDuration = computed(() => this.store.totalEstimatedDuration());
-  readonly routesWithWaypoints = computed(() => this.store.routesWithWaypoints());
   readonly averageWaypointsPerRoute = computed(() => this.store.averageWaypointsPerRoute());
   readonly districtName = computed(() => this.store.districtName());
 
   readonly routeStatuses = Object.values(RouteStatusEnum);
 
-  readonly hasActiveFilters = computed(() => {
-    return this.searchTerm() !== '' ||
-      this.selectedStatus() !== null
-  });
+  private readonly ROUTE_COLORS: Record<RouteStatusEnum, string> = {
+    [RouteStatusEnum.PLANNED]: '#9CA3AF',
+    [RouteStatusEnum.ACTIVE]: '#3B82F6',
+    [RouteStatusEnum.IN_PROGRESS]: '#10B981',
+    [RouteStatusEnum.COMPLETED]: '#8B5CF6',
+    [RouteStatusEnum.CANCELLED]: '#EF4444'
+  };
 
   ngOnInit(): void {
+    console.log('🔍 ActiveRoutesPage inicializado');
+    console.log('  typeof google:', typeof google);
+
     this.initializePage().then(() => {});
+    this.setupWebSocketListeners();
   }
 
   ngOnDestroy(): void {
+    console.log('🧹 ActiveRoutesPage cleaning up');
+
+    this.disconnectWebSocket();
+
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions = [];
+
+    this.truckMarkers.forEach(marker => marker.remove());
+    this.truckMarkers.clear();
+
     this.store.resetState();
+    this.markerContentCache.clear();
   }
 
+
   private async initializePage(): Promise<void> {
-    if (!this.districtContextStore.isDistrictLoaded()) {
-      try {
-        await this.districtContextStore.initializeDistrictContext();
-      } catch (error) {
-        console.error('Error initializing district context:', error);
-      }
-    }
+    await this.waitForGoogleMaps();
 
     if (this.districtContextStore.districtId()) {
       await this.store.loadActiveRoutes();
     }
 
-    this.searchTerm.set(this.store.searchTerm());
-    this.selectedStatus.set(this.store.selectedStatus());
-    this.showInProgressOnly.set(this.store.showInProgressOnly());
+    this.autoCenterMap();
+
+    this.connectWebSocket();
   }
 
-  // View mode methods
-  setViewMode(mode: ViewMode): void {
-    this.viewMode.set(mode);
+  private async waitForGoogleMaps(): Promise<void> {
+    const maxAttempts = 20;
+    const delayMs = 500;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (typeof google !== 'undefined' && google.maps) {
+        console.log(`Google Maps disponible (intento ${attempt}/${maxAttempts})`);
+        return;
+      }
+
+      console.log(`Esperando Google Maps... (intento ${attempt}/${maxAttempts})`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+
+    console.error('Google Maps no se cargó después de 10 segundos');
   }
 
-  // Search and filter methods
-  onSearchTermChange(searchTerm: string): void {
-    this.searchTerm.set(searchTerm);
-    this.store.setSearchTerm(searchTerm);
+
+  private connectWebSocket(): void {
+    //console.log('Conectando WebSocket...');
+
+    const wsUrl = environment.websocketUrl;
+    this.webSocketService.connect(wsUrl);
+
+    const statusSub = this.webSocketService.status$.subscribe(status => {
+      this.wsStatus.set(status);
+      //console.log('WebSocket status:', status);
+    });
+
+    this.subscriptions.push(statusSub);
   }
 
-  onStatusFilterChange(status: string): void {
-    const statusEnum = status === 'all' ? null : status as RouteStatusEnum;
-    this.selectedStatus.set(statusEnum);
-    this.store.setStatusFilter(statusEnum);
+  private disconnectWebSocket(): void {
+    const routes = this.routes();
+    routes.forEach(route => {
+      this.webSocketService.unsubscribeFromRouteLocation(route.id);
+    });
+
+    this.webSocketService.disconnect();
   }
 
-  onInProgressFilterChange(showInProgressOnly: boolean): void {
-    this.showInProgressOnly.set(showInProgressOnly);
-    this.store.setShowInProgressOnly(showInProgressOnly);
+  private setupWebSocketListeners(): void {
+    const connectedSub = this.eventBus.on(WebSocketConnectedEvent).subscribe(() => {
+      //console.log('WebSocket conectado');
+      this.toastService.success('Conectado al sistema de seguimiento en tiempo real');
+      this.subscribeToAllActiveRoutes();
+    });
+
+    const disconnectedSub = this.eventBus.on(WebSocketDisconnectedEvent).subscribe(() => {
+      //console.log('WebSocket desconectado');
+      this.toastService.warn('Desconectado del sistema de seguimiento');
+    });
+
+    const locationSub = this.eventBus.on(RouteLocationUpdatedEvent).subscribe(event => {
+      //console.log('Route location updated:', event.payload);
+      this.handleRouteLocationUpdate(event);
+    });
+
+    this.subscriptions.push(connectedSub, disconnectedSub, locationSub);
   }
 
-  toggleInProgressFilter(): void {
-    const newValue = !this.showInProgressOnly();
-    this.showInProgressOnly.set(newValue);
-    this.store.setShowInProgressOnly(newValue);
+  private subscribeToAllActiveRoutes(): void {
+    const routes = this.routes();
+    //console.log(`Suscribiendo a ${routes.length} rutas activas...`);
+
+    routes.forEach(route => {
+      this.webSocketService.subscribeToRouteLocation(route.id);
+
+      if (route.currentLatitude && route.currentLongitude) {
+        this.createTruckMarkerForRoute(route);
+      }
+    });
   }
 
-  clearFilters(): void {
-    this.searchTerm.set('');
-    this.selectedStatus.set(null);
-    this.showInProgressOnly.set(true);
-    this.store.clearFilters();
+  private handleRouteLocationUpdate(event: RouteLocationUpdatedEvent): void {
+    const { payload } = event;
+
+    this.store.updateRouteLocation(
+      payload.routeId,
+      payload.latitude,
+      payload.longitude,
+      new Date(payload.timestamp)
+    );
+
+    const route = this.store.getRouteById(payload.routeId);
+    if (!route) return;
+
+    this.updateTruckMarker(route, {
+      lat: parseFloat(payload.latitude),
+      lng: parseFloat(payload.longitude)
+    });
+
+    if (this.selectedRoute()?.id === payload.routeId) {
+      const remaining = payload.remainingWaypoints;
+      this.toastService.success(
+        `Ruta actualizada: ${remaining} punto${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}`
+      );
+    }
+  }
+
+
+  private createTruckMarkerForRoute(route: RouteEntity): void {
+    if (!route.currentLatitude || !route.currentLongitude) {
+      console.warn('Ruta sin ubicación actual:', route.id);
+      return;
+    }
+
+    if (this.truckMarkers.has(route.id)) {
+      console.log('Truck marker ya existe para ruta:', route.id);
+      return;
+    }
+
+    if (!this.map || !this.map.googleMap) {
+      console.warn('Mapa no disponible todavía');
+      setTimeout(() => this.createTruckMarkerForRoute(route), 500);
+      return;
+    }
+
+    const position = {
+      lat: parseFloat(route.currentLatitude),
+      lng: parseFloat(route.currentLongitude)
+    };
+
+    const truckMarker = new TruckMarker({
+      position,
+      map: this.map.googleMap
+    });
+
+    this.truckMarkers.set(route.id, truckMarker);
+  }
+
+  private updateTruckMarker(
+    route: RouteEntity,
+    newPosition: google.maps.LatLngLiteral
+  ): void {
+    let truckMarker = this.truckMarkers.get(route.id);
+
+    if (!truckMarker) {
+      if (!this.map || !this.map.googleMap) return;
+
+      truckMarker = new TruckMarker({
+        position: newPosition,
+        map: this.map.googleMap
+      });
+      this.truckMarkers.set(route.id, truckMarker);
+      return;
+    }
+
+    truckMarker.animateToPosition(newPosition, { duration: 2000 }).then(() => {});
+  }
+
+
+  private autoCenterMap(): void {
+    const containers = this.containers();
+    if (containers.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+
+    containers.forEach(container => {
+      const lat = parseFloat(container.latitude);
+      const lng = parseFloat(container.longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        bounds.extend({ lat, lng });
+      }
+    });
+
+    setTimeout(() => {
+      if (this.map && this.map.googleMap) {
+        this.map.googleMap.fitBounds(bounds, 50);
+      }
+    }, 500);
+  }
+
+  getContainerMarkerContent(container: ContainerEntity): HTMLElement {
+    const cacheKey = `container-${container.id}`;
+    const existing = this.markerContentCache.get(cacheKey);
+    if (existing) return existing;
+
+    const div = document.createElement('div');
+    div.innerHTML = this.generateContainerMarkerHtml(container);
+    this.markerContentCache.set(cacheKey, div);
+    return div;
+  }
+
+  private generateContainerMarkerHtml(container: ContainerEntity): string {
+    const fillLevel = container.currentFillLevel;
+    const isHigh = fillLevel > 80;
+
+    const statusColor = container.status === 'active' ? '#16a34a' : '#ea580c';
+    const bgColor = container.status === 'active' ? '#f0fdf4' : '#fff7ed';
+
+    return `
+      <div style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="background-color: ${bgColor}; border: 2px solid ${statusColor}; border-radius: 8px; padding: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+          <div style="width: 32px; height: 32px; position: relative;">
+            <img src="assets/images/smart-trash.png" style="width: 100%; height: 100%; object-fit: contain;" alt="container">
+          </div>
+          <div style="text-align: center; margin-top: 2px;">
+            <div style="font-size: 9px; font-weight: bold; color: ${isHigh ? '#dc2626' : '#666'}">${fillLevel}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  getRoutePolylines(): google.maps.PolylineOptions[] {
+    const routes = this.routes();
+    const polylines: google.maps.PolylineOptions[] = [];
+
+    routes.forEach(route => {
+      const directions = this.store.getDirections()(route.id);
+
+      if (directions && directions.polylinePoints.length > 0) {
+        polylines.push({
+          path: directions.polylinePoints,
+          strokeColor: this.ROUTE_COLORS[route.status],
+          strokeOpacity: 0.8,
+          strokeWeight: 4,
+          geodesic: true,
+          clickable: true,
+          zIndex: route.id === this.selectedRoute()?.id ? 10 : 1
+        });
+      } else {
+        const path = this.getRouteWaypointsPath(route);
+        if (path.length > 0) {
+          polylines.push({
+            path,
+            strokeColor: this.ROUTE_COLORS[route.status],
+            strokeOpacity: 0.5,
+            strokeWeight: 3,
+            geodesic: true,
+            clickable: true,
+            zIndex: 0,
+            icons: [{
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                scale: 2,
+                strokeColor: this.ROUTE_COLORS[route.status]
+              },
+              offset: '100%',
+              repeat: '100px'
+            }]
+          });
+        }
+      }
+    });
+
+    return polylines;
+  }
+
+  private getRouteWaypointsPath(route: RouteEntity): google.maps.LatLngLiteral[] {
+    const containersMap = this.store.containersMap();
+
+    return route.waypoints
+      .sort((a, b) => a.sequenceOrder - b.sequenceOrder)
+      .map(wp => {
+        const container = containersMap.get(wp.containerId);
+        if (!container) return null;
+
+        const lat = parseFloat(container.latitude);
+        const lng = parseFloat(container.longitude);
+
+        if (isNaN(lat) || isNaN(lng)) return null;
+
+        return { lat, lng };
+      })
+      .filter(point => point !== null) as google.maps.LatLngLiteral[];
+  }
+
+  onPolylineClick(route: RouteEntity): void {
+    this.selectRoute(route);
+  }
+
+  getRouteContainers(): ContainerEntity[] {
+    const routes = this.routes();
+    const containerIds = new Set<string>();
+
+    routes.forEach(route => {
+      route.waypoints.forEach(wp => containerIds.add(wp.containerId));
+    });
+
+    return this.containers().filter(c => containerIds.has(c.id));
+  }
+
+  focusOnRoute(route: RouteEntity): void {
+    const directions = this.store.getDirections()(route.id);
+
+    if (directions && this.map && this.map.googleMap) {
+      this.map.googleMap.fitBounds(directions.bounds, 50);
+    } else {
+      const path = this.getRouteWaypointsPath(route);
+      if (path.length > 0 && this.map && this.map.googleMap) {
+        const bounds = new google.maps.LatLngBounds();
+        path.forEach(point => bounds.extend(point));
+        this.map.googleMap.fitBounds(bounds, 50);
+      }
+    }
   }
 
   async refreshRoutes(): Promise<void> {
     await this.store.refreshRoutes();
+    this.autoCenterMap();
+
+    if (this.wsStatus() === WebSocketConnectionStatus.CONNECTED) {
+      this.subscribeToAllActiveRoutes();
+    }
   }
 
-  // Route selection
   selectRoute(route: RouteEntity): void {
     if (this.selectedRoute()?.id === route.id) {
       this.selectedRoute.set(null);
+      this.store.selectRoute(null);
     } else {
       this.selectedRoute.set(route);
+      this.store.selectRoute(route.id);
+      this.focusOnRoute(route);
     }
   }
 
   closeRouteDetail(): void {
     this.selectedRoute.set(null);
+    this.store.selectRoute(null);
   }
 
-  // Route status helpers
   isInProgress(route: RouteEntity): boolean {
     return route.status === RouteStatusEnum.IN_PROGRESS;
-  }
-
-  isCompleted(route: RouteEntity): boolean {
-    return route.status === RouteStatusEnum.COMPLETED;
   }
 
   getRouteProgress(route: RouteEntity): number {
@@ -146,69 +453,10 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
     return route.waypoints.filter(w => w.status === WaypointStatusEnum.VISITED).length;
   }
 
-  // Status label and class methods
-  getStatusLabel(status: RouteStatusEnum): string {
-    const labels = {
-      [RouteStatusEnum.PLANNED]: 'Borrador',
-      [RouteStatusEnum.ACTIVE]: 'Asignada',
-      [RouteStatusEnum.IN_PROGRESS]: 'En Progreso',
-      [RouteStatusEnum.COMPLETED]: 'Completada',
-      [RouteStatusEnum.CANCELLED]: 'Cancelada'
-    };
-    return labels[status] || status;
+  getStatusColor(status: RouteStatusEnum): string {
+    return this.ROUTE_COLORS[status];
   }
 
-  getStatusClass(status: RouteStatusEnum): string {
-    const classes = {
-      [RouteStatusEnum.PLANNED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700',
-      [RouteStatusEnum.ACTIVE]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700',
-      [RouteStatusEnum.IN_PROGRESS]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700',
-      [RouteStatusEnum.COMPLETED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700',
-      [RouteStatusEnum.CANCELLED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700'
-    };
-    return classes[status] || 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700';
-  }
-
-  // Waypoint helpers
-  getWaypointStatusLabel(status: WaypointStatusEnum): string {
-    const labels = {
-      [WaypointStatusEnum.PENDING]: 'Pendiente',
-      [WaypointStatusEnum.VISITED]: 'Visitado',
-      [WaypointStatusEnum.SKIPPED]: 'Omitido'
-    };
-    return labels[status] || status;
-  }
-
-  getWaypointStatusClass(status: WaypointStatusEnum): string {
-    const classes = {
-      [WaypointStatusEnum.PENDING]: 'px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded',
-      [WaypointStatusEnum.VISITED]: 'px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded',
-      [WaypointStatusEnum.SKIPPED]: 'px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs rounded'
-    };
-    return classes[status] || 'px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded';
-  }
-
-  getPriorityLabel(priority: PriorityEnum): string {
-    const labels = {
-      [PriorityEnum.LOW]: 'Baja',
-      [PriorityEnum.MEDIUM]: 'Media',
-      [PriorityEnum.HIGH]: 'Alta',
-      [PriorityEnum.CRITICAL]: 'Crítica'
-    };
-    return labels[priority] || priority;
-  }
-
-  getPriorityClass(priority: PriorityEnum): string {
-    const classes = {
-      [PriorityEnum.LOW]: 'text-gray-500',
-      [PriorityEnum.MEDIUM]: 'text-blue-600',
-      [PriorityEnum.HIGH]: 'text-orange-600',
-      [PriorityEnum.CRITICAL]: 'text-red-600 font-semibold'
-    };
-    return classes[priority] || 'text-gray-500';
-  }
-
-  // Formatting methods
   formatDate(date: Date | null): string {
     if (!date) return 'No programado';
     return new Intl.DateTimeFormat('es-PE', {

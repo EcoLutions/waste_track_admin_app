@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
   apiUrl: 'http://localhost:8080/api/v1/',
+  websocketUrl: 'ws://localhost:8080/ws',
   googleMaps: {
     apiKey: 'AIzaSyCNC6IN3TDO0SyxOuna_bWteD00CqEhpps',
     version: 'weekly',
