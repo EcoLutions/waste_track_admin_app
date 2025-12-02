@@ -12,6 +12,8 @@ export interface RouteEntity {
   startedAt: Date | null;
   completedAt: Date | null;
   waypoints: WaypointEntity[];
+  totalWaypoints: number;
+  totalCompletedWaypoints: number;
   totalDistance: number | null;
   estimatedDuration: number | null;
   collectionDuration: number | null;

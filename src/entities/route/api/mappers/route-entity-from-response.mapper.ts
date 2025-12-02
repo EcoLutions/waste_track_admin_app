@@ -17,6 +17,8 @@ export class RouteEntityFromResponseMapper {
       startedAt: DateTimeUtils.stringToLocalDateTime(dto.startedAt),
       completedAt: DateTimeUtils.stringToLocalDateTime(dto.completedAt),
       waypoints: [],
+      totalWaypoints: dto.totalCompletedWaypoints ?? 0,
+      totalCompletedWaypoints: dto.totalCompletedWaypoints ?? 0,
       totalDistance: this.parseDistanceToKilometers(dto.totalDistance),
       estimatedDuration: this.parseIsoDurationToMinutes(dto.estimatedDuration),
       collectionDuration: this.parseIsoDurationToMinutes(dto.collectionDuration),

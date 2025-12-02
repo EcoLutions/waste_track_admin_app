@@ -9,6 +9,8 @@ export interface RouteResponse {
   scheduledEndAt: string | null;
   startedAt: string | null;
   completedAt: string | null;
+  totalWaypoints: number | null;
+  totalCompletedWaypoints: number | null;
   totalDistance: string | null;
   estimatedDuration: string | null;
   collectionDuration: string | null;

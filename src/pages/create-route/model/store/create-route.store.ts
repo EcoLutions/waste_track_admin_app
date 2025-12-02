@@ -280,6 +280,8 @@ export const CreateRouteStore = signalStore(
             startedAt: null,
             completedAt: null,
             waypoints: [],
+            totalWaypoints: 0,
+            totalCompletedWaypoints: 0,
             totalDistance: null,
             estimatedDuration: null,
             collectionDuration: null,
