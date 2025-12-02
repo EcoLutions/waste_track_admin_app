@@ -1,0 +1,225 @@
+<div class="h-full flex flex-col bg-white overflow-hidden relative">
+
+  @if (success()) {
+    <div class="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center animate-fade-in">
+      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+        <i class="pi pi-check text-4xl text-green-600"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Reporte Creado!</h2>
+      <p class="text-gray-500 text-center max-w-md mb-8">
+        El reporte ha sido registrado exitosamente y asignado a tu usuario administrativo.
+      </p>
+      <div class="flex gap-4">
+        <button (click)="onCancel()" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">
+          Volver a la lista
+        </button>
+        <button (click)="store.reset()" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors">
+          Crear otro
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="flex-1 flex h-full">
+
+    <!-- LEFT PANEL: MAP (Interactive Area) -->
+    <div class="flex-1 bg-gray-100 relative">
+
+      <!-- Google Maps -->
+      <google-map
+        class="absolute inset-0"
+        [height]="'100%'"
+        [width]="'100%'"
+        [options]="mapOptions"
+        [center]="center()"
+        [zoom]="zoom()"
+        (mapClick)="onMapClick($event)"
+      >
+
+        <!-- Markers de contenedores registrados -->
+        @for (container of containers(); track container.id) {
+          <map-advanced-marker
+            #marker="mapAdvancedMarker"
+            [position]="{
+              lat: $any(container.latitude) * 1,
+              lng: $any(container.longitude) * 1
+            }"
+            [content]="getMarkerContent(container)"
+            (mapClick)="onContainerMarkerClick(container)"
+          />
+        }
+
+        <!-- Marcador de ubicación seleccionada (calle o contenedor) -->
+        @if (!selectedContainer() && selectedPosition(); as pos) {
+          <map-advanced-marker
+            [position]="pos"
+            [options]="{ gmpDraggable: true }"
+            (mapDragend)="onMarkerDragEnd($event)"
+          >
+          </map-advanced-marker>
+        }
+      </google-map>
+
+      <!-- Map Overlay Instructions -->
+      <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-gray-200 pointer-events-none">
+        <p class="text-xs font-bold text-gray-700 flex items-center gap-2">
+          <i class="pi pi-info-circle text-blue-500"></i>
+          <span>Haz clic en el mapa para ubicar el incidente o selecciona un contenedor.</span>
+        </p>
+      </div>
+    </div>
+
+
+    <!-- RIGHT PANEL: FORM (Sidebar) -->
+    <div class="w-[400px] bg-white border-l border-gray-200 flex flex-col shadow-xl z-10">
+
+      <!-- Form Header -->
+      <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">Nuevo Reporte</h2>
+          <p class="text-xs text-gray-500">Registrando como Administrador</p>
+        </div>
+        <button (click)="onCancel()" class="text-gray-400 hover:text-gray-600 p-1">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Form Content -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+        <!-- Error Message -->
+        @if (error()) {
+          <div class="bg-red-50 text-red-700 p-3 rounded-lg text-sm flex gap-2 items-start border border-red-100">
+            <i class="pi pi-exclamation-circle mt-0.5"></i>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <!-- 1. LOCATION CONTEXT (Visual Feedback) -->
+        <div [class]="containerId()
+            ? 'bg-blue-50 border-blue-200'
+            : (latitude() ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 border-dashed')"
+             class="p-4 rounded-xl border transition-colors duration-300">
+
+          <div class="flex items-start gap-3">
+            <div [class]="containerId()
+                ? 'bg-blue-100 text-blue-600'
+                : (latitude() ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400')"
+                 class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors">
+              <i [class]="containerId() ? 'pi pi-box' : 'pi pi-map-marker'"></i>
+            </div>
+
+            <div class="flex-1">
+              <p class="text-xs font-bold uppercase tracking-wider mb-1"
+                 [class]="containerId() ? 'text-blue-700' : (latitude() ? 'text-green-700' : 'text-gray-500')">
+                Ubicación
+              </p>
+              <p class="text-sm font-medium text-gray-900">
+                {{ locationStatus() }}
+              </p>
+              @if (!latitude()) {
+                <p class="text-xs text-gray-500 mt-1">Es necesario seleccionar un punto en el mapa.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. REPORT DETAILS -->
+        <div class="space-y-4">
+
+          <!-- Type Selector -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-gray-700">Tipo de Incidencia</label>
+            <div class="relative">
+              <select
+                [ngModel]="reportType()"
+                (ngModelChange)="onTypeChange($event)"
+                class="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none appearance-none cursor-pointer">
+                <option [ngValue]="null" disabled selected>Seleccionar tipo...</option>
+                @for (type of reportTypes; track type) {
+                  <option [value]="type">{{ getTypeLabel(type) }}</option>
+                }
+              </select>
+              <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-gray-700">Descripción</label>
+            <textarea
+              [ngModel]="description()"
+              (ngModelChange)="onDescriptionChange($event)"
+              rows="4"
+              placeholder="Describe el problema encontrado..."
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none placeholder:text-gray-400"></textarea>
+          </div>
+
+        </div>
+
+        <!-- 3. EVIDENCE UPLOAD -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">Evidencia (Opcional)</label>
+            <span class="text-xs text-gray-500">{{ evidences().length }} archivo(s)</span>
+          </div>
+
+          <!-- Image Grid -->
+          @if (evidences().length > 0) {
+            <div class="grid grid-cols-3 gap-2 mb-2">
+              @for (e of evidences() ; track e.id) {
+                <div class="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group border border-gray-200">
+                  <img
+                    class="w-full h-full object-cover"
+                    [src]="e.fileUrl || ''"
+                    alt="Preview evidencia"
+                    loading="lazy"
+                  />
+                  <button
+                    (click)="onRemoveEvidence(e.id)"
+                    class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm">
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Upload Button -->
+          <input type="file" #fileInput class="hidden" accept="image/*" (change)="onFileSelected($event)">
+          <button
+            (click)="triggerFileInput()"
+            [disabled]="uploadingFiles()"
+            class="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-gray-500 hover:border-green-500 hover:bg-green-50 hover:text-green-600 transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed">
+
+            @if (uploadingFiles()) {
+              <i class="pi pi-spinner animate-spin text-xl mb-1"></i>
+              <span class="text-xs font-medium">Subiendo...</span>
+            } @else {
+              <i class="pi pi-camera text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+              <span class="text-xs font-medium">Clic para adjuntar foto</span>
+            }
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Form Footer -->
+      <div class="p-6 border-t border-gray-200 bg-gray-50">
+        <button
+          (click)="onSubmit()"
+          [disabled]="!isValid() || isSubmitting()"
+          class="w-full py-3 px-4 bg-green-600 text-white rounded-xl font-semibold shadow-sm hover:bg-green-700 hover:shadow-md active:transform active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2">
+          @if (isSubmitting()) {
+            <i class="pi pi-spinner animate-spin"></i>
+            <span>Creando Reporte...</span>
+          } @else {
+            <i class="pi pi-check-circle"></i>
+            <span>Crear Reporte</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

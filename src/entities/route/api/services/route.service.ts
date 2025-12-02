@@ -9,6 +9,8 @@ import { RouteEntityFromResponseMapper } from '../mappers/route-entity-from-resp
 import { CreateRouteRequestFromEntityMapper } from '../mappers/create-route-request-from-entity.mapper';
 import { UpdateRouteRequestFromEntityMapper } from '../mappers/update-route-request-from-entity.mapper';
 import { catchError } from 'rxjs/operators';
+import {RouteFilters} from '../filters/route.filters';
+import {HttpParams} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +21,20 @@ export class RouteService extends BaseService {
     this.resourceEndpoint = 'routes';
   }
 
-  getAll(): Observable<RouteEntity[]> {
-    return this.http.get<RouteResponse[]>(this.resourcePath(), this.httpOptions).pipe(
+  getAll(filters?: RouteFilters): Observable<RouteEntity[]> {
+    let params = new HttpParams();
+
+    if(filters) {
+      if(filters.districtId) params = params.append('districtId', filters.districtId);
+      if(filters.driverId) params = params.append('driverId', filters.driverId);
+      if(filters.vehicleId) params = params.append('vehicleId', filters.vehicleId);
+      if(filters.status) params = params.append('status', filters.status);
+      if(filters.statuses && filters.statuses.length > 0) {
+        filters.statuses.forEach(s => params = params.append('statuses', s));
+      }
+    }
+
+    return this.http.get<RouteResponse[]>(this.resourcePath(), { ...this.httpOptions, params }).pipe(
       map((responses: RouteResponse[]) => responses.map(r => RouteEntityFromResponseMapper.fromDtoToEntity(r))),
       catchError(this.handleError),
       retry(2)

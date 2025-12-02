@@ -5,23 +5,20 @@ export interface RouteResponse {
   driverId: string | null;
   routeType: string | null;
   status: string | null;
-  scheduledDate: string | null; // LocalDate → ISO string
-  startedAt: string | null; // LocalDateTime → ISO string
-  completedAt: string | null; // LocalDateTime → ISO string
-  totalDistance: DistanceResource | null;
-  estimatedDuration: DurationResource | null;
-  actualDuration: DurationResource | null;
-  createdAt: string | null; // LocalDateTime → ISO string
-  updatedAt: string | null; // LocalDateTime → ISO string
-}
-
-export interface DistanceResource {
-  value: number | null;
-  unit: string | null;
-}
-
-export interface DurationResource {
-  hours: number | null;
-  minutes: number | null;
-  seconds: number | null;
+  scheduledStartAt: string | null;
+  scheduledEndAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  totalWaypoints: number | null;
+  totalCompletedWaypoints: number | null;
+  totalDistance: string | null;
+  estimatedDuration: string | null;
+  collectionDuration: string | null;
+  returnDuration: string | null;
+  actualDuration: string | null;
+  currentLatitude: string | null;
+  currentLongitude: string | null;
+  lastLocationUpdate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }

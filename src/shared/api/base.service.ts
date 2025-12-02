@@ -1,5 +1,5 @@
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
-import {throwError} from 'rxjs';
+import {Observable, throwError} from 'rxjs';
 import {inject} from '@angular/core';
 import {environment} from '../../environments/environment';
 
@@ -12,13 +12,9 @@ export abstract class BaseService {
 
   protected resourceEndpoint: string = '/resources';
 
-  protected handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.log(`An error occurred: ${error.error.message}`);
-    } else {
-      console.log(`Backend returned code ${error.status}, body was: ${error.error}`);
-    }
-    return throwError(() => new Error('Something bad happened; please try again later.'));
+  protected handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('HTTP Error:', error);
+    return throwError(() => error);
   }
 
   protected resourcePath(): string {

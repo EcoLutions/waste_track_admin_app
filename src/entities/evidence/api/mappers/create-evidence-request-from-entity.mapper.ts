@@ -5,7 +5,7 @@ export class CreateEvidenceRequestFromEntityMapper {
   static fromEntityToDto(entity: EvidenceEntity): CreateEvidenceRequest {
     return {
       type: entity.type,
-      filePath: entity.filePath,
+      filePath: entity.fileUrl,
       originalFileName: entity.originalFileName,
       description: entity.description,
       fileSize: entity.fileSize,

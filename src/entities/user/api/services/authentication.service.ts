@@ -1,14 +1,20 @@
-import { Injectable } from '@angular/core';
-import {Observable, map, retry} from 'rxjs';
-import { BaseService } from '../../../../shared';
-import { UserEntity } from '../../model';
-import { AuthenticatedUserResponse } from '../types/authenticated-user-response.type';
-import { SignInRequest } from '../types/sign-in-request.type';
-import { SignUpRequest } from '../types/sign-up-request.type';
-import { AuthenticatedUserFromResponseMapper } from '../mappers/authenticated-user-from-response.mapper';
-import { SignInRequestFromCredentialsMapper, SignInCredentials } from '../mappers/sign-in-request-from-credentials.mapper';
-import { SignUpRequestFromEntityMapper } from '../mappers/sign-up-request-from-entity.mapper';
+import {Injectable} from '@angular/core';
+import {map, Observable, retry} from 'rxjs';
+import {BaseService} from '../../../../shared';
+import {UserEntity} from '../../model';
+import {AuthenticatedUserResponse} from '../types/authenticated-user-response.type';
+import {SignInRequest} from '../types/sign-in-request.type';
+import {AuthenticatedUserFromResponseMapper} from '../mappers/authenticated-user-from-response.mapper';
+import {
+  SignInCredentials,
+  SignInRequestFromCredentialsMapper
+} from '../mappers/sign-in-request-from-credentials.mapper';
 import {catchError} from 'rxjs/operators';
+import {SetInitialPasswordRequestType} from '../types/set-initial-password-request.type';
+import {ResetPasswordRequestType} from '../types/reset-password-request.type';
+import {HttpParams} from '@angular/common/http';
+import {SetInitialPasswordValidationResponse} from '../types/set-initial-password-validation-response.type';
+import {ResetPasswordValidationResponse} from '../types/reset-password-validation-response.type';
 
 @Injectable({
   providedIn: 'root'
@@ -29,21 +35,41 @@ export class AuthenticationService extends BaseService {
     );
   }
 
-  signUp(user: UserEntity): Observable<UserEntity> {
-    const request: SignUpRequest = SignUpRequestFromEntityMapper.fromEntityToDto(user);
-
-    return this.http.post<AuthenticatedUserResponse>(`${this.resourcePath()}/sign-up`, request, this.httpOptions).pipe(
-      map((response: AuthenticatedUserResponse) => AuthenticatedUserFromResponseMapper.fromDtoToEntity(response)),
-      retry(2),
-      catchError(this.handleError)
-    );
-  }
-
   getCurrentUser(): Observable<UserEntity> {
     return this.http.get<AuthenticatedUserResponse>(`${this.resourcePath()}/me`, this.httpOptions).pipe(
       map((response: AuthenticatedUserResponse) => AuthenticatedUserFromResponseMapper.fromDtoToEntity(response)),
       retry(2),
       catchError(this.handleError)
     );
+  }
+
+  setInitialPassword(accessToken: string, newPassword: string): Observable<SetInitialPasswordValidationResponse> {
+    const request: SetInitialPasswordRequestType = {
+      activationToken: accessToken,
+      password: newPassword
+    };
+
+    return this.http.post<SetInitialPasswordValidationResponse>(`${this.resourcePath()}/set-initial-password`, request, this.httpOptions).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    const params = new HttpParams().set('email', email);
+    return this.http.post<void>(`${this.resourcePath()}/forgot-password`, null,  { ...this.httpOptions, params: params }).pipe(
+      retry(2),
+      catchError(this.handleError)
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<ResetPasswordValidationResponse> {
+    const request: ResetPasswordRequestType = {
+      resetToken: token,
+      newPassword: newPassword
+    };
+    return this.http.post<ResetPasswordValidationResponse>(`${this.resourcePath()}/reset-password`, request , this.httpOptions).pipe(
+      retry(2),
+    )
   }
 }

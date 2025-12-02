@@ -5,10 +5,9 @@ export class CreateReportRequestFromEntityMapper {
   static fromEntityToDto(entity: ReportEntity): CreateReportRequest {
     return {
       citizenId: entity.citizenId,
+      districtId: entity.districtId,
       latitude: entity.latitude,
       longitude: entity.longitude,
-      address: entity.address,
-      districtCode: entity.districtCode,
       containerId: entity.containerId,
       reportType: entity.reportType,
       description: entity.description,

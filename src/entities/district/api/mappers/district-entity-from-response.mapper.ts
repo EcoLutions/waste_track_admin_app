@@ -1,6 +1,8 @@
 import { DistrictEntity } from '../../model';
 import { DistrictResponse } from '../types/district-response.type';
 import { OperationalStatusEnum } from '../../model';
+import {DateTimeUtils} from '../../../../shared/libs/utils/date-time.utils';
+import {EnumMapper} from '../../../../shared/api/mappers/enum.mapper';
 
 export class DistrictEntityFromResponseMapper {
   static fromDtoToEntity(dto: DistrictResponse): DistrictEntity {
@@ -8,30 +10,30 @@ export class DistrictEntityFromResponseMapper {
       id: dto.id ?? '',
       name: dto.name ?? '',
       code: dto.code ?? '',
-      boundaries: dto.boundaries ?? '',
-      operationalStatus: DistrictEntityFromResponseMapper.mapStringToOperationalStatus(dto.operationalStatus ?? ''),
-      serviceStartDate: dto.serviceStartDate ? new Date(dto.serviceStartDate) : null,
-      subscriptionId: dto.subscriptionId ?? '',
+      depotLatitude: dto.depotLatitud ?? '',
+      depotLongitude: dto.depotLongitude ?? '',
+      disposalLongitude: dto.disposalLongitude ?? '',
+      disposalLatitude: dto.disposalLatitude ?? '',
+      operationalStatus: EnumMapper.mapStringToEnum(dto.operationalStatus, OperationalStatusEnum, OperationalStatusEnum.ACTIVE),
+      serviceStartDate: DateTimeUtils.stringToLocalDate(dto.serviceStartDate),
+      operationStartTime: dto.operationStartTime ?? '',
+      operationEndTime: dto.operationEndTime ?? '',
+      maxRouteDuration: dto.maxRouteDuration ?? '',
+      planId: dto.planId ?? '',
+      planName: dto.planName ?? '',
       maxVehicles: dto.maxVehicles ?? 0,
       maxDrivers: dto.maxDrivers ?? 0,
       maxContainers: dto.maxContainers ?? 0,
-      primaryAdminEmail: dto.primaryAdminEmail ?? ''
+      currency: dto.currency ?? '',
+      price: dto.price ?? '',
+      billingPeriod: dto.billingPeriod ?? '',
+      currentVehicleCount: dto.currentVehicleCount ?? 0,
+      currentDriverCount: dto.currentDriverCount ?? 0,
+      currentContainerCount: dto.currentContainerCount ?? 0,
+      primaryAdminEmail: null,
+      primaryAdminUsername: null,
+      createdAt: DateTimeUtils.isoStringToDate(dto.createdAt),
+      updatedAt: DateTimeUtils.isoStringToDate(dto.updatedAt),
     };
-  }
-
-  private static mapStringToOperationalStatus(status: string): OperationalStatusEnum {
-    const normalized = (status ?? '').toString().trim().toLowerCase();
-
-    const statusKey = Object.keys(OperationalStatusEnum).find(key => {
-      const val = OperationalStatusEnum[key as keyof typeof OperationalStatusEnum];
-      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
-    });
-
-    if (statusKey) {
-      return OperationalStatusEnum[statusKey as keyof typeof OperationalStatusEnum];
-    }
-
-    console.warn(`Invalid operational status received: ${status}, defaulting to ACTIVE`);
-    return OperationalStatusEnum.ACTIVE;
   }
 }

@@ -5,11 +5,11 @@ export interface ContainerResponse {
   address: string | null;
   districtCode: string | null;
   volumeLiters: number | null;
-  maxWeightKg: number | null;
+  maxFillLevel: number | null;
   containerType: string | null;
   status: string | null;
   currentFillLevel: number | null;
-  sensorId: string | null;
+  deviceId: string | null;
   lastReadingTimestamp: string | null; // LocalDateTime → ISO string
   districtId: string | null;
   lastCollectionDate: string | null; // LocalDateTime → ISO string

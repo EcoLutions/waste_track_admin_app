@@ -12,7 +12,7 @@ import { EvidenceTypeEnum } from '../enums/evidence-type.enum';
 export interface EvidenceEntity {
   id: string;
   type: EvidenceTypeEnum;
-  filePath: string;
+  fileUrl: string;
   originalFileName: string;
   description: string | null;
   fileSize: number; // Long in backend

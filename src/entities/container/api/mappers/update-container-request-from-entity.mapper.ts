@@ -7,12 +7,11 @@ export class UpdateContainerRequestFromEntityMapper {
       containerId: entity.id,
       latitude: entity.latitude,
       longitude: entity.longitude,
-      address: entity.address,
-      districtCode: entity.districtCode,
       volumeLiters: entity.volumeLiters,
-      maxWeightKg: entity.maxWeightKg,
-      sensorId: entity.sensorId,
+      maxFillLevel: entity.maxFillLevel,
+      deviceId: entity.deviceId,
       containerType: entity.containerType,
+      status: entity.status,
       districtId: entity.districtId,
       collectionFrequencyDays: entity.collectionFrequencyDays
     };

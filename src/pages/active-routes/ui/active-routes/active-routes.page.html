@@ -1,0 +1,160 @@
+<div class="h-full flex flex-col gap-4">
+  <!-- Compact Header -->
+  <div class="bg-white rounded-lg px-4 py-3 border border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="pi pi-map text-green-600"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-gray-900">Rutas en Progreso</h1>
+          <p class="text-xs text-gray-500">Monitoreo en tiempo real - {{ districtName() }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <p class="text-xs text-gray-500">Total de rutas</p>
+          <p class="text-lg font-bold text-gray-900">{{ routes().length }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm animate-slide-down">
+      <div class="flex items-start gap-2.5">
+        <i class="pi pi-exclamation-circle text-red-600 text-lg mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-red-900">Error al cargar rutas</p>
+          <p class="text-sm text-red-700 mt-0.5">{{ error() }}</p>
+        </div>
+        <button
+          (click)="store.setError(null)"
+          class="text-red-400 hover:text-red-600 transition-colors">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex-1 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-10 h-10 border-3 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="mt-3 text-sm text-gray-600 font-medium">Cargando rutas en progreso...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content - Map View -->
+  @if (!isLoading()) {
+    <div class="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden relative">
+
+      <!-- Loading Directions Overlay -->
+      @if (isLoadingDirections()) {
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+          <div class="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-sm font-medium text-gray-700">Cargando rutas en el mapa...</span>
+        </div>
+      }
+
+      <!-- Google Map -->
+      <google-map
+        class="absolute inset-0"
+        [height]="'100%'"
+        [width]="'100%'"
+        [options]="mapOptions"
+        [center]="mapCenter()"
+      >
+        <!-- Container Markers -->
+        @for (container of getRouteContainers(); track container.id) {
+          <map-advanced-marker
+            [position]="{ lat: $any(container.latitude) * 1, lng: $any(container.longitude) * 1 }"
+            [content]="getContainerMarkerContent(container)"
+          />
+        }
+
+        <!-- Route Polylines -->
+        @for (polyline of getRoutePolylines(); track $index) {
+          <map-polyline
+            [options]="polyline"
+          />
+        }
+      </google-map>
+
+      <!-- Map Controls (Top Right) -->
+      <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <button
+          (click)="refreshRoutes()"
+          [disabled]="isLoading() || isLoadingDirections()"
+          class="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="pi pi-refresh" [class.animate-spin]="isLoading() || isLoadingDirections()"></i>
+          <span>Actualizar</span>
+        </button>
+
+        @if (routes().length > 0) {
+          <div class="bg-white rounded-lg shadow-lg p-3 border border-gray-200">
+            <p class="text-xs font-semibold text-gray-900 mb-2">Rutas en Progreso</p>
+            <div class="flex items-center gap-2 text-xs text-gray-600">
+              <i class="pi pi-route text-green-600"></i>
+              <span class="font-medium">{{ routes().length }} rutas activas</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Legend (Bottom Left) -->
+      <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-md rounded-lg shadow-lg p-4 border border-gray-200 max-w-xs">
+        <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <i class="pi pi-palette"></i>
+          Leyenda
+        </h4>
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-1 bg-green-500 rounded"></div>
+            <span class="text-xs text-gray-700">Ruta en Progreso</span>
+          </div>
+          <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200">
+            <div class="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+              <img src="assets/images/smart-trash.png" class="w-4 h-4" alt="Container">
+            </div>
+            <span class="text-xs text-gray-700">Contenedor en ruta</span>
+          </div>
+        </div>
+
+        @if (selectedRoute()) {
+          <div class="mt-3 pt-3 border-t border-gray-200">
+            <p class="text-xs font-semibold text-gray-900 mb-1">Ruta Seleccionada</p>
+            <p class="text-xs text-gray-600 mb-1">
+              #{{ selectedRoute()!.id.substring(0, 8) }}
+            </p>
+            <p class="text-xs text-gray-500 mb-2">
+              {{ selectedRoute()!.waypoints.length }} waypoints
+            </p>
+            <button
+              (click)="closeRouteDetail()"
+              class="text-xs text-green-600 hover:text-green-700 font-medium">
+              Deseleccionar
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Empty State -->
+      @if (routes().length === 0 && !isLoadingDirections()) {
+        <div class="absolute inset-0 flex items-center justify-center bg-white/90 z-[900]">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <i class="pi pi-route text-gray-400 text-2xl"></i>
+            </div>
+            <p class="text-gray-900 font-medium text-base mb-1">No hay rutas en progreso</p>
+            <p class="text-gray-500 text-sm">Las rutas aparecerán aquí cuando los conductores inicien sus recorridos</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

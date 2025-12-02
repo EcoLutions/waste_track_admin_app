@@ -8,10 +8,9 @@ export class ReportEntityFromResponseMapper {
     return {
       id: dto.id ?? '',
       citizenId: dto.citizenId ?? '',
+      districtId: dto.districtId ?? '',
       latitude: dto.latitude ?? '',
       longitude: dto.longitude ?? '',
-      address: dto.address ?? '',
-      districtCode: dto.districtCode ?? '',
       containerId: dto.containerId,
       reportType: ReportEntityFromResponseMapper.mapStringToReportType(dto.reportType ?? ''),
       description: dto.description ?? '',
@@ -28,9 +27,12 @@ export class ReportEntityFromResponseMapper {
   }
 
   private static mapStringToReportType(reportType: string): ReportTypeEnum {
-    const typeKey = Object.keys(ReportTypeEnum).find(
-      key => ReportTypeEnum[key as keyof typeof ReportTypeEnum] === reportType
-    );
+    const normalized = (reportType ?? '').toString().trim().toLowerCase();
+
+    const typeKey = Object.keys(ReportTypeEnum).find(key => {
+      const val = ReportTypeEnum[key as keyof typeof ReportTypeEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (typeKey) {
       return ReportTypeEnum[typeKey as keyof typeof ReportTypeEnum];
@@ -41,9 +43,12 @@ export class ReportEntityFromResponseMapper {
   }
 
   private static mapStringToReportStatus(status: string): ReportStatusEnum {
-    const statusKey = Object.keys(ReportStatusEnum).find(
-      key => ReportStatusEnum[key as keyof typeof ReportStatusEnum] === status
-    );
+    const normalized = (status ?? '').toString().trim().toLowerCase();
+
+    const statusKey = Object.keys(ReportStatusEnum).find(key => {
+      const val = ReportStatusEnum[key as keyof typeof ReportStatusEnum];
+      return String(val).toLowerCase() === normalized || key.toLowerCase() === normalized;
+    });
 
     if (statusKey) {
       return ReportStatusEnum[statusKey as keyof typeof ReportStatusEnum];

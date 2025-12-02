@@ -1,6 +1,5 @@
 export interface UpdateUserProfileRequest {
   photoPath: string | null;
-  userType: string | null;
   districtId: string | null;
   email: string | null;
   phoneNumber: string | null;

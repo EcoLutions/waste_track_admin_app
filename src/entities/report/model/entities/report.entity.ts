@@ -5,10 +5,9 @@ import {EvidenceEntity} from '../../../evidence/model';
 export interface ReportEntity {
   id: string;
   citizenId: string;
+  districtId: string;
   latitude: string;
   longitude: string;
-  address: string;
-  districtCode: string;
   containerId: string | null;
   reportType: ReportTypeEnum;
   description: string;

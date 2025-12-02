@@ -1,11 +1,8 @@
-import { computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { StorageService } from '../services';
-import { AuthenticationService } from '../../entities';
-import { UserEntity } from '../../entities';
-import { SignInCredentials } from '../../entities';
+import {computed, inject} from '@angular/core';
+import {Router} from '@angular/router';
+import {StorageService} from '../services';
+import {AuthenticationService, RolesEnum, SignInCredentials, UserEntity} from '../../entities';
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
-import {RolesEnum} from '../../entities';
 import {firstValueFrom} from 'rxjs';
 
 export interface AuthState {
@@ -138,10 +135,8 @@ export const AuthStore = signalStore(
 
             storageService.setUser(completeUser);
 
-            console.log(completeUser);
-
             patchState(store, {
-              user,
+              user: completeUser,
               token: user.token,
               isAuthenticated: true,
               isLoading: false,
@@ -149,7 +144,8 @@ export const AuthStore = signalStore(
               error: null
             });
 
-            await router.navigate(['/dashboard']);
+            const returnUrl = router.routerState.snapshot.root.queryParams['returnUrl'] || '/containers';
+            await router.navigate([returnUrl]);
           } else {
             patchState(store, {
               isLoading: false,
@@ -230,8 +226,6 @@ export const AuthStore = signalStore(
               tokenValidated: true,
               error: null
             });
-
-            await router.navigate(['/dashboard']);
           } else {
             patchState(store, {
               isLoading: false,

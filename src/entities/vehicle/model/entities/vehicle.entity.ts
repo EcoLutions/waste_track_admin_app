@@ -8,7 +8,6 @@ export interface VehicleEntity {
   weightCapacity: number;
   mileage: number;
   districtId: string;
-  assignedDriverId: string | null;
   lastMaintenanceDate: Date | null;
   nextMaintenanceDate: Date | null;
   isActive: boolean;

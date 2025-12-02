@@ -1,0 +1,148 @@
+<div class="h-full flex flex-col gap-6">
+
+  <!-- Header -->
+  <div class="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+    <div class="flex items-center gap-2.5 mb-1">
+      <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+        <i class="pi pi-plus-circle text-green-600 text-lg"></i>
+      </div>
+      <h1 class="text-xl font-bold text-gray-900">Crear Nueva Ruta</h1>
+    </div>
+    <p class="text-xs text-gray-600 ml-11">Complete los campos para registrar una nueva ruta</p>
+  </div>
+
+  <!-- Loading -->
+  @if (store.isLoading()) {
+    <div class="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+      <div class="flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600 font-medium">Creando ruta...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!store.isLoading()) {
+    <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+      <form [formGroup]="routeForm" class="space-y-6">
+
+        <!-- Driver -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">
+            Conductor <span class="text-red-500">*</span>
+          </label>
+
+          <p-select
+            formControlName="driverId"
+            [options]="store.availableDrivers()"
+            optionLabel="fullName"
+            optionValue="id"
+            placeholder="Seleccione un conductor"
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('driverId')}">
+          </p-select>
+
+          @if (isFieldInvalid('driverId')) {
+            <div class="flex items-center gap-1 text-xs text-red-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Este campo es requerido</span>
+            </div>
+          }
+        </div>
+
+        <!-- Vehicle -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">
+            Vehículo <span class="text-red-500">*</span>
+          </label>
+
+          <p-select
+            formControlName="vehicleId"
+            [options]="store.availableVehicles()"
+            optionLabel="display"
+            optionValue="id"
+            placeholder="Seleccione un vehículo"
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('vehicleId')}">
+          </p-select>
+
+          @if (isFieldInvalid('vehicleId')) {
+            <div class="flex items-center gap-1 text-xs text-red-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Este campo es requerido</span>
+            </div>
+          }
+        </div>
+
+        <!-- Date -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">
+            Fecha de Ruta <span class="text-red-500">*</span>
+          </label>
+
+          <input
+            pInputText
+            type="date"
+            formControlName="scheduledDate"
+            [min]="today"
+            class="w-full"
+            [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('scheduledDate')}" />
+
+          @if (isFieldInvalid('scheduledDate')) {
+            <div class="flex items-center gap-1 text-xs text-red-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Ingrese una fecha válida</span>
+            </div>
+          }
+        </div>
+
+        <!-- Time -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">
+            Hora de Inicio <span class="text-red-500">*</span>
+          </label>
+
+          <input
+            pInputText
+            type="time"
+            formControlName="scheduledStartTime"
+            class="w-full"
+            [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('scheduledStartTime')}" />
+
+          @if (isFieldInvalid('scheduledStartTime')) {
+            <div class="flex items-center gap-1 text-xs text-red-600">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>Ingrese una hora válida</span>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            pButton
+            class="p-button-outlined"
+            routerLink="/routes">
+            <span pButtonLabel>Cancelar</span>
+            <i pButtonIcon class="pi pi-times"></i>
+          </button>
+
+          <button
+            type="button"
+            pButton
+            class="bg-gradient-to-r from-green-600 to-green-700 border-0"
+            [disabled]="routeForm.invalid || store.isLoading()"
+            (click)="onSubmit()">
+            <span pButtonLabel>Crear Ruta</span>
+            <i pButtonIcon class="pi pi-check"></i>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+
+</div>

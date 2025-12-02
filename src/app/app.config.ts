@@ -14,6 +14,7 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {providePrimeNG} from 'primeng/config';
 import { AppInitializerService } from '../shared';
 import { authenticationInterceptor } from '../shared';
+import {MessageService} from 'primeng/api';
 
 export const appInitializerProviders = () => {
   const appInitializerService = inject(AppInitializerService);
@@ -38,5 +39,6 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     provideAppInitializer(appInitializerProviders),
+    MessageService
   ]
 };

@@ -1,7 +1,8 @@
-import { RouteEntity } from '../../model';
-import { RouteResponse } from '../types/route-response.type';
-import { RouteStatusEnum } from '../../model';
-import { RouteTypeEnum } from '../../model';
+import {RouteEntity, RouteStatusEnum} from '../../model';
+import {RouteResponse} from '../types/route-response.type';
+import {EnumMapper} from '../../../../shared/api/mappers/enum.mapper';
+import {DateTimeUtils} from '../../../../shared/libs/utils/date-time.utils';
+import {DurationUtils} from '../../../../shared/libs/utils/duration.utils';
 
 export class RouteEntityFromResponseMapper {
   static fromDtoToEntity(dto: RouteResponse): RouteEntity {
@@ -10,43 +11,43 @@ export class RouteEntityFromResponseMapper {
       districtId: dto.districtId ?? '',
       vehicleId: dto.vehicleId,
       driverId: dto.driverId,
-      routeType: RouteEntityFromResponseMapper.mapRouteType(dto.routeType),
-      status: RouteEntityFromResponseMapper.mapRouteStatus(dto.status),
-      scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : new Date(),
-      startedAt: dto.startedAt ? new Date(dto.startedAt) : null,
-      completedAt: dto.completedAt ? new Date(dto.completedAt) : null,
-      waypoints: [], // Will be populated separately if needed
-      totalDistance: dto.totalDistance?.value ?? null,
-      estimatedDuration: RouteEntityFromResponseMapper.mapDuration(dto.estimatedDuration),
-      actualDuration: RouteEntityFromResponseMapper.mapDuration(dto.actualDuration),
-      createdAt: dto.createdAt ? new Date(dto.createdAt) : null,
-      updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : null
+      status: EnumMapper.mapStringToEnum(dto.status, RouteStatusEnum, RouteStatusEnum.PLANNED),
+      scheduledStartAt: DateTimeUtils.stringToLocalDateTime(dto.scheduledStartAt) ?? new Date(),
+      scheduledEndAt: DateTimeUtils.stringToLocalDateTime(dto.scheduledEndAt) ?? new Date(),
+      startedAt: DateTimeUtils.stringToLocalDateTime(dto.startedAt),
+      completedAt: DateTimeUtils.stringToLocalDateTime(dto.completedAt),
+      waypoints: [],
+      totalWaypoints: dto.totalCompletedWaypoints ?? 0,
+      totalCompletedWaypoints: dto.totalCompletedWaypoints ?? 0,
+      totalDistance: this.parseDistanceToKilometers(dto.totalDistance),
+      estimatedDuration: this.parseIsoDurationToMinutes(dto.estimatedDuration),
+      collectionDuration: this.parseIsoDurationToMinutes(dto.collectionDuration),
+      returnDuration: this.parseIsoDurationToMinutes(dto.returnDuration),
+      actualDuration: this.parseIsoDurationToMinutes(dto.actualDuration),
+      currentLatitude: dto.currentLatitude ?? '',
+      currentLongitude: dto.currentLongitude ?? '',
+      lastLocationUpdate: DateTimeUtils.stringToLocalDateTime(dto.lastLocationUpdate),
+      createdAt: DateTimeUtils.stringToLocalDateTime(dto.createdAt),
+      updatedAt: DateTimeUtils.stringToLocalDateTime(dto.updatedAt)
     };
   }
 
-  private static mapRouteType(routeType: string | null): RouteTypeEnum {
-    const validTypes = Object.values(RouteTypeEnum) as string[];
-    if (routeType && validTypes.includes(routeType.toLowerCase())) {
-      return routeType.toLowerCase() as RouteTypeEnum;
+  private static parseDistanceToKilometers(distance: string | null): number | null {
+    if (!distance) return null;
+
+    try {
+      const parsed = parseFloat(distance);
+      return isNaN(parsed) ? null : parsed;
+    } catch {
+      console.error('Error parsing distance:', distance);
+      return null;
     }
-    return RouteTypeEnum.REGULAR; // Default fallback
   }
 
-  private static mapRouteStatus(status: string | null): RouteStatusEnum {
-    const validStatuses = Object.values(RouteStatusEnum) as string[];
-    if (status && validStatuses.includes(status.toLowerCase())) {
-      return status.toLowerCase() as RouteStatusEnum;
-    }
-    return RouteStatusEnum.DRAFT; // Default fallback
-  }
+  private static parseIsoDurationToMinutes(isoDuration: string | null): number | null {
+    if (!isoDuration) return null;
 
-  private static mapDuration(duration: { hours: number | null; minutes: number | null; seconds: number | null } | null): number | null {
-    if (!duration) return null;
-
-    const hours = duration.hours ?? 0;
-    const minutes = duration.minutes ?? 0;
-    const seconds = duration.seconds ?? 0;
-
-    return hours * 60 + minutes + seconds / 60; // Convert to minutes
+    const { totalMinutes } = DurationUtils.parse(isoDuration);
+    return totalMinutes > 0 ? totalMinutes : null;
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, retry } from 'rxjs';
-import { BaseService } from '../../../../shared/api';
+import { BaseService } from '../../../../shared';
 import { WaypointEntity } from '../../model';
 import { WaypointResponse } from '../types/waypoint-response.type';
 import { CreateWaypointRequest } from '../types/create-waypoint-request.type';
@@ -25,6 +25,13 @@ export class WaypointService extends BaseService {
       catchError(this.handleError),
       retry(2)
     );
+  }
+
+  getAllByRouteId(routeId: string): Observable<WaypointEntity[]> {
+    return this.http.get<WaypointResponse[]>(`${this.resourcePath()}?routeId=${routeId}`, this.httpOptions).pipe(
+      map((responses: WaypointResponse[]) => responses.map(r => WaypointEntityFromResponseMapper.fromDtoToEntity(r))),
+      catchError(this.handleError),
+    )
   }
 
   getById(id: string): Observable<WaypointEntity> {
