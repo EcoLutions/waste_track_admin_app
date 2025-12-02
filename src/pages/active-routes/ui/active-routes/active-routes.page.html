@@ -190,17 +190,6 @@
               }
             </select>
 
-            <!-- Type Dropdown -->
-            <select
-              [value]="selectedType() || 'all'"
-              (change)="onTypeFilterChange($any($event.target).value)"
-              class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white">
-              <option value="all">Todos los tipos</option>
-              @for (type of routeTypes; track type) {
-                <option [value]="type">{{ getTypeLabel(type) }}</option>
-              }
-            </select>
-
             <!-- In Progress Filter Toggle -->
             <button
               (click)="toggleInProgressFilter()"
@@ -241,15 +230,6 @@
               <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-md">
                 {{ getStatusLabel(selectedStatus()!) }}
                 <button (click)="onStatusFilterChange('all')" class="hover:text-purple-900">
-                  <i class="pi pi-times text-xs"></i>
-                </button>
-              </span>
-            }
-
-            @if (selectedType()) {
-              <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-md">
-                {{ getTypeLabel(selectedType()!) }}
-                <button (click)="onTypeFilterChange('all')" class="hover:text-orange-900">
                   <i class="pi pi-times text-xs"></i>
                 </button>
               </span>
@@ -385,14 +365,6 @@
                             </span>
                           </td>
 
-                          <!-- Type -->
-                          <td class="px-4 py-3">
-                            <span [class]="getTypeClass(route.routeType)">
-                              <i [class]="getTypeIcon(route.routeType) + ' text-xs'"></i>
-                              {{ getTypeLabel(route.routeType) }}
-                            </span>
-                          </td>
-
                           <!-- Assignment -->
                           <td class="px-4 py-3">
                             <div class="text-sm">
@@ -486,10 +458,6 @@
                   <div class="flex items-center gap-2">
                     <span [class]="getStatusClass(selectedRoute()!.status)">
                       {{ getStatusLabel(selectedRoute()!.status) }}
-                    </span>
-                    <span [class]="getTypeClass(selectedRoute()!.routeType)">
-                      <i [class]="getTypeIcon(selectedRoute()!.routeType) + ' text-xs'"></i>
-                      {{ getTypeLabel(selectedRoute()!.routeType) }}
                     </span>
                   </div>
                 </div>

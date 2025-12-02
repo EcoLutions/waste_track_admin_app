@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActiveRoutesStore} from '../../model/store/active-routes';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
-import {RouteEntity, RouteStatusEnum, RouteTypeEnum} from '../../../../entities/route/model';
+import {RouteEntity, RouteStatusEnum} from '../../../../entities';
 import {PriorityEnum, WaypointStatusEnum} from '../../../../entities/waypoint/model';
 
 type ViewMode = 'map' | 'list' | 'split';
@@ -27,7 +27,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   // Search and filter signals
   searchTerm = signal('');
   selectedStatus = signal<RouteStatusEnum | null>(null);
-  selectedType = signal<RouteTypeEnum | null>(null);
   showInProgressOnly = signal(true);
 
   // Computed signals for template
@@ -37,7 +36,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   readonly totalRoutes = computed(() => this.store.totalRoutes());
   readonly inProgressRoutes = computed(() => this.store.inProgressRoutes());
   readonly routesByStatus = computed(() => this.store.routesByStatus());
-  readonly routesByType = computed(() => this.store.routesByType());
   readonly totalDistance = computed(() => this.store.totalDistance());
   readonly totalEstimatedDuration = computed(() => this.store.totalEstimatedDuration());
   readonly routesWithWaypoints = computed(() => this.store.routesWithWaypoints());
@@ -45,12 +43,10 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   readonly districtName = computed(() => this.store.districtName());
 
   readonly routeStatuses = Object.values(RouteStatusEnum);
-  readonly routeTypes = Object.values(RouteTypeEnum);
 
   readonly hasActiveFilters = computed(() => {
     return this.searchTerm() !== '' ||
-      this.selectedStatus() !== null ||
-      this.selectedType() !== null;
+      this.selectedStatus() !== null
   });
 
   ngOnInit(): void {
@@ -76,7 +72,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
     this.searchTerm.set(this.store.searchTerm());
     this.selectedStatus.set(this.store.selectedStatus());
-    this.selectedType.set(this.store.selectedType());
     this.showInProgressOnly.set(this.store.showInProgressOnly());
   }
 
@@ -97,12 +92,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
     this.store.setStatusFilter(statusEnum);
   }
 
-  onTypeFilterChange(type: string): void {
-    const typeEnum = type === 'all' ? null : type as RouteTypeEnum;
-    this.selectedType.set(typeEnum);
-    this.store.setTypeFilter(typeEnum);
-  }
-
   onInProgressFilterChange(showInProgressOnly: boolean): void {
     this.showInProgressOnly.set(showInProgressOnly);
     this.store.setShowInProgressOnly(showInProgressOnly);
@@ -117,7 +106,6 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedStatus.set(null);
-    this.selectedType.set(null);
     this.showInProgressOnly.set(true);
     this.store.clearFilters();
   }
@@ -161,8 +149,8 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   // Status label and class methods
   getStatusLabel(status: RouteStatusEnum): string {
     const labels = {
-      [RouteStatusEnum.DRAFT]: 'Borrador',
-      [RouteStatusEnum.ASSIGNED]: 'Asignada',
+      [RouteStatusEnum.PLANNED]: 'Borrador',
+      [RouteStatusEnum.ACTIVE]: 'Asignada',
       [RouteStatusEnum.IN_PROGRESS]: 'En Progreso',
       [RouteStatusEnum.COMPLETED]: 'Completada',
       [RouteStatusEnum.CANCELLED]: 'Cancelada'
@@ -172,40 +160,13 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
   getStatusClass(status: RouteStatusEnum): string {
     const classes = {
-      [RouteStatusEnum.DRAFT]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700',
-      [RouteStatusEnum.ASSIGNED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700',
+      [RouteStatusEnum.PLANNED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700',
+      [RouteStatusEnum.ACTIVE]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700',
       [RouteStatusEnum.IN_PROGRESS]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700',
       [RouteStatusEnum.COMPLETED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700',
       [RouteStatusEnum.CANCELLED]: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700'
     };
     return classes[status] || 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700';
-  }
-
-  getTypeLabel(type: RouteTypeEnum): string {
-    const labels = {
-      [RouteTypeEnum.REGULAR]: 'Regular',
-      [RouteTypeEnum.EMERGENCY]: 'Emergencia',
-      [RouteTypeEnum.OPTIMIZED]: 'Optimizada'
-    };
-    return labels[type] || type;
-  }
-
-  getTypeClass(type: RouteTypeEnum): string {
-    const classes = {
-      [RouteTypeEnum.REGULAR]: 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700',
-      [RouteTypeEnum.EMERGENCY]: 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700',
-      [RouteTypeEnum.OPTIMIZED]: 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700'
-    };
-    return classes[type] || 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-50 text-gray-700';
-  }
-
-  getTypeIcon(type: RouteTypeEnum): string {
-    const icons = {
-      [RouteTypeEnum.REGULAR]: 'pi pi-calendar',
-      [RouteTypeEnum.EMERGENCY]: 'pi pi-exclamation-triangle',
-      [RouteTypeEnum.OPTIMIZED]: 'pi pi-bolt'
-    };
-    return icons[type] || 'pi pi-circle';
   }
 
   // Waypoint helpers

@@ -1,8 +1,7 @@
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {computed, inject} from '@angular/core';
-import {RouteEntity, RouteStatusEnum, RouteTypeEnum} from '../../../../entities/route/model';
+import {RouteEntity, RouteService, RouteStatusEnum} from '../../../../entities';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
-import {RouteService} from '../../../../entities/route/api';
 import {firstValueFrom} from 'rxjs';
 
 export interface ActiveRoutesState {
@@ -17,7 +16,6 @@ export interface ActiveRoutesState {
   // Filters
   searchTerm: string;
   selectedStatus: RouteStatusEnum | null;
-  selectedType: RouteTypeEnum | null;
   showInProgressOnly: boolean;
 }
 
@@ -28,7 +26,6 @@ const initialState: ActiveRoutesState = {
   error: null,
   searchTerm: '',
   selectedStatus: null,
-  selectedType: null,
   showInProgressOnly: true
 };
 
@@ -52,10 +49,10 @@ export const ActiveRoutesStore = signalStore(
         state.routes().filter(route => route.status === RouteStatusEnum.COMPLETED)
       ),
       assignedRoutes: computed(() =>
-        state.routes().filter(route => route.status === RouteStatusEnum.ASSIGNED)
+        state.routes().filter(route => route.status === RouteStatusEnum.ACTIVE)
       ),
       draftRoutes: computed(() =>
-        state.routes().filter(route => route.status === RouteStatusEnum.DRAFT)
+        state.routes().filter(route => route.status === RouteStatusEnum.PLANNED)
       ),
 
       // Statistics
@@ -65,15 +62,6 @@ export const ActiveRoutesStore = signalStore(
           status,
           count: routes.filter(r => r.status === status).length,
           label: getStatusLabel(status)
-        }));
-      }),
-
-      routesByType: computed(() => {
-        const routes = state.routes();
-        return Object.values(RouteTypeEnum).map(type => ({
-          type,
-          count: routes.filter(r => r.routeType === type).length,
-          label: getTypeLabel(type)
         }));
       }),
 
@@ -115,12 +103,6 @@ export const ActiveRoutesStore = signalStore(
         if (state.selectedStatus()) {
           filtered = filtered.filter(route => route.status === state.selectedStatus());
         }
-
-        // Filter by type
-        if (state.selectedType()) {
-          filtered = filtered.filter(route => route.routeType === state.selectedType());
-        }
-
         // Filter to show only in-progress routes
         if (state.showInProgressOnly()) {
           filtered = filtered.filter(route => route.status === RouteStatusEnum.IN_PROGRESS);
@@ -198,10 +180,6 @@ export const ActiveRoutesStore = signalStore(
         patchState(store, { selectedStatus: status });
       },
 
-      setTypeFilter(type: RouteTypeEnum | null): void {
-        patchState(store, { selectedType: type });
-      },
-
       setShowInProgressOnly(showInProgressOnly: boolean): void {
         patchState(store, { showInProgressOnly });
       },
@@ -211,7 +189,6 @@ export const ActiveRoutesStore = signalStore(
         patchState(store, {
           searchTerm: '',
           selectedStatus: null,
-          selectedType: null,
           showInProgressOnly: true
         });
       },
@@ -260,11 +237,6 @@ export const ActiveRoutesStore = signalStore(
         return store.routes().filter(route => route.status === status);
       },
 
-      // Get routes by type
-      getRoutesByType(type: RouteTypeEnum): RouteEntity[] {
-        return store.routes().filter(route => route.routeType === type);
-      },
-
       // Get routes with most waypoints
       getRoutesWithMostWaypoints(limit: number = 5): RouteEntity[] {
         return [...store.routes()]
@@ -278,20 +250,11 @@ export const ActiveRoutesStore = signalStore(
 // Helper functions for labels
 function getStatusLabel(status: RouteStatusEnum): string {
   const labels = {
-    [RouteStatusEnum.DRAFT]: 'Borrador',
-    [RouteStatusEnum.ASSIGNED]: 'Asignada',
+    [RouteStatusEnum.PLANNED]: 'Borrador',
+    [RouteStatusEnum.ACTIVE]: 'Asignada',
     [RouteStatusEnum.IN_PROGRESS]: 'En Progreso',
     [RouteStatusEnum.COMPLETED]: 'Completada',
     [RouteStatusEnum.CANCELLED]: 'Cancelada'
   };
   return labels[status] || status;
-}
-
-function getTypeLabel(type: RouteTypeEnum): string {
-  const labels = {
-    [RouteTypeEnum.REGULAR]: 'Regular',
-    [RouteTypeEnum.EMERGENCY]: 'Emergencia',
-    [RouteTypeEnum.OPTIMIZED]: 'Optimizada'
-  };
-  return labels[type] || type;
 }

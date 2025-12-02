@@ -1,7 +1,7 @@
 export enum RouteStatusEnum {
-  DRAFT = 'draft',
-  ASSIGNED = 'assigned',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  PLANNED = 'PLANNED',
+  ACTIVE = 'ACTIVE',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
 }
