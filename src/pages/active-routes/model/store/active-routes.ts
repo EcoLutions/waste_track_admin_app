@@ -1,8 +1,7 @@
 import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
 import {computed, inject} from '@angular/core';
-import {RouteEntity, RouteStatusEnum} from '../../../../entities/route/model';
+import {RouteEntity, RouteService, RouteStatusEnum} from '../../../../entities';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
-import {RouteService} from '../../../../entities/route/api';
 import {firstValueFrom} from 'rxjs';
 
 export interface ActiveRoutesState {

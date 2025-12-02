@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActiveRoutesStore} from '../../model/store/active-routes';
 import {DistrictContextStore} from '../../../../shared/stores/district-context.store';
-import {RouteEntity, RouteStatusEnum} from '../../../../entities/route/model';
+import {RouteEntity, RouteStatusEnum} from '../../../../entities';
 import {PriorityEnum, WaypointStatusEnum} from '../../../../entities/waypoint/model';
 
 type ViewMode = 'map' | 'list' | 'split';
