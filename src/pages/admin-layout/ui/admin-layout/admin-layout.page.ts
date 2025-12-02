@@ -34,12 +34,6 @@ export class AdminLayoutComponent {
   // Navigation items
   navItems: NavItem[] = [
     {
-      label: 'Dashboard',
-      routerLink: '/dashboard',
-      icon: 'pi pi-home',
-      ariaLabel: 'Ir al panel principal'
-    },
-    {
       label: 'Contenedores',
       icon: 'pi pi-box',
       ariaLabel: 'Gestión de contenedores',
@@ -54,7 +48,6 @@ export class AdminLayoutComponent {
           label: 'Alertas',
           routerLink: '/containers/alerts',
           icon: 'pi pi-bell',
-          badge: 5,
           ariaLabel: 'Ver alertas de contenedores - 5 nuevas'
         },
         {
@@ -82,12 +75,6 @@ export class AdminLayoutComponent {
           icon: 'pi pi-history',
           ariaLabel: 'Historial de rutas'
         },
-/*        {
-          label: 'Reportes',
-          routerLink: '/routes/reports',
-          icon: 'pi pi-file-pdf',
-          ariaLabel: 'Reportes de rutas'
-        },*/
         {
           label: 'Crear Ruta',
           routerLink: '/routes/create',
@@ -107,6 +94,12 @@ export class AdminLayoutComponent {
           icon: 'pi pi-car',
           ariaLabel: 'Administrar vehículos'
         },
+        {
+          label: 'Crear vehículo',
+          routerLink: '/fleet/create',
+          icon: 'pi pi-plus',
+          ariaLabel: 'Crear nuevo vehículo'
+        }
       ]
     },
     {
@@ -118,20 +111,7 @@ export class AdminLayoutComponent {
           label: 'Ver Reportes',
           routerLink: '/citizen-reports',
           icon: 'pi pi-list',
-          badge: 8,
           ariaLabel: 'Ver reportes ciudadanos - 8 nuevos'
-        },
-        {
-          label: 'Gestionar',
-          routerLink: '/citizen-reports/manage',
-          icon: 'pi pi-check-square',
-          ariaLabel: 'Gestionar reportes'
-        },
-        {
-          label: 'Analíticas',
-          routerLink: '/citizen-reports/analytics',
-          icon: 'pi pi-chart-line',
-          ariaLabel: 'Analíticas de reportes'
         },
         {
           label: 'Crear Reporte',
@@ -140,49 +120,12 @@ export class AdminLayoutComponent {
           ariaLabel: 'Crear nuevo reporte'
         }
       ]
-    },/*
-    {
-      label: 'Analytics',
-      icon: 'pi pi-chart-bar',
-      ariaLabel: 'Analytics y predicciones',
-      items: [
-        {
-          label: 'Dashboard Analytics',
-          routerLink: '/analytics',
-          icon: 'pi pi-chart-pie',
-          ariaLabel: 'Dashboard de analytics'
-        },
-        {
-          label: 'Predicciones',
-          routerLink: '/analytics/predictions',
-          icon: 'pi pi-forward',
-          ariaLabel: 'Predicciones de contenedores'
-        },
-        {
-          label: 'Patrones de Generación',
-          routerLink: '/analytics/patterns',
-          icon: 'pi pi-sitemap',
-          ariaLabel: 'Análisis de patrones'
-        },
-        {
-          label: 'Dashboard Ejecutivo',
-          routerLink: '/analytics/executive',
-          icon: 'pi pi-briefcase',
-          ariaLabel: 'Dashboard ejecutivo'
-        }
-      ]
-    },*/
+    },
     {
       label: 'Usuarios',
       icon: 'pi pi-users',
       ariaLabel: 'Gestión de usuarios',
       items: [
-/*        {
-          label: 'Todos los Usuarios',
-          routerLink: '/users',
-          icon: 'pi pi-user',
-          ariaLabel: 'Ver todos los usuarios'
-        },*/
         {
           label: 'Conductores',
           routerLink: '/users/drivers',
@@ -207,12 +150,6 @@ export class AdminLayoutComponent {
           routerLink: '/district',
           icon: 'pi pi-sliders-h',
           ariaLabel: 'Configuración general'
-        },
-        {
-          label: 'Notificaciones',
-          routerLink: '/notifications',
-          icon: 'pi pi-bell',
-          ariaLabel: 'Configurar notificaciones'
         },
       ]
     }

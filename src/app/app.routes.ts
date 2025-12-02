@@ -61,7 +61,7 @@ export const routes: Routes = [
     component: AdminLayoutComponent,
     canActivate: [authGuard, roleGuard(['ROLE_MUNICIPAL_ADMINISTRATOR'])],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'containers', pathMatch: 'full' },
 
       // ==================== DASHBOARD PRINCIPAL ====================
       {
