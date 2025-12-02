@@ -11,7 +11,7 @@ export class RouteEntityFromResponseMapper {
       districtId: dto.districtId ?? '',
       vehicleId: dto.vehicleId,
       driverId: dto.driverId,
-      status: EnumMapper.mapStringToEnum(dto.status, RouteStatusEnum, RouteStatusEnum.DRAFT),
+      status: EnumMapper.mapStringToEnum(dto.status, RouteStatusEnum, RouteStatusEnum.PLANNED),
       scheduledStartAt: DateTimeUtils.stringToLocalDateTime(dto.scheduledStartAt) ?? new Date(),
       scheduledEndAt: DateTimeUtils.stringToLocalDateTime(dto.scheduledEndAt) ?? new Date(),
       startedAt: DateTimeUtils.stringToLocalDateTime(dto.startedAt),

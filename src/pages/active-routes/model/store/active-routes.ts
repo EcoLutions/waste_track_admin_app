@@ -50,10 +50,10 @@ export const ActiveRoutesStore = signalStore(
         state.routes().filter(route => route.status === RouteStatusEnum.COMPLETED)
       ),
       assignedRoutes: computed(() =>
-        state.routes().filter(route => route.status === RouteStatusEnum.ASSIGNED)
+        state.routes().filter(route => route.status === RouteStatusEnum.ACTIVE)
       ),
       draftRoutes: computed(() =>
-        state.routes().filter(route => route.status === RouteStatusEnum.DRAFT)
+        state.routes().filter(route => route.status === RouteStatusEnum.PLANNED)
       ),
 
       // Statistics
@@ -251,8 +251,8 @@ export const ActiveRoutesStore = signalStore(
 // Helper functions for labels
 function getStatusLabel(status: RouteStatusEnum): string {
   const labels = {
-    [RouteStatusEnum.DRAFT]: 'Borrador',
-    [RouteStatusEnum.ASSIGNED]: 'Asignada',
+    [RouteStatusEnum.PLANNED]: 'Borrador',
+    [RouteStatusEnum.ACTIVE]: 'Asignada',
     [RouteStatusEnum.IN_PROGRESS]: 'En Progreso',
     [RouteStatusEnum.COMPLETED]: 'Completada',
     [RouteStatusEnum.CANCELLED]: 'Cancelada'
