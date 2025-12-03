@@ -70,7 +70,7 @@
         [center]="mapCenter()"
       >
         <!-- Container Markers -->
-        @for (container of getRouteContainers(); track container.id) {
+        @for (container of getRouteContainers(); track container.id + '-' + container.currentFillLevel) {
           <map-advanced-marker
             [position]="{ lat: $any(container.latitude) * 1, lng: $any(container.longitude) * 1 }"
             [content]="getContainerMarkerContent(container)"

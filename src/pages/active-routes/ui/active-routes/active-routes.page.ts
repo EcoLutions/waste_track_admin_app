@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectorRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {GoogleMap, MapAdvancedMarker, MapPolyline} from '@angular/google-maps';
@@ -31,6 +31,7 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
   private readonly webSocketService = inject(WebSocketService);
   private readonly eventBus = inject(EventBusService);
   private readonly toastService = inject(ToastService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild(GoogleMap) map!: GoogleMap;
 
@@ -181,7 +182,7 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
     });
 
     const containerSub = this.eventBus.on(ContainerUpdatedEvent).subscribe(event => {
-      //console.log('Container fill level updated:', event.payload);
+      console.log('🗑️ Container fill level updated:', event.payload);
       this.handleContainerFillLevelUpdate(event);
     });
 
@@ -203,7 +204,8 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
   private subscribeToAllContainers(): void {
     const containers = this.getRouteContainers();
-    //console.log(`Suscribiendo a ${containers.length} containers...`);
+    console.log(`🗑️ Suscribiendo a ${containers.length} containers...`);
+    console.log('Container IDs:', containers.map(c => c.id));
 
     containers.forEach(container => {
       this.webSocketService.subscribeToContainerUpdateFillLevel(container.id);
@@ -238,19 +240,21 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
   private handleContainerFillLevelUpdate(event: ContainerUpdatedEvent): void {
     const { payload } = event;
+    console.log('🗑️ Handling container fill level update:', payload);
 
     this.store.updateContainerFillLevel(
       payload.containerId,
       payload.fillLevelPercentage
     );
 
+    // Borrar el caché del marcador para forzar regeneración
     const cacheKey = `container-${payload.containerId}`;
     this.markerContentCache.delete(cacheKey);
 
-    const container = this.store.getContainer()(payload.containerId);
-    if (container) {
-      this.getContainerMarkerContent(container);
-    }
+    // Forzar detección de cambios para que Angular re-renderice el marcador
+    this.cdr.markForCheck();
+
+    console.log('🗑️ Container fill level updated successfully');
   }
 
 
