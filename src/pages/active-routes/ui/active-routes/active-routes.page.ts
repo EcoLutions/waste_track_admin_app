@@ -12,7 +12,8 @@ import {EventBusService} from '../../../../shared/services/event-bus.service';
 import {
   RouteLocationUpdatedEvent,
   WebSocketConnectedEvent,
-  WebSocketDisconnectedEvent
+  WebSocketDisconnectedEvent,
+  ContainerUpdatedEvent
 } from '../../../../shared/models/websocket-events';
 import {TruckMarker} from '../../../../shared/helpers/truck-marker.helper';
 import {ToastService} from '../../../../shared/api/services/toast.service';
@@ -153,6 +154,11 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       this.webSocketService.unsubscribeFromRouteLocation(route.id);
     });
 
+    const containers = this.getRouteContainers();
+    containers.forEach(container => {
+      this.webSocketService.unsubscribeFromContainerUpdateFillLevel(container.id);
+    });
+
     this.webSocketService.disconnect();
   }
 
@@ -161,6 +167,7 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       //console.log('WebSocket conectado');
       this.toastService.success('Conectado al sistema de seguimiento en tiempo real');
       this.subscribeToAllActiveRoutes();
+      this.subscribeToAllContainers();
     });
 
     const disconnectedSub = this.eventBus.on(WebSocketDisconnectedEvent).subscribe(() => {
@@ -173,7 +180,12 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       this.handleRouteLocationUpdate(event);
     });
 
-    this.subscriptions.push(connectedSub, disconnectedSub, locationSub);
+    const containerSub = this.eventBus.on(ContainerUpdatedEvent).subscribe(event => {
+      //console.log('Container fill level updated:', event.payload);
+      this.handleContainerFillLevelUpdate(event);
+    });
+
+    this.subscriptions.push(connectedSub, disconnectedSub, locationSub, containerSub);
   }
 
   private subscribeToAllActiveRoutes(): void {
@@ -186,6 +198,15 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       if (route.currentLatitude && route.currentLongitude) {
         this.createTruckMarkerForRoute(route);
       }
+    });
+  }
+
+  private subscribeToAllContainers(): void {
+    const containers = this.getRouteContainers();
+    //console.log(`Suscribiendo a ${containers.length} containers...`);
+
+    containers.forEach(container => {
+      this.webSocketService.subscribeToContainerUpdateFillLevel(container.id);
     });
   }
 
@@ -212,6 +233,23 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
       this.toastService.success(
         `Ruta actualizada: ${remaining} punto${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}`
       );
+    }
+  }
+
+  private handleContainerFillLevelUpdate(event: ContainerUpdatedEvent): void {
+    const { payload } = event;
+
+    this.store.updateContainerFillLevel(
+      payload.containerId,
+      payload.fillLevelPercentage
+    );
+
+    const cacheKey = `container-${payload.containerId}`;
+    this.markerContentCache.delete(cacheKey);
+
+    const container = this.store.getContainer()(payload.containerId);
+    if (container) {
+      this.getContainerMarkerContent(container);
     }
   }
 
@@ -420,6 +458,7 @@ export class ActiveRoutesPage implements OnInit, OnDestroy {
 
     if (this.wsStatus() === WebSocketConnectionStatus.CONNECTED) {
       this.subscribeToAllActiveRoutes();
+      this.subscribeToAllContainers();
     }
   }
 

@@ -36,8 +36,22 @@ export class RouteLocationUpdatedEvent extends WebSocketEvent {
   }
 }
 
+export interface ContainerUpdatedFillLevelPayload {
+  containerId: string;
+  fillLevelPercentage: number;
+}
+
+export class ContainerUpdatedEvent extends WebSocketEvent {
+  readonly type = 'ContainerUpdated';
+
+  constructor(public readonly payload: ContainerUpdatedFillLevelPayload) {
+    super();
+  }
+}
+
 export type AppWebSocketEvent =
   | WebSocketConnectedEvent
   | WebSocketDisconnectedEvent
   | WebSocketErrorEvent
-  | RouteLocationUpdatedEvent;
+  | RouteLocationUpdatedEvent
+  | ContainerUpdatedEvent;
