@@ -7,7 +7,7 @@ import {
   WebSocketDisconnectedEvent,
   WebSocketErrorEvent,
   RouteLocationUpdatedEvent,
-  RouteCurrentLocationUpdatedPayload
+  RouteCurrentLocationUpdatedPayload, ContainerUpdatedFillLevelPayload, ContainerUpdatedEvent
 } from '../models/websocket-events';
 
 export enum WebSocketConnectionStatus {
@@ -163,6 +163,75 @@ export class WebSocketService {
       //console.log('[WebSocket] RouteLocationUpdatedEvent emitted');
     } catch (error) {
       console.error('[WebSocket] Error handling route location update:', error);
+      this.eventBus.emit(new WebSocketErrorEvent(String(error)));
+    }
+  }
+
+  subscribeToContainerUpdateFillLevel(containerId: string): void {
+    if (this.status !== WebSocketConnectionStatus.CONNECTED) {
+      console.warn('[WebSocket] Cannot subscribe, not connected');
+      return;
+    }
+
+    const destination = `/topic/containers/${containerId}/fill-level`;
+    const subscriptionKey = `container_fill_level_${containerId}`;
+
+    if (this.subscriptions.has(subscriptionKey)) {
+      console.log('[WebSocket] Already subscribed to:', destination);
+      return;
+    }
+
+    try {
+      const subscription = this.client!.subscribe(
+        destination,
+        (message: IMessage) => {
+          console.log('[WebSocket]  RAW MESSAGE RECEIVED on', destination);
+          console.log('[WebSocket]  Message headers:', message.headers);
+          console.log('[WebSocket]  Message body:', message.body);
+          this.handleContainerFillLevelUpdate(message);
+        }
+      );
+
+      this.subscriptions.set(subscriptionKey, subscription);
+      console.log('[WebSocket] Successfully subscribed to:', destination);
+      console.log('[WebSocket] Total active subscriptions:', this.subscriptions.size);
+    } catch (error) {
+      console.error('[WebSocket] Error subscribing:', error);
+      this.eventBus.emit(new WebSocketErrorEvent(String(error)));
+    }
+  }
+
+  unsubscribeFromContainerUpdateFillLevel(containerId: string): void {
+    const subscriptionKey = `container_fill_level_${containerId}`;
+    const subscription = this.subscriptions.get(subscriptionKey);
+
+    if (subscription) {
+      subscription.unsubscribe();
+      this.subscriptions.delete(subscriptionKey);
+      console.log('[WebSocket] Unsubscribed from container fill level:', containerId);
+    }
+  }
+
+  private handleContainerFillLevelUpdate(message: IMessage): void {
+    try {
+      //console.log('[WebSocket] 🗑️ Container fill level update received');
+      //console.log('[WebSocket] Message body:', message.body);
+
+      if (!message.body) {
+        console.warn('[WebSocket] Message body is empty');
+        return;
+      }
+
+      const payload: ContainerUpdatedFillLevelPayload = JSON.parse(message.body);
+      //console.log('[WebSocket] Parsed payload:', payload);
+
+      // Emitir evento al EventBus
+      const event = new ContainerUpdatedEvent(payload);
+      this.eventBus.emit(event);
+
+
+    } catch (error) {
+      console.error('[WebSocket] Error handling container fill level update:', error);
       this.eventBus.emit(new WebSocketErrorEvent(String(error)));
     }
   }
