@@ -389,6 +389,24 @@ export const ActiveRoutesStore = signalStore(
         }));
 
         console.log(`📍 Ubicación actualizada para ruta ${routeId.substring(0, 8)}`);
+      },
+
+      updateContainerFillLevel(
+        containerId: string,
+        fillLevelPercentage: number
+      ): void {
+        patchState(store, (state) => ({
+          containers: state.containers.map(container =>
+            container.id === containerId
+              ? {
+                ...container,
+                currentFillLevel: fillLevelPercentage
+              }
+              : container
+          )
+        }));
+
+        console.log(`🗑️ Fill level actualizado para container ${containerId.substring(0, 8)}: ${fillLevelPercentage}%`);
       }
     };
   })
